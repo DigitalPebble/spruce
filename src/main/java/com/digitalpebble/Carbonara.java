@@ -12,13 +12,15 @@
 
 package com.digitalpebble;
 
-import org.apache.spark.api.java.function.MapFunction;
 import org.apache.spark.sql.*;
-import org.apache.spark.sql.types.DataType;
 import org.apache.spark.sql.types.StructType;
 
+import java.util.List;
+
 import static org.apache.spark.sql.functions.*;
-import static org.apache.spark.sql.types.DataTypes.DoubleType;
+import org.apache.spark.sql.catalyst.encoders.RowEncoder;
+
+
 
 public class Carbonara {
 
@@ -37,26 +39,35 @@ public class Carbonara {
                 .getOrCreate();
 
         // Read the input Parquet file(s)
-        Dataset<Row> parquetFileDF = spark.read().parquet(inputPath);
+        Dataset<Row> dataframe = spark.read().parquet(inputPath);
+
+        // TODO define and configure modules via configuration
 
         // Add energy usage estimates
-
-        StructType newType = parquetFileDF.schema().add("energy_usage_kwh", DoubleType);
-
-        Dataset<Row> energyDF = parquetFileDF.map(
-                (MapFunction<Row, Row>) row -> row,
-                Encoders.row(newType));
-
-        energyDF.printSchema();
-
         // Add carbon estimates
-
         // Add embedded carbon
+        // compute emissions
 
-        // Add water estimates
+        List<EnrichmentModule> modules = List.of(
+                new com.digitalpebble.module.DummyModule()
+        );
 
+        for (EnrichmentModule module : modules) {
+            // add new columns for the current module
+            // with the correct type but a value of null
+            for ( Columns c : module.columnsAdded()){
+                dataframe = dataframe.withColumn(c.label, lit(null).cast(c.type));
+            }
+        }
+
+        StructType finalSchema = dataframe.schema();
+
+        EnrichementPipeline pipeline = new EnrichementPipeline(modules);
+        Encoder<Row> encoder = RowEncoder.encoderFor(finalSchema);
+
+        Dataset<Row> enriched = dataframe.mapPartitions(pipeline, encoder);
         // Write the result to Parquet
-        energyDF.write().mode("overwrite").parquet(outputPath);
+        enriched.write().mode("overwrite").parquet(outputPath);
 
         spark.stop();
     }
