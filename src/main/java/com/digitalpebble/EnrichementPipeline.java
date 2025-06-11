@@ -38,11 +38,22 @@ public class EnrichementPipeline implements MapPartitionsFunction<Row, Row> {
             @Override
             public Row next() {
                 Row row = input.next();
+                // usage filter - only need to enrich entries that correspond to a usage (no tax, discount or fee)
+                boolean usage = usageFilter(row);
+                if (!usage) return row;
                 for (EnrichmentModule transformer : transformers) {
                     row = transformer.process(row);
                 }
                 return row;
             }
         };
+    }
+
+    /** Returns true if the line item corresponds to a usage, false otherwise**/
+    private boolean usageFilter (Row row){
+        int index = row.fieldIndex("line_item_line_item_type");
+        if (index < 0){ return false; }
+        String item_type = row.getString(index);
+        return item_type.endsWith("Usage");
     }
 }

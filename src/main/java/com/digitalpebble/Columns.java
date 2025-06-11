@@ -21,8 +21,8 @@ public enum Columns {
 
     ENERGY_USED("energy_usage_kwh", DoubleType),
     CARBON_INTENSITY("carbon_intensity", DoubleType),
-    USAGE_EMISSIONS("usage_emissions_co2eq_g", DoubleType),
-    EMBEDDED_EMISSIONS("embedded_emissions_co2eq_g", DoubleType);
+    OPERATIONAL_EMISSIONS("operational_emissions_co2eq_g", DoubleType),
+    EMBODIED_EMISSIONS("embodied_emissions_co2eq_g", DoubleType);
 
     final String label;
     final DataType type;

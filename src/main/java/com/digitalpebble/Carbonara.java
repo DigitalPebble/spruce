@@ -49,7 +49,7 @@ public class Carbonara {
         // compute emissions
 
         List<EnrichmentModule> modules = List.of(
-                new com.digitalpebble.module.DummyModule()
+                new com.digitalpebble.module.ccf.Networking()
         );
 
         for (EnrichmentModule module : modules) {
@@ -66,6 +66,7 @@ public class Carbonara {
         Encoder<Row> encoder = RowEncoder.encoderFor(finalSchema);
 
         Dataset<Row> enriched = dataframe.mapPartitions(pipeline, encoder);
+
         // Write the result to Parquet
         enriched.write().mode("overwrite").parquet(outputPath);
 
