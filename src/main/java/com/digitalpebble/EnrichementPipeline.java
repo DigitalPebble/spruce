@@ -54,6 +54,7 @@ public class EnrichementPipeline implements MapPartitionsFunction<Row, Row> {
         int index = row.fieldIndex("line_item_line_item_type");
         if (index < 0){ return false; }
         String item_type = row.getString(index);
+        // can be Usage (for on demand resources), SavingsPlanCoveredUsage or DiscountedUsage
         return item_type.endsWith("Usage");
     }
 }

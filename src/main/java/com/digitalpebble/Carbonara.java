@@ -67,8 +67,8 @@ public class Carbonara {
 
         Dataset<Row> enriched = dataframe.mapPartitions(pipeline, encoder);
 
-        // Write the result to Parquet
-        enriched.write().mode("overwrite").parquet(outputPath);
+        // Write the result as Parquet, with one subdirectory per billing period, similar to the input
+        enriched.write().partitionBy("BILLING_PERIOD").mode("overwrite").parquet(outputPath);
 
         spark.stop();
     }
