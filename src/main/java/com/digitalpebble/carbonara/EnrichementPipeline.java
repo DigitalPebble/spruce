@@ -17,13 +17,18 @@ import org.apache.spark.sql.Row;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 public class EnrichementPipeline implements MapPartitionsFunction<Row, Row> {
 
     private final List<EnrichmentModule> transformers;
 
-    public EnrichementPipeline(List<EnrichmentModule> modules) {
+    /** Initialises the modules **/
+    public EnrichementPipeline(List<EnrichmentModule> modules, Map<String, String> params) {
         this.transformers = modules;
+        for (EnrichmentModule module : transformers) {
+            module.init(params); // pass any parameters if needed
+        }
     }
 
     @Override

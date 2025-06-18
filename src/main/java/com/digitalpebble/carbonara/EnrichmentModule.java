@@ -14,6 +14,7 @@ package com.digitalpebble.carbonara;
 
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
+import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -40,7 +41,7 @@ public interface EnrichmentModule extends Serializable {
         }
         int index = row.fieldIndex(column.toString());
         values[index] = newValue;
-        return RowFactory.create(values);
+        return new GenericRowWithSchema(values, row.schema());
     }
 
     public static Row withUpdatedValues(Row row, Map<Column, Object> updates) {
@@ -63,6 +64,6 @@ public interface EnrichmentModule extends Serializable {
             values[index] = newValue;
         }
 
-        return RowFactory.create(values);
+        return new GenericRowWithSchema(values, row.schema());
     }
 }
