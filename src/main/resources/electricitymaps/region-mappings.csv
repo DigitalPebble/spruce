@@ -1,0 +1,104 @@
+# cloud-provider,cloud-region,zone_id
+Amazon Web Services,af-south-1,ZA
+Amazon Web Services,ap-east-1,HK
+Amazon Web Services,ap-northeast-1,JP-TK
+Amazon Web Services,ap-northeast-2,KR
+Amazon Web Services,ap-northeast-3,JP-KN
+Amazon Web Services,ap-south-1,IN-WE
+Amazon Web Services,ap-south-2,IN-SO
+Amazon Web Services,ap-southeast-1,SG
+Amazon Web Services,ap-southeast-2,AU-NSW
+Amazon Web Services,ap-southeast-3,ID
+Amazon Web Services,ap-southeast-4,AU-VIC
+Amazon Web Services,ca-central-1,CA-QC
+Amazon Web Services,eu-central-1,DE
+Amazon Web Services,eu-central-2,CH
+Amazon Web Services,eu-north-1,SE
+Amazon Web Services,eu-north-1,ES
+Amazon Web Services,eu-south-1,IT-NO
+Amazon Web Services,eu-south-2,ES
+Amazon Web Services,eu-west-1,IE
+Amazon Web Services,eu-west-2,GB
+Amazon Web Services,eu-west-3,FR
+Amazon Web Services,il-central-1,IL
+Amazon Web Services,me-central-1,AE
+Amazon Web Services,me-south-1,BH
+Amazon Web Services,sa-east-1,BR-CS
+Amazon Web Services,us-east-1,US-MIDA-PJM
+Amazon Web Services,us-east-2,US-MIDA-PJM
+Amazon Web Services,us-gov-east-1,US-MIDA-PJM
+Amazon Web Services,us-gov-west-1,US-NW-BPAT
+Amazon Web Services,us-west-1,US-CAL-CISO
+Amazon Web Services,us-west-2,US-NW-BPAT
+Google Cloud,africa-south1,ZA
+Google Cloud,asia-east1,TW
+Google Cloud,asia-east2,HK
+Google Cloud,asia-northeast1,JP-TK
+Google Cloud,asia-northeast2,JP-KN
+Google Cloud,asia-northeast3,KR
+Google Cloud,asia-south1,IN-WE
+Google Cloud,asia-south2,IN-NO
+Google Cloud,asia-southeast1,SG
+Google Cloud,asia-southeast2,ID
+Google Cloud,australia-southeast1,AU-NSW
+Google Cloud,australia-southeast2,AU-VIC
+Google Cloud,europe-central2,PL
+Google Cloud,europe-north1,FI
+Google Cloud,europe-north1,AU-VIC
+Google Cloud,europe-north1,BE
+Google Cloud,europe-southwest1,ES
+Google Cloud,europe-west1,GB
+Google Cloud,europe-west1,BE
+Google Cloud,europe-west12,IT-NO
+Google Cloud,europe-west2,DE
+Google Cloud,europe-west2,GB
+Google Cloud,europe-west3,NL
+Google Cloud,europe-west3,DE
+Google Cloud,europe-west4,CH
+Google Cloud,europe-west4,NL
+Google Cloud,europe-west6,IT-NO
+Google Cloud,europe-west6,CH
+Google Cloud,europe-west8,IT-NO
+Google Cloud,europe-west9,FR
+Google Cloud,me-central1,AE
+Google Cloud,me-central2,SA
+Google Cloud,me-west1,IL
+Google Cloud,northamerica-northeast1,CA-QC
+Google Cloud,northamerica-northeast2,CA-ON
+Google Cloud,southamerica-east1,BR-CS
+Google Cloud,southamerica-west1,CL-SEN
+Google Cloud,us-central1,US-MIDW-MISO
+Google Cloud,us-east1,US-CAR-SC
+Google Cloud,us-east4,US-MIDA-PJM
+Google Cloud,us-east5,US-MIDA-PJM
+Google Cloud,us-south1,US-TEX-ERCO
+Google Cloud,us-west1,US-NW-BPAT
+Google Cloud,us-west2,US-CAL-CISO
+Google Cloud,us-west3,US-NW-PACE
+Google Cloud,us-west4,US-NW-NEVP
+Microsoft Azure,asiapacific,ID
+Microsoft Azure,australiaeast,AU-NSW
+Microsoft Azure,australiasoutheast,AU-VIC
+Microsoft Azure,austriaeast,AT
+Microsoft Azure,brazilsouth,BR-CS
+Microsoft Azure,centralus,US-MIDW-MISO
+Microsoft Azure,denmarkeast,DK-DK2
+Microsoft Azure,eastus,US-MIDA-PJM
+Microsoft Azure,eastus2,US-MIDA-PJM
+Microsoft Azure,eastus3,US-SE-SOCO
+Microsoft Azure,greececentral,GR
+Microsoft Azure,indiasouthcentral,IN-SO
+Microsoft Azure,italynorth,IT-NO
+Microsoft Azure,mexicocentral,MX
+Microsoft Azure,newzealandnorth,NZ
+Microsoft Azure,northcentralus,US-MIDW-MISO
+Microsoft Azure,northeurope,FI
+Microsoft Azure,northeurope,IE
+Microsoft Azure,polandcentral,PL
+Microsoft Azure,southcentralus,US-TEX-ERCO
+Microsoft Azure,southeastasia,SG
+Microsoft Azure,spaincentral,ES
+Microsoft Azure,swedencentral,SE
+Microsoft Azure,taiwannorth,TW
+Microsoft Azure,westeurope,NL
+Microsoft Azure,westus,US-NW-BPAT

@@ -58,7 +58,8 @@ public class SparkJob {
         // compute emissions
 
         final List<EnrichmentModule> modules = List.of(
-                new Networking()
+                new Networking(),
+                new AverageCarbonIntensity()
         );
 
         for (EnrichmentModule module : modules) {

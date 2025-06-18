@@ -1,0 +1,8 @@
+## Data sources
+
+The mapppings between cloud region IDs and ElectricityMaps ID come from the [real-time-cloud](https://github.com/Green-Software-Foundation/real-time-cloud) project.
+The average carbon intensities are generated from the [ElectricityMaps 2024 dataset](https://portal.electricitymaps.com/datasets/).
+
+## License
+
+Open Data Commons Open Database license (ODbL)
