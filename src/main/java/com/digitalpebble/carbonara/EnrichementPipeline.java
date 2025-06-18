@@ -10,11 +10,10 @@
  * and limitations under the License.
  */
 
-package com.digitalpebble;
+package com.digitalpebble.carbonara;
 
 import org.apache.spark.api.java.function.MapPartitionsFunction;
 import org.apache.spark.sql.Row;
-import org.apache.spark.sql.types.StructType;
 
 import java.util.Iterator;
 import java.util.List;

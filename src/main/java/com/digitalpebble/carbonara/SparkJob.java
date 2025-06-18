@@ -10,8 +10,9 @@
  * and limitations under the License.
  */
 
-package com.digitalpebble;
+package com.digitalpebble.carbonara;
 
+import com.digitalpebble.carbonara.modules.ccf.Networking;
 import org.apache.spark.sql.*;
 import org.apache.spark.sql.types.StructType;
 
@@ -22,11 +23,11 @@ import org.apache.spark.sql.catalyst.encoders.RowEncoder;
 
 
 
-public class Carbonara {
+public class SparkJob {
 
     public static void main(String[] args) {
         if (args.length < 2) {
-            System.err.println("Usage: Carbonara <inputPath> <outputPath>");
+            System.err.println("Usage: SparkJob <inputPath> <outputPath>");
             System.exit(1);
         }
 
@@ -49,13 +50,13 @@ public class Carbonara {
         // compute emissions
 
         List<EnrichmentModule> modules = List.of(
-                new com.digitalpebble.module.ccf.Networking()
+                new Networking()
         );
 
         for (EnrichmentModule module : modules) {
             // add new columns for the current module
             // with the correct type but a value of null
-            for ( Columns c : module.columnsAdded()){
+            for ( Column c : module.columnsAdded()){
                 dataframe = dataframe.withColumn(c.label, lit(null).cast(c.type));
             }
         }

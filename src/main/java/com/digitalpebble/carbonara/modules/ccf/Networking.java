@@ -10,18 +10,25 @@
  * and limitations under the License.
  */
 
-package com.digitalpebble.module.ccf;
+package com.digitalpebble.carbonara.modules.ccf;
 
-import com.digitalpebble.Columns;
-import com.digitalpebble.EnrichmentModule;
+import com.digitalpebble.carbonara.Column;
+import com.digitalpebble.carbonara.EnrichmentModule;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.spark.sql.Row;
 
-import static com.digitalpebble.Columns.ENERGY_USED;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Map;
+
+import static com.digitalpebble.carbonara.Column.ENERGY_USED;
 
 /**
  * Provides an estimate of energy used for networking in and out of data centres.
  * Applies a flat coefficient per Gb
  * @see <a href="https://www.cloudcarbonfootprint.org/docs/methodology#networking">CCF methodology</a>
+ * @see <a href="https://github.com/cloud-carbon-footprint/cloud-carbon-footprint/blob/main/packages/aws/src/lib/CostAndUsageTypes.ts#L108">resource file</a>
  **/
 public class Networking implements EnrichmentModule {
 
@@ -29,8 +36,23 @@ public class Networking implements EnrichmentModule {
     private final double network_coefficient = 0.001;
 
     @Override
-    public Columns[] columnsAdded() {
-        return new Columns[]{ENERGY_USED};
+    public Column[] columnsAdded() {
+        return new Column[]{ENERGY_USED};
+    }
+
+    public static Map<String, Object> loadResources(String resourceFileName) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        try (InputStream inputStream = Networking.class
+                .getClassLoader()
+                .getResourceAsStream(resourceFileName)) {
+
+            if (inputStream == null) {
+                throw new IOException("Resource file not found: " + resourceFileName);
+            }
+
+            return objectMapper.readValue(inputStream, new TypeReference<Map<String, Object>>() {});
+        }
     }
 
     @Override
@@ -49,6 +71,6 @@ public class Networking implements EnrichmentModule {
         double amount_gb = row.getDouble(index);
         double energy_gb = amount_gb * network_coefficient;
 
-        return EnrichmentModule.withUpdatedValue(row, ENERGY_USED.getLabel(), energy_gb);
+        return EnrichmentModule.withUpdatedValue(row, ENERGY_USED, energy_gb);
     }
 }

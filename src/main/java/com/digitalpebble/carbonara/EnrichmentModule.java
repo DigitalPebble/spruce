@@ -10,16 +10,12 @@
  * and limitations under the License.
  */
 
-package com.digitalpebble;
+package com.digitalpebble.carbonara;
 
-import org.apache.spark.api.java.function.MapFunction;
-import org.apache.spark.api.java.function.MapPartitionsFunction;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
-import org.apache.spark.sql.types.StructType;
 
 import java.io.Serializable;
-import java.util.Iterator;
 import java.util.Map;
 
 /** A module adds new columns to a Dataset and populates them based on its content.
@@ -33,28 +29,28 @@ public interface EnrichmentModule extends Serializable {
     public default void init(Map<String, String> params){}
 
     /** Returns the columns added by this module **/
-    public Columns[] columnsAdded();
+    public Column[] columnsAdded();
 
     public Row process(Row row);
 
-    public static Row withUpdatedValue(Row row, String fieldName, Object newValue) {
+    public static Row withUpdatedValue(Row row, Column column, Object newValue) {
         Object[] values = new Object[row.size()];
         for (int i = 0; i < row.size(); i++) {
             values[i] = row.get(i);
         }
-        int index = row.fieldIndex(fieldName);
+        int index = row.fieldIndex(column.toString());
         values[index] = newValue;
         return RowFactory.create(values);
     }
 
-    public static Row withUpdatedFields(Row row, Map<String, Object> updates) {
+    public static Row withUpdatedValues(Row row, Map<Column, Object> updates) {
         Object[] values = new Object[row.size()];
         for (int i = 0; i < row.size(); i++) {
             values[i] = row.get(i);
         }
 
-        for (Map.Entry<String, Object> entry : updates.entrySet()) {
-            String field = entry.getKey();
+        for (Map.Entry<Column, Object> entry : updates.entrySet()) {
+            String field = entry.getKey().toString();
             Object newValue = entry.getValue();
 
             int index;

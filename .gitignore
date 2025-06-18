@@ -1,0 +1,15 @@
+
+# Intellij
+.idea/
+*.iml
+*.iws
+
+# Mac
+.DS_Store
+
+# Maven
+target/
+
+# avoid accidental addition of dirs mentioned in README
+curs/
+output/

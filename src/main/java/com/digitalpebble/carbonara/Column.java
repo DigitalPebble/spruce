@@ -10,14 +10,14 @@
  * and limitations under the License.
  */
 
-package com.digitalpebble;
+package com.digitalpebble.carbonara;
 
 import org.apache.spark.sql.types.DataType;
 
 import static org.apache.spark.sql.types.DataTypes.DoubleType;
 
-/** Defines commonly used columns with a name and type **/
-public enum Columns {
+/** Defines columns added by the EnrichmentModules **/
+public enum Column {
 
     ENERGY_USED("energy_usage_kwh", DoubleType),
     CARBON_INTENSITY("carbon_intensity", DoubleType),
@@ -27,11 +27,10 @@ public enum Columns {
     final String label;
     final DataType type;
 
-    public DataType getType() {return type;}
+    @Override
+    public String toString() {return label;}
 
-    public String getLabel() {return label;}
-
-    Columns(String l, DataType t) {
+    private Column(String l, DataType t) {
         label = l;
         type = t;
     }

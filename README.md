@@ -26,7 +26,7 @@ With Apache Spark installed locally and added to the $PATH.
 
 ```
 mvn clean package
-spark-submit --class com.digitalpebble.Carbonara --driver-memory 2g ./target/carbonara-1.0.jar ./curs ./output
+spark-submit --class com.digitalpebble.carbonara.SparkJob --driver-memory 2g ./target/carbonara-1.0.jar ./curs ./output
 ```
 
 ## Docker
@@ -38,7 +38,7 @@ The command below processes the data locally by mounting the directories contain
 ```
 docker run -it  -v ./curs:/curs -v ./output:/output  carbonara:1.0 \
 /opt/spark/bin/spark-submit  \
---class com.digitalpebble.Carbonara \
+--class com.digitalpebble.carbonara.SparkJob \
 --master 'local[*]' \
 /usr/local/lib/carbonara-1.0.jar \
 /curs /output
