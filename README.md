@@ -26,7 +26,7 @@ With Apache Spark installed locally and added to the $PATH.
 
 ```
 mvn clean package
-spark-submit --class com.digitalpebble.carbonara.SparkJob --driver-memory 2g ./target/carbonara-1.0.jar ./curs ./output
+spark-submit --class com.digitalpebble.carbonara.SparkJob --driver-memory 4g ./target/carbonara-1.0.jar ./curs ./output
 ```
 
 ## Docker
@@ -43,3 +43,30 @@ docker run -it  -v ./curs:/curs -v ./output:/output  carbonara:1.0 \
 /usr/local/lib/carbonara-1.0.jar \
 /curs /output
 ```
+
+## Explore the output
+
+Using [DuckDB](https://duckdb.org/)
+
+```sql
+create table enriched_curs as select * from 'output/*/*.parquet';
+
+select line_item_product_code, product_servicecode, 
+       round(sum(operational_emissions_co2eq_g),2) as co2_usage_g, 
+       round(sum(energy_usage_kwh),2) as energy_usage_kwh 
+       from enriched_curs where operational_emissions_co2eq_g > 0.01 
+       group by line_item_product_code, product_servicecode order by co2_usage_g desc;
+```
+
+should give an output similar to
+
+| line_item_product_code | product_servicecode | co2_usage_g | energy_usage_kwh |
+|------------------------|---------------------|-------------|------------------|
+| AmazonS3               | AWSDataTransfer     | 659.2       | 3.31             |
+| AmazonRDS              | AWSDataTransfer     | 361.59      | 1.09             |
+| AmazonEC2              | AWSDataTransfer     | 162.59      | 1.43             |
+| AmazonECR              | AWSDataTransfer     | 88.75       | 0.8              |
+| AmazonVPC              | AWSDataTransfer     | 40.55       | 0.38             |
+| AWSELB                 | AWSDataTransfer     | 6.3         | 0.06             |
+
+
