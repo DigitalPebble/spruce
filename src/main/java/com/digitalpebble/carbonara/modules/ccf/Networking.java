@@ -16,6 +16,8 @@ import com.digitalpebble.carbonara.Column;
 import com.digitalpebble.carbonara.EnrichmentModule;
 import org.apache.spark.sql.Row;
 
+import java.util.Map;
+
 import static com.digitalpebble.carbonara.Column.ENERGY_USED;
 
 /**
@@ -36,14 +38,21 @@ public class Networking implements EnrichmentModule {
 
     @Override
     public Row process(Row row) {
-
-        int index = row.fieldIndex("line_item_usage_type");
-        String usageType = row.getString(index);
-        // SHORTCUT
-        if (usageType == null || !usageType.endsWith("-Bytes")) {
+        int index = row.fieldIndex("product_servicecode");
+        String service_code = row.getString(index);
+        if (service_code == null || !service_code.equals("AWSDataTransfer")) {
             return row;
         }
-        // TODO apply only to rows corresponding to networking in or out of a region
+        //  apply only to rows corresponding to networking in or out of a region
+        index = row.fieldIndex("product");
+        Map<Object, Object> productMap = row.getJavaMap(index);
+        String transfer_type = (String) productMap.getOrDefault("transfer_type", "");
+
+        if (!transfer_type.startsWith("InterRegion")) {
+            return row;
+        }
+
+        // TODO consider extending to AWS Outbound and Inbound
 
         // get the amount of data transferred
         index = row.fieldIndex("line_item_usage_amount");
