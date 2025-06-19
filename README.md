@@ -20,9 +20,13 @@ Please note that this is currently a prototype which handles only CUR reports fr
 One of the benefits of using Apache Spark is that you can use [EMR on AWS](https://aws.amazon.com/emr/features/spark/) to enrich 
 the CURs at scale without having to export or expose any of your data.
 
+## Prerequisites
+
+You will need to have CUR reports as inputs. Those are generated via [DataExports](https://docs.aws.amazon.com/cur/latest/userguide/what-is-data-exports.html) and stored on S3 as Parquet files.
+
 ## Local install
 
-With Apache Spark installed locally and added to the $PATH.
+With Apache Maven, Java and Apache Spark installed locally and added to the $PATH.
 
 ```
 mvn clean package
