@@ -77,8 +77,17 @@ public class AverageCarbonIntensity implements EnrichmentModule {
         double energyUsed = row.getDouble(index);
 
         // get the location
-        int locationIndex = row.fieldIndex("product_to_region_code");
-        if (row.isNullAt(locationIndex)){
+        // in most cases you have a product_region_code but can be product_to_region_code or product_from_region_code
+        // when the traffic is between two regions or to/from the outside
+        int locationIndex = -1;
+        String[] regionFields = {"product_region_code", "product_from_region_code", "product_to_region_code"};
+        for (String field : regionFields) {
+            locationIndex = row.fieldIndex(field);
+            if (!row.isNullAt(locationIndex)) {
+                break;
+            }
+        }
+        if (locationIndex == -1 || row.isNullAt(locationIndex)) {
             return row;
         }
 
