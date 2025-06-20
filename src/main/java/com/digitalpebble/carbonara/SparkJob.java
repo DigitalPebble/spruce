@@ -44,6 +44,8 @@ public class SparkJob {
                 .master("local[*]")
                 .getOrCreate();
 
+        spark.conf().set("mapreduce.fileoutputcommitter.marksuccessfuljobs", "false");
+
         // Read the input Parquet file(s)
         Dataset<Row> dataframe = spark.read().parquet(inputPath);
 

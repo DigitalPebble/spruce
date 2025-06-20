@@ -36,16 +36,17 @@ spark-submit --class com.digitalpebble.carbonara.SparkJob --driver-memory 4g ./t
 ## Docker
 
 Build the Docker image with
-`docker build -t carbonara:1.0 .`
+`docker build -t digitalpebble/carbonara:1.0 .`
 
 The command below processes the data locally by mounting the directories containing the CURs and output as volumes:
 ```
-docker run -it  -v ./curs:/curs -v ./output:/output  carbonara:1.0 \
+docker run -it  -v ./curs:/curs -v ./output:/output  digitalpebble/carbonara:1.0 \
 /opt/spark/bin/spark-submit  \
 --class com.digitalpebble.carbonara.SparkJob \
+--driver-memory 4g \
 --master 'local[*]' \
 /usr/local/lib/carbonara-1.0.jar \
-/curs /output
+/curs /output/enriched
 ```
 
 ## Explore the output
