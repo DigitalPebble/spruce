@@ -18,7 +18,9 @@ import org.apache.spark.sql.Row;
 
 import java.util.Map;
 
-import static com.digitalpebble.carbonara.Column.ENERGY_USED;
+import static com.digitalpebble.carbonara.CURColumn.PRODUCT_SERVICE_CODE;
+import static com.digitalpebble.carbonara.CURColumn.USAGE_AMOUNT;
+import static com.digitalpebble.carbonara.CarbonaraColumn.ENERGY_USED;
 
 /**
  * Provides an estimate of energy used for networking in and out of data centres.
@@ -38,7 +40,7 @@ public class Networking implements EnrichmentModule {
 
     @Override
     public Row process(Row row) {
-        int index = row.fieldIndex("product_servicecode");
+        int index = row.fieldIndex(PRODUCT_SERVICE_CODE.getLabel());
         String service_code = row.getString(index);
         if (service_code == null || !service_code.equals("AWSDataTransfer")) {
             return row;
@@ -55,7 +57,7 @@ public class Networking implements EnrichmentModule {
         // TODO consider extending to AWS Outbound and Inbound
 
         // get the amount of data transferred
-        index = row.fieldIndex("line_item_usage_amount");
+        index = row.fieldIndex(USAGE_AMOUNT.getLabel());
         double amount_gb = row.getDouble(index);
         double energy_gb = amount_gb * network_coefficient;
 
