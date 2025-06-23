@@ -29,7 +29,7 @@ import static com.digitalpebble.carbonara.Column.ENERGY_USED;
 public class Networking implements EnrichmentModule {
 
     // estimated kWh/Gb
-    private final double network_coefficient = 0.001;
+    final double network_coefficient = 0.001;
 
     @Override
     public Column[] columnsAdded() {

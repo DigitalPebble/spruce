@@ -57,7 +57,10 @@ public class AverageCarbonIntensity implements EnrichmentModule {
         }
     }
 
-    // Get the average intensity for the given region ID
+    /**
+      Get the average intensity for the given region ID
+      in gCO2perKWH
+     */
     protected Double getAverageIntensity(Provider provider, String regionId) {
         String emRegionId = RegionMappings.getEMRegion(provider, regionId);
         return average_intensities.get(emRegionId);
