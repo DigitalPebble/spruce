@@ -74,4 +74,19 @@ should give an output similar to
 | AmazonVPC              | AWSDataTransfer     | 40.55       | 0.38             |
 | AWSELB                 | AWSDataTransfer     | 6.3         | 0.06             |
 
+To measure the proportion of the costs for which emissions where calculated
+
+```sql
+select
+  round(covered * 100 / "to:tal costs", 2) as percentage_costs_covered
+from (
+  select
+    sum(line_item_unblended_cost) as "total costs",
+    sum(line_item_unblended_cost) filter (where operational_emissions_co2eq_g is not null) as covered
+  from
+    enriched_curs
+  where
+    line_item_line_item_type like '%Usage'
+);
+```
 
