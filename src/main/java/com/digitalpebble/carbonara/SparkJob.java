@@ -68,7 +68,7 @@ public class SparkJob {
             // add new columns for the current module
             // with the correct type but a value of null
             for (Column c : module.columnsAdded()) {
-                dataframe = dataframe.withColumn(c.label, lit(null).cast(c.type));
+                dataframe = dataframe.withColumn(c.getLabel(), lit(null).cast(c.getType()));
             }
         }
 

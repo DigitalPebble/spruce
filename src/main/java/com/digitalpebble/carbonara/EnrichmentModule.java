@@ -38,7 +38,7 @@ public interface EnrichmentModule extends Serializable {
         for (int i = 0; i < row.size(); i++) {
             values[i] = row.get(i);
         }
-        int index = row.fieldIndex(column.toString());
+        int index = row.fieldIndex(column.getLabel());
         values[index] = newValue;
         return new GenericRowWithSchema(values, row.schema());
     }
@@ -50,7 +50,7 @@ public interface EnrichmentModule extends Serializable {
         }
 
         for (Map.Entry<Column, Object> entry : updates.entrySet()) {
-            String field = entry.getKey().toString();
+            String field = entry.getKey().getLabel();
             Object newValue = entry.getValue();
 
             int index;

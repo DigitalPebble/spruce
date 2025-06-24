@@ -55,7 +55,7 @@ public class EnrichementPipeline implements MapPartitionsFunction<Row, Row> {
 
     /** Returns true if the line item corresponds to a usage, false otherwise**/
     private boolean usageFilter (Row row){
-        int index = row.fieldIndex("line_item_line_item_type");
+        int index = row.fieldIndex(CURColumn.LINE_ITEM_TYPE.getLabel());
         if (index < 0){ return false; }
         String item_type = row.getString(index);
         // can be Usage (for on demand resources), SavingsPlanCoveredUsage or DiscountedUsage

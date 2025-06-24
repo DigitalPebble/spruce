@@ -13,6 +13,8 @@
 package com.digitalpebble.carbonara.modules.electricitymaps;
 
 import com.digitalpebble.carbonara.Column;
+import static com.digitalpebble.carbonara.CarbonaraColumn.*;
+
 import com.digitalpebble.carbonara.EnrichmentModule;
 import com.digitalpebble.carbonara.Provider;
 import com.digitalpebble.carbonara.Utils;
@@ -73,7 +75,7 @@ public class AverageCarbonIntensity implements EnrichmentModule {
 
     @Override
     public Row process(Row row) {
-        int index = row.fieldIndex(ENERGY_USED.toString());
+        int index = row.fieldIndex(ENERGY_USED.getLabel());
         if (row.isNullAt(index)){
             return row;
         }
