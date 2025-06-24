@@ -12,20 +12,18 @@
 
 package com.digitalpebble.carbonara.modules.electricitymaps;
 
-import com.digitalpebble.carbonara.Column;
+import com.digitalpebble.carbonara.*;
+
+import static com.digitalpebble.carbonara.CURColumn.PRODUCT_FROM_REGION_CODE;
+import static com.digitalpebble.carbonara.CURColumn.PRODUCT_TO_REGION_CODE;
 import static com.digitalpebble.carbonara.CarbonaraColumn.*;
 
-import com.digitalpebble.carbonara.EnrichmentModule;
-import com.digitalpebble.carbonara.Provider;
-import com.digitalpebble.carbonara.Utils;
 import org.apache.spark.sql.Row;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static com.digitalpebble.carbonara.Column.*;
 
 /**
  * Populate the CARBON_INTENSITY and OPERATIONAL_EMISSIONS using ElecticityMaps' 2024 datasets
@@ -75,30 +73,30 @@ public class AverageCarbonIntensity implements EnrichmentModule {
 
     @Override
     public Row process(Row row) {
-        int index = row.fieldIndex(ENERGY_USED.getLabel());
-        if (row.isNullAt(index)){
+        if (ENERGY_USED.isNullAt(row)) {
             return row;
         }
-        double energyUsed = row.getDouble(index);
+        double energyUsed = ENERGY_USED.getDouble(row);
 
+        String locationCode = null;
         // get the location
         // in most cases you have a product_region_code but can be product_to_region_code or product_from_region_code
         // when the traffic is between two regions or to/from the outside
-        int locationIndex = -1;
-        String[] regionFields = {"product_region_code", "product_from_region_code", "product_to_region_code"};
-        for (String field : regionFields) {
-            locationIndex = row.fieldIndex(field);
-            if (!row.isNullAt(locationIndex)) {
+        final Column[] location_columns = new Column[]{CURColumn.PRODUCT_REGION_CODE, PRODUCT_FROM_REGION_CODE, PRODUCT_TO_REGION_CODE};
+        for (Column c : location_columns) {
+            locationCode = c.getString(row);
+            if (locationCode != null) {
                 break;
             }
         }
-        if (locationIndex == -1 || row.isNullAt(locationIndex)) {
+
+        //  no location found - skip
+        if (locationCode == null) {
             return row;
         }
 
         // get intensity for the location
         try {
-            String locationCode = row.getString(locationIndex);
             final double coeff = getAverageIntensity(Provider.AWS, locationCode);
             if (coeff == 0.0d) {
                 // if the coefficient is 0 it means that the region is not supported
@@ -106,12 +104,11 @@ public class AverageCarbonIntensity implements EnrichmentModule {
             }
             // compute the usage emissions
             double emissions = energyUsed * coeff;
-            Map<Column, Object>  additions = new HashMap<>();
+            Map<Column, Object> additions = new HashMap<>();
             additions.put(CARBON_INTENSITY, coeff);
             additions.put(OPERATIONAL_EMISSIONS, emissions);
             return EnrichmentModule.withUpdatedValues(row, additions);
-        }
-        catch (Exception exception) {
+        } catch (Exception exception) {
             // if the region is not supported, we cannot compute the carbon intensity
             return row;
         }

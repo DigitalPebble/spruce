@@ -24,6 +24,9 @@ public class CURColumn extends Column {
     public static Column PRODUCT_SERVICE_CODE = new CURColumn("product_servicecode", StringType);
     public static Column USAGE_AMOUNT = new CURColumn("line_item_usage_amount", DoubleType);
     public static Column PRODUCT = new CURColumn("product", MapType.apply(StringType,StringType));
+    public static Column PRODUCT_REGION_CODE = new CURColumn("product_region_code", StringType);
+    public static Column PRODUCT_FROM_REGION_CODE = new CURColumn("product_from_region_code", StringType);
+    public static Column PRODUCT_TO_REGION_CODE = new CURColumn("product_to_region_code", StringType);
 
     CURColumn(String l, DataType t) {
         super(l, t);
