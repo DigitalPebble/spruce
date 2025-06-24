@@ -13,6 +13,7 @@
 package com.digitalpebble.carbonara;
 
 import org.apache.spark.sql.types.DataType;
+import org.apache.spark.sql.types.MapType;
 
 import static org.apache.spark.sql.types.DataTypes.*;
 
@@ -22,6 +23,7 @@ public class CURColumn extends Column {
     public static Column LINE_ITEM_TYPE = new CURColumn("line_item_line_item_type", StringType);
     public static Column PRODUCT_SERVICE_CODE = new CURColumn("product_servicecode", StringType);
     public static Column USAGE_AMOUNT = new CURColumn("line_item_usage_amount", DoubleType);
+    public static Column PRODUCT = new CURColumn("product", MapType.apply(StringType,StringType));
 
     CURColumn(String l, DataType t) {
         super(l, t);

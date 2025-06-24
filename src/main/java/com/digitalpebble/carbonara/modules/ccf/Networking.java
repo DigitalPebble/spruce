@@ -18,8 +18,7 @@ import org.apache.spark.sql.Row;
 
 import java.util.Map;
 
-import static com.digitalpebble.carbonara.CURColumn.PRODUCT_SERVICE_CODE;
-import static com.digitalpebble.carbonara.CURColumn.USAGE_AMOUNT;
+import static com.digitalpebble.carbonara.CURColumn.*;
 import static com.digitalpebble.carbonara.CarbonaraColumn.ENERGY_USED;
 
 /**
@@ -46,7 +45,7 @@ public class Networking implements EnrichmentModule {
             return row;
         }
         //  apply only to rows corresponding to networking in or out of a region
-        index = row.fieldIndex("product");
+        index = row.fieldIndex(PRODUCT.getLabel());
         Map<Object, Object> productMap = row.getJavaMap(index);
         String transfer_type = (String) productMap.getOrDefault("transfer_type", "");
 
