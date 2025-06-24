@@ -12,6 +12,7 @@
 
 package com.digitalpebble.carbonara;
 
+import com.digitalpebble.carbonara.modules.ConstantLoad;
 import com.digitalpebble.carbonara.modules.ccf.Networking;
 import com.digitalpebble.carbonara.modules.electricitymaps.AverageCarbonIntensity;
 import com.google.common.collect.ImmutableMap;
@@ -60,6 +61,7 @@ public class SparkJob {
         // compute emissions
 
         final List<EnrichmentModule> modules = List.of(
+                new ConstantLoad(),
                 new Networking(),
                 new AverageCarbonIntensity()
         );

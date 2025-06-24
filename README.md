@@ -30,7 +30,7 @@ With Apache Maven, Java and Apache Spark installed locally and added to the $PAT
 
 ```
 mvn clean package
-spark-submit --class com.digitalpebble.carbonara.SparkJob --driver-memory 4g ./target/carbonara-1.0.jar ./curs ./output
+spark-submit --class com.digitalpebble.carbonara.SparkJob --driver-memory 8g ./target/carbonara-1.0.jar ./curs ./output
 ```
 
 ## Docker
@@ -51,7 +51,7 @@ docker run -it  -v ./curs:/curs -v ./output:/output  digitalpebble/carbonara:1.0
 
 ## Explore the output
 
-Using [DuckDB](https://duckdb.org/)
+Using [DuckDB](https://duckdb.org/) locally or [Athena](https://docs.aws.amazon.com/athena/latest/ug/what-is.html) on AWS:
 
 ```sql
 create table enriched_curs as select * from 'output/*/*.parquet';
