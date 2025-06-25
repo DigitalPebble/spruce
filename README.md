@@ -78,7 +78,7 @@ To measure the proportion of the costs for which emissions where calculated
 
 ```sql
 select
-  round(covered * 100 / "to:tal costs", 2) as percentage_costs_covered
+  round(covered * 100 / "total costs", 2) as percentage_costs_covered
 from (
   select
     sum(line_item_unblended_cost) as "total costs",
