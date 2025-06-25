@@ -19,6 +19,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import static com.digitalpebble.carbonara.CURColumn.LINE_ITEM_TYPE;
+
 public class EnrichementPipeline implements MapPartitionsFunction<Row, Row> {
 
     private final List<EnrichmentModule> transformers;
@@ -55,10 +57,8 @@ public class EnrichementPipeline implements MapPartitionsFunction<Row, Row> {
 
     /** Returns true if the line item corresponds to a usage, false otherwise**/
     private boolean usageFilter (Row row){
-        int index = row.fieldIndex(CURColumn.LINE_ITEM_TYPE.getLabel());
-        if (index < 0){ return false; }
-        String item_type = row.getString(index);
+        final String item_type = LINE_ITEM_TYPE.getString(row);
         // can be Usage (for on demand resources), SavingsPlanCoveredUsage or DiscountedUsage
-        return item_type.endsWith("Usage");
+        return item_type != null && item_type.endsWith("Usage");
     }
 }
