@@ -15,9 +15,9 @@ import static com.digitalpebble.carbonara.CURColumn.PRODUCT_SERVICE_CODE;
 import static com.digitalpebble.carbonara.CarbonaraColumn.ENERGY_USED;
 
 /**
- * Adds power usage estimates for Cloud instances
- *  Launch API locally with
- *  docker run -p 5000:5000 ghcr.io/boavizta/boaviztapi:latest
+ * Adds power usage estimates for instance types used in the EC2, ElasticSearch and RDS services
+ * Launch API locally with
+ * docker run -p 5000:5000 ghcr.io/boavizta/boaviztapi:latest
  ***/
 public class BoaviztAPI implements EnrichmentModule {
 
@@ -50,28 +50,40 @@ public class BoaviztAPI implements EnrichmentModule {
                     .build();
         }
 
-        if (client == null){
+        if (client == null) {
             client = new BoaviztAPIClient(host);
         }
 
         // TODO handle non-default CPU loads
-        String service_code = PRODUCT_SERVICE_CODE.getString(row);
-        if (service_code == null || !service_code.equals("AmazonEC2")) {
-            return row;
-        }
-
-        String operation = CURColumn.LINE_ITEM_OPERATION.getString(row);
-        if (operation == null || !operation.startsWith("RunInstances")) {
-            return row;
-        }
-
-        String product_code = CURColumn.LINE_ITEM_PRODUCT_CODE.getString(row);
-        if (product_code == null || !product_code.equals("AmazonEC2")) {
-            return row;
-        }
 
         String instanceType = CURColumn.PRODUCT_INSTANCE_TYPE.getString(row);
         if (instanceType == null) {
+            return row;
+        }
+
+        // EC2 instances
+        String service_code = PRODUCT_SERVICE_CODE.getString(row);
+        String operation = CURColumn.LINE_ITEM_OPERATION.getString(row);
+        String product_code = CURColumn.LINE_ITEM_PRODUCT_CODE.getString(row);
+
+        // conditions for EC2 instances
+        if (service_code.equals("AmazonEC2") && operation.startsWith("RunInstances") && product_code.equals("AmazonEC2")) {
+            LOG.debug("EC2 instance {}", instanceType);
+        }
+        // conditions for search service
+        else if (product_code.equals("AmazonES") && operation.equals("ESDomain")) {
+            LOG.debug("Search instance {}", instanceType);
+            // remove the '.search' suffix
+            if (instanceType.endsWith(".search")) {
+                instanceType = instanceType.replace(".search", "");
+            }
+        } else if (product_code.equals("AmazonRDS") && operation.startsWith("CreateDBInstance")) {
+            LOG.debug("RDS instance {}", instanceType);
+            // remove the 'db.' prefix
+            if (instanceType.startsWith("db.")) {
+                instanceType = instanceType.substring(3);
+            }
+        } else {
             return row;
         }
 
