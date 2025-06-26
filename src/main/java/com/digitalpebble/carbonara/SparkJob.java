@@ -13,6 +13,7 @@
 package com.digitalpebble.carbonara;
 
 import com.digitalpebble.carbonara.modules.ConstantLoad;
+import com.digitalpebble.carbonara.modules.boavizta.BoaviztAPI;
 import com.digitalpebble.carbonara.modules.ccf.Networking;
 import com.digitalpebble.carbonara.modules.electricitymaps.AverageCarbonIntensity;
 import com.google.common.collect.ImmutableMap;
@@ -63,6 +64,7 @@ public class SparkJob {
         final List<EnrichmentModule> modules = List.of(
                 new ConstantLoad(),
                 new Networking(),
+                new BoaviztAPI(),
                 new AverageCarbonIntensity()
         );
 

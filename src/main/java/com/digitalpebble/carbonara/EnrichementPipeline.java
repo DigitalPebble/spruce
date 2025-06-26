@@ -21,6 +21,7 @@ import java.util.Map;
 
 import static com.digitalpebble.carbonara.CURColumn.LINE_ITEM_TYPE;
 
+/** Wraps the execution of the Enrichment Modules. There are as many instances of EnrichmentPipeline as there are partitions in the data. **/
 public class EnrichementPipeline implements MapPartitionsFunction<Row, Row> {
 
     private final List<EnrichmentModule> transformers;
