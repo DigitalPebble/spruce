@@ -32,7 +32,6 @@ public class SparkJob {
 
         SparkSession spark = SparkSession.builder()
                 .appName("Carbonara")
-                .master("local[*]")
                 .getOrCreate();
 
         spark.conf().set("mapreduce.fileoutputcommitter.marksuccessfuljobs", "false");
