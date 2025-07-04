@@ -11,12 +11,12 @@ import java.util.Map;
 
 import static com.digitalpebble.carbonara.CURColumn.LINE_ITEM_TYPE;
 
-public class EnrichementPipeline implements MapPartitionsFunction<Row, Row> {
+public class EnrichmentPipeline implements MapPartitionsFunction<Row, Row> {
 
     private final List<EnrichmentModule> transformers;
 
     /** Initialises the modules **/
-    public EnrichementPipeline(List<EnrichmentModule> modules, Map<String, String> params) {
+    public EnrichmentPipeline(List<EnrichmentModule> modules, Map<String, String> params) {
         this.transformers = modules;
         for (EnrichmentModule module : transformers) {
             module.init(params); // pass any parameters if needed

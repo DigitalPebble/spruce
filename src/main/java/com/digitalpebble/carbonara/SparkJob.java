@@ -65,7 +65,7 @@ public class SparkJob {
 
         StructType finalSchema = dataframe.schema();
 
-        EnrichementPipeline pipeline = new EnrichementPipeline(modules, config);
+        EnrichmentPipeline pipeline = new EnrichmentPipeline(modules, config);
         Encoder<Row> encoder = RowEncoder.encoderFor(finalSchema);
 
         Dataset<Row> enriched = dataframe.mapPartitions(pipeline, encoder);
