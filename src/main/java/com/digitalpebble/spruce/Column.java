@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
-package com.digitalpebble.carbonara;
+package com.digitalpebble.spruce;
 
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.types.DataType;

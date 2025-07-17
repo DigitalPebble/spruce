@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
-package com.digitalpebble.carbonara.modules.electricitymaps;
+package com.digitalpebble.spruce.modules.electricitymaps;
 
-import com.digitalpebble.carbonara.*;
+import com.digitalpebble.spruce.*;
 
-import static com.digitalpebble.carbonara.CURColumn.PRODUCT_FROM_REGION_CODE;
-import static com.digitalpebble.carbonara.CURColumn.PRODUCT_TO_REGION_CODE;
-import static com.digitalpebble.carbonara.CarbonaraColumn.*;
+import static com.digitalpebble.spruce.CURColumn.PRODUCT_FROM_REGION_CODE;
+import static com.digitalpebble.spruce.CURColumn.PRODUCT_TO_REGION_CODE;
+import static com.digitalpebble.spruce.CarbonaraColumn.*;
 
 import org.apache.spark.sql.Row;
 

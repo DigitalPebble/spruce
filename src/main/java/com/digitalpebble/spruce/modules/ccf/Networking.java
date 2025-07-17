@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: Apache-2.0
 
-package com.digitalpebble.carbonara.modules.ccf;
+package com.digitalpebble.spruce.modules.ccf;
 
-import com.digitalpebble.carbonara.Column;
-import com.digitalpebble.carbonara.EnrichmentModule;
+import com.digitalpebble.spruce.Column;
+import com.digitalpebble.spruce.EnrichmentModule;
 import org.apache.spark.sql.Row;
 
 import java.util.Map;
 
-import static com.digitalpebble.carbonara.CURColumn.*;
-import static com.digitalpebble.carbonara.CarbonaraColumn.ENERGY_USED;
+import static com.digitalpebble.spruce.CURColumn.*;
+import static com.digitalpebble.spruce.CarbonaraColumn.ENERGY_USED;
 
 /**
  * Provides an estimate of energy used for networking in and out of data centres.

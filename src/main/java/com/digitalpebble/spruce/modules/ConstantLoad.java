@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
-package com.digitalpebble.carbonara.modules;
+package com.digitalpebble.spruce.modules;
 
-import com.digitalpebble.carbonara.CarbonaraColumn;
-import com.digitalpebble.carbonara.Column;
-import com.digitalpebble.carbonara.EnrichmentModule;
+import com.digitalpebble.spruce.CarbonaraColumn;
+import com.digitalpebble.spruce.Column;
+import com.digitalpebble.spruce.EnrichmentModule;
 import org.apache.spark.sql.Row;
 
 import java.util.Map;

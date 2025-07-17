@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
-package com.digitalpebble.carbonara.modules.electricitymaps;
+package com.digitalpebble.spruce.modules.electricitymaps;
 
-import com.digitalpebble.carbonara.Provider;
-import com.digitalpebble.carbonara.Utils;
+import com.digitalpebble.spruce.Provider;
+import com.digitalpebble.spruce.Utils;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.stream.Stream;
 
 /**
  * Maps regions to ElectricityMaps region IDs for different cloud providers.

@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
-package com.digitalpebble.carbonara;
+package com.digitalpebble.spruce;
 
 import org.apache.spark.sql.types.DataType;
 import org.apache.spark.sql.types.MapType;
-import org.apache.spark.sql.types.StringType;
 
 import static org.apache.spark.sql.types.DataTypes.*;
 

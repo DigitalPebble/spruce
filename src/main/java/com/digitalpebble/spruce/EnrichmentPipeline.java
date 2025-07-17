@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
-package com.digitalpebble.carbonara;
+package com.digitalpebble.spruce;
 
 import org.apache.spark.api.java.function.MapPartitionsFunction;
 import org.apache.spark.sql.Row;
@@ -9,7 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import static com.digitalpebble.carbonara.CURColumn.LINE_ITEM_TYPE;
+import static com.digitalpebble.spruce.CURColumn.LINE_ITEM_TYPE;
 
 public class EnrichmentPipeline implements MapPartitionsFunction<Row, Row> {
 

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
-package com.digitalpebble.carbonara;
+package com.digitalpebble.spruce;
 
 /** Normalises names for cloud provider e.g. when reading resource files **/
 public enum Provider {

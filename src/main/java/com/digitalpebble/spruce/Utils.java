@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
-package com.digitalpebble.carbonara;
+package com.digitalpebble.spruce;
 
-import com.digitalpebble.carbonara.modules.ccf.Networking;
+import com.digitalpebble.spruce.modules.ccf.Networking;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 

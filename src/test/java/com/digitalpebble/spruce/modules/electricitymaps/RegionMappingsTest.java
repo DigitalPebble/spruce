@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
-package com.digitalpebble.carbonara.modules.electricitymaps;
+package com.digitalpebble.spruce.modules.electricitymaps;
 
-import com.digitalpebble.carbonara.Provider;
+import com.digitalpebble.spruce.Provider;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
