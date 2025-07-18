@@ -53,8 +53,8 @@ public class SparkJob {
         final List<EnrichmentModule> modules = List.of(
                 new ConstantLoad(),
                 new Networking(),
-                new AverageCarbonIntensity(),
-                new BoaviztAPI()
+                new BoaviztAPI(),
+                new AverageCarbonIntensity()
         );
 
         for (EnrichmentModule module : modules) {

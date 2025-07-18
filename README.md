@@ -54,7 +54,7 @@ docker run -it  -v ./curs:/curs -v ./output:/output  digitalpebble/spruce:1.0 \
 Using [DuckDB](https://duckdb.org/) locally or [Athena](https://docs.aws.amazon.com/athena/latest/ug/what-is.html) on AWS:
 
 ```sql
-create table enriched_curs as select * from 'output/*/*.parquet';
+create table enriched_curs as select * from 'output/**/*.parquet';
 
 select line_item_product_code, product_servicecode, 
        round(sum(operational_emissions_co2eq_g),2) as co2_usage_g, 
