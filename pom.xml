@@ -1,8 +1,8 @@
 <project>
     <groupId>com.digitalpebble</groupId>
-    <artifactId>carbonara</artifactId>
+    <artifactId>spruce</artifactId>
     <modelVersion>4.0.0</modelVersion>
-    <name>carbonara</name>
+    <name>spruce</name>
     <packaging>jar</packaging>
     <version>1.0</version>
 
