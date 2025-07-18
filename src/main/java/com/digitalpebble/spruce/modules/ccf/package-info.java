@@ -4,5 +4,5 @@
  *
  * @see <a href="https://www.cloudcarbonfootprint.org/docs/methodology">CCF methodology</a>
  */
-package com.digitalpebble.carbonara.modules.ccf;
+package com.digitalpebble.spruce.modules.ccf;
 

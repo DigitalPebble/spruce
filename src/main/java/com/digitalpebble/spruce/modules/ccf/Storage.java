@@ -1,25 +1,15 @@
-/**
- * Licensed to the Apache Software Foundation (ASF) under one or more contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.  The ASF licenses this file to you under the Apache License, Version
- * 2.0 (the "License"); you may not use this file except in compliance with the License.  You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions
- * and limitations under the License.
- */
+// SPDX-License-Identifier: Apache-2.0
 
-package com.digitalpebble.carbonara.modules.ccf;
+package com.digitalpebble.spruce.modules.ccf;
 
-import com.digitalpebble.carbonara.Column;
-import com.digitalpebble.carbonara.EnrichmentModule;
+import com.digitalpebble.spruce.Column;
+import com.digitalpebble.spruce.EnrichmentModule;
 import org.apache.spark.sql.Row;
 
 import java.util.Map;
 
-import static com.digitalpebble.carbonara.CURColumn.*;
-import static com.digitalpebble.carbonara.CarbonaraColumn.ENERGY_USED;
+import static com.digitalpebble.spruce.CURColumn.*;
+import static com.digitalpebble.spruce.CarbonaraColumn.ENERGY_USED;
 
 /**
  * Provides an estimate of energy used for storage.

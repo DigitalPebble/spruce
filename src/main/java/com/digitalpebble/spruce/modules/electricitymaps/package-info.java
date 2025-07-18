@@ -4,5 +4,5 @@
  *
  * @see <a href="https://www.electricitymaps.com/">ElectricityMap</a>
  */
-package com.digitalpebble.carbonara.modules.electricitymaps;
+package com.digitalpebble.spruce.modules.electricitymaps;
 

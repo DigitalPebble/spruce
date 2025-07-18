@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
-package com.digitalpebble.carbonara;
+package com.digitalpebble.spruce;
 
-import com.digitalpebble.carbonara.modules.ccf.Networking;
-import com.digitalpebble.carbonara.modules.ccf.Storage;
-import com.digitalpebble.carbonara.modules.electricitymaps.AverageCarbonIntensity;
+import com.digitalpebble.spruce.modules.ConstantLoad;
+import com.digitalpebble.spruce.modules.ccf.Networking;
+import com.digitalpebble.spruce.modules.ccf.Storage;
+import com.digitalpebble.spruce.modules.electricitymaps.AverageCarbonIntensity;
 import com.google.common.collect.ImmutableMap;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Encoder;
@@ -32,7 +33,6 @@ public class SparkJob {
 
         SparkSession spark = SparkSession.builder()
                 .appName("Carbonara")
-                .master("local[*]")
                 .getOrCreate();
 
         spark.conf().set("mapreduce.fileoutputcommitter.marksuccessfuljobs", "false");
@@ -66,7 +66,7 @@ public class SparkJob {
 
         StructType finalSchema = dataframe.schema();
 
-        EnrichementPipeline pipeline = new EnrichementPipeline(modules, config);
+        EnrichmentPipeline pipeline = new EnrichmentPipeline(modules, config);
         Encoder<Row> encoder = RowEncoder.encoderFor(finalSchema);
 
         Dataset<Row> enriched = dataframe.mapPartitions(pipeline, encoder);
