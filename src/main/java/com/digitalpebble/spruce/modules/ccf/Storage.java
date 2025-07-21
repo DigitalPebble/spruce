@@ -42,9 +42,9 @@ public class Storage implements EnrichmentModule {
         //  work out which coefficient should be applied
         // if the line item operation is CreateVolume without a suffix then it is hdd, sdd otherwise
         // (https://docs.aws.amazon.com/ebs/latest/userguide/ebs-volume-types.html)
-        boolean isSSD = operation.equals("CreateVolume");
+        boolean isHDD = operation.equals("CreateVolume");
 
-        double coefficient = isSSD? ssd_gb_coefficient: hdd_gb_coefficient;
+        double coefficient = isHDD? hdd_gb_coefficient : ssd_gb_coefficient;
 
         double energy_gb = amount_gb * coefficient;
 
