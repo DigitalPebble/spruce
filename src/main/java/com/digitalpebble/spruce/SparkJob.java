@@ -5,6 +5,7 @@ package com.digitalpebble.spruce;
 import com.digitalpebble.spruce.modules.ConstantLoad;
 import com.digitalpebble.spruce.modules.boavizta.BoaviztAPI;
 import com.digitalpebble.spruce.modules.ccf.Networking;
+import com.digitalpebble.spruce.modules.ccf.Storage;
 import com.digitalpebble.spruce.modules.electricitymaps.AverageCarbonIntensity;
 import com.google.common.collect.ImmutableMap;
 import org.apache.spark.sql.Dataset;
@@ -51,7 +52,7 @@ public class SparkJob {
         // compute emissions
 
         final List<EnrichmentModule> modules = List.of(
-                new ConstantLoad(),
+                new Storage(),
                 new Networking(),
                 new BoaviztAPI(),
                 new AverageCarbonIntensity()
