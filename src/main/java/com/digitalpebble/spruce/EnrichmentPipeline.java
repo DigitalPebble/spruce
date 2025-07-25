@@ -7,21 +7,18 @@ import org.apache.spark.sql.Row;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import static com.digitalpebble.spruce.CURColumn.LINE_ITEM_TYPE;
 
 /** Wraps the execution of the Enrichment Modules. There are as many instances of EnrichmentPipeline as there are partitions in the data. **/
 public class EnrichmentPipeline implements MapPartitionsFunction<Row, Row> {
 
-    private final List<EnrichmentModule> transformers;
+    private final List<EnrichmentModule> enrichmentModules;
 
     /** Initialises the modules **/
-    public EnrichmentPipeline(List<EnrichmentModule> modules, Map<String, String> params) {
-        this.transformers = modules;
-        for (EnrichmentModule module : transformers) {
-            module.init(params); // pass any parameters if needed
-        }
+    public EnrichmentPipeline(Config config) {
+        config.configureModules();;
+        this.enrichmentModules = config.getModules();
     }
 
     @Override
@@ -38,8 +35,8 @@ public class EnrichmentPipeline implements MapPartitionsFunction<Row, Row> {
                 // usage filter - only need to enrich entries that correspond to a usage (no tax, discount or fee)
                 boolean usage = usageFilter(row);
                 if (!usage) return row;
-                for (EnrichmentModule transformer : transformers) {
-                    row = transformer.process(row);
+                for (EnrichmentModule module : enrichmentModules) {
+                    row = module.process(row);
                 }
                 return row;
             }

@@ -20,9 +20,21 @@ import static com.digitalpebble.spruce.CarbonaraColumn.ENERGY_USED;
 public class Storage implements EnrichmentModule {
 
     //  0.65 Watt-Hours per Terabyte-Hour for HDD
-    final double hdd_gb_coefficient = 0.65 / 1024d;
+    double hdd_gb_coefficient = 0.65 / 1024d;
     //  1.2 Watt-Hours per Terabyte-Hour for SSD
-    final double ssd_gb_coefficient = 1.2 / 1024d;
+    double ssd_gb_coefficient = 1.2 / 1024d;
+
+    @Override
+    public void init(Map<String, Object> params) {
+        Double coef = (Double) params.get("hdd_gb_coefficient");
+        if (coef != null) {
+            hdd_gb_coefficient = coef / 1024d;
+        }
+        coef = (Double) params.get("ssd_gb_coefficient");
+        if (coef != null) {
+            ssd_gb_coefficient = coef / 1024d;
+        }
+    }
 
     @Override
     public Column[] columnsAdded() {

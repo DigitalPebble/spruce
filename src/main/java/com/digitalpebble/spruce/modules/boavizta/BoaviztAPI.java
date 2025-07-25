@@ -27,13 +27,16 @@ public class BoaviztAPI implements EnrichmentModule {
     // to save a trip to the API
     private static Cache<Object, @Nullable Object> cache;
 
-    private final String host = "http://localhost:5000";
+    private String address = "http://localhost:5000";
 
     private BoaviztAPIClient client;
 
     @Override
-    public void init(Map<String, String> params) {
-        // TODO get the host for the API from the config
+    public void init(Map<String, Object> params) {
+        String a = (String) params.get("host");
+        if (address != null) {
+            address = a;
+        }
     }
 
     @Override
@@ -51,7 +54,7 @@ public class BoaviztAPI implements EnrichmentModule {
         }
 
         if (client == null) {
-            client = new BoaviztAPIClient(host);
+            client = new BoaviztAPIClient(address);
         }
 
         // TODO handle non-default CPU loads
