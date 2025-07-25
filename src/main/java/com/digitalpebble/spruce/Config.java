@@ -1,30 +1,47 @@
+// SPDX-License-Identifier: Apache-2.0
+
 package com.digitalpebble.spruce;
+
+import com.fasterxml.jackson.core.type.TypeReference;
 
 import java.util.List;
 import java.util.Map;
 
+/** List of modules and their configuration defined as JSON **/
 public class Config {
 
-    private List<com.digitalpebble.spruce.EnrichmentModule> enrichmentModules = new java.util.ArrayList<>();
-    private List<Map<String, Object>> configs = new java.util.ArrayList<>();
+    private final List<com.digitalpebble.spruce.EnrichmentModule> enrichmentModules = new java.util.ArrayList<>();
+    private final List<Map<String, Object>> configs = new java.util.ArrayList<>();
 
-    public List<com.digitalpebble.spruce.EnrichmentModule> getModules(){
+    /**  Returns the list of enrichment modules defined in the configuration **/
+    public List<com.digitalpebble.spruce.EnrichmentModule> getModules() {
         return enrichmentModules;
     }
 
-    public  void configureModules() {
+    /**
+     * Initializes each enrichment module with its corresponding configuration.
+     * Iterates through the list of enrichment modules and calls their init method
+     * with the associated configuration map.
+     */
+    public void configureModules() {
         for (int i = 0; i < enrichmentModules.size(); i++) {
             enrichmentModules.get(i).init(configs.get(i));
         }
     }
 
+    /**
+     * Loads a Config instance from a JSON file
+     */
     public static Config fromJsonFile(java.nio.file.Path path) throws java.io.IOException {
         com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
         // Read the JSON as a List of Maps
-        List<Map<String, Object>> modulesList = mapper.readValue(
+        Map<String, Object> startNode = mapper.readValue(
                 java.nio.file.Files.newBufferedReader(path),
-                new com.fasterxml.jackson.core.type.TypeReference<List<Map<String, Object>>>() {}
+                new TypeReference<Map<String, Object>>() {
+                }
         );
+
+        List<Map<String, Object>> modulesList = (List<Map<String, Object>>) startNode.get("modules");
 
         Config conf = new Config();
 

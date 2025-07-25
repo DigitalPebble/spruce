@@ -2,11 +2,6 @@
 
 package com.digitalpebble.spruce;
 
-import com.digitalpebble.spruce.modules.ConstantLoad;
-import com.digitalpebble.spruce.modules.ccf.Networking;
-import com.digitalpebble.spruce.modules.ccf.Storage;
-import com.digitalpebble.spruce.modules.electricitymaps.AverageCarbonIntensity;
-import com.google.common.collect.ImmutableMap;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Encoder;
 import org.apache.spark.sql.Row;
@@ -15,10 +10,7 @@ import org.apache.spark.sql.catalyst.encoders.RowEncoder;
 import org.apache.spark.sql.types.StructType;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
-import java.util.Map;
 
 import static org.apache.spark.sql.functions.lit;
 
@@ -26,6 +18,8 @@ import static org.apache.spark.sql.functions.lit;
 public class SparkJob {
 
     public static void main(String[] args) {
+
+        // TODO use a command line parser
         if (args.length < 3) {
             System.err.println("Usage: SparkJob <config_file> <inputPath> <outputPath>");
             System.exit(1);
@@ -61,10 +55,8 @@ public class SparkJob {
             }
         }
 
-        StructType finalSchema = dataframe.schema();
-
         EnrichmentPipeline pipeline = new EnrichmentPipeline(config);
-        Encoder<Row> encoder = RowEncoder.encoderFor(finalSchema);
+        Encoder<Row> encoder = RowEncoder.encoderFor(dataframe.schema());
 
         Dataset<Row> enriched = dataframe.mapPartitions(pipeline, encoder);
 

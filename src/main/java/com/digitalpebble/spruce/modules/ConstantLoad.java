@@ -16,7 +16,10 @@ public class ConstantLoad implements EnrichmentModule {
 
     @Override
     public void init(Map<String, Object> params) {
-        // TODO set a different value via configuration
+        Double value = (Double) params.get("load_value");
+        if (value != null) {
+            load_value = value;
+        }
     }
 
     @Override
