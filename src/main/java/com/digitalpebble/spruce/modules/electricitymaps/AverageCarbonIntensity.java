@@ -24,7 +24,7 @@ public class AverageCarbonIntensity implements EnrichmentModule {
 
     private final static String DEFAULT_RESOURCE_LOCATION = "electricitymaps/averages_2024.csv";
 
-    public void init(Map<String, String> params) {
+    public void init(Map<String, Object> params) {
         // load the averages for each EM IDs
         try {
             List<String> averages = Utils.loadLinesResources(DEFAULT_RESOURCE_LOCATION);

@@ -1,0 +1,22 @@
+{
+  "modules": [
+    {
+      "className": "com.digitalpebble.spruce.modules.ccf.Storage",
+      "config": {
+        "hdd_gb_coefficient": 0.65,
+        "ssd_gb_coefficient": 1.2
+      }
+    },
+    {
+      "className": "com.digitalpebble.spruce.modules.ccf.Networking",
+      "config": {
+        "network_coefficient": 0.001
+      }
+    },
+    {
+      "className": "com.digitalpebble.spruce.modules.electricitymaps.AverageCarbonIntensity",
+      "config": {
+      }
+    }
+  ]
+}

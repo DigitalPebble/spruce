@@ -16,7 +16,7 @@ import java.util.Map;
 public interface EnrichmentModule extends Serializable {
 
     /** Initialisation of the module; used to loads resources **/
-    public default void init(Map<String, String> params){}
+    public default void init(Map<String, Object> params){}
 
     /** Returns the columns added by this module **/
     public Column[] columnsAdded();
