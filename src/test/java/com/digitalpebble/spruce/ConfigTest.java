@@ -113,4 +113,13 @@ public class ConfigTest {
 
         Files.deleteIfExists(tempFile);
     }
+
+    @Test
+        void testLoadDefaultConfig() throws Exception {
+            // Assumes default-config.json is present in test resources and valid
+            Config conf = Config.loadDefault();
+            assertNotNull(conf);
+            assertNotNull(conf.getModules());
+            assertFalse(conf.getModules().isEmpty());
+        }
 }
