@@ -2,12 +2,12 @@
 
 package com.digitalpebble.spruce;
 
+import org.apache.hadoop.shaded.org.apache.commons.cli.*;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Encoder;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.catalyst.encoders.RowEncoder;
-import org.apache.spark.sql.types.StructType;
 
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -19,15 +19,26 @@ public class SparkJob {
 
     public static void main(String[] args) {
 
-        // TODO use a command line parser
-        if (args.length < 3) {
-            System.err.println("Usage: SparkJob <config_file> <inputPath> <outputPath>");
+        final Options options = new Options();
+        options.addOption("c", "config", true, "config file");
+        options.addRequiredOption("i", "input", true, "input path");
+        options.addRequiredOption("o", "output", true, "output path");
+
+        String configPath = null;
+        String inputPath = null;
+        String outputPath = null;
+
+        try {
+            CommandLineParser parser = new DefaultParser();
+            CommandLine cmd = parser.parse(options, args);
+            configPath = cmd.getOptionValue("c");
+            inputPath = cmd.getOptionValue("i");
+            outputPath = cmd.getOptionValue("o");
+        } catch (ParseException e) {
+            HelpFormatter formatter = new HelpFormatter();
+            formatter.printHelp("SparkJob", options);
             System.exit(1);
         }
-
-        String configPath = args[0];
-        String inputPath = args[1];
-        String outputPath = args[2];
 
         SparkSession spark = SparkSession.builder()
                 .appName("Spruce")
@@ -41,7 +52,13 @@ public class SparkJob {
         // define and configure modules via configuration
         Config config = null;
         try {
-            config = Config.fromJsonFile(Paths.get(configPath));
+            // explicitly set by user
+            if (configPath != null) {
+                config = Config.fromJsonFile(Paths.get(configPath));
+            } else {
+                // load default config
+                config = Config.loadDefault();
+            }
         } catch (IOException e) {
             System.err.println(e.getMessage());
             System.exit(1);
