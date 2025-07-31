@@ -33,8 +33,8 @@ public class BoaviztAPI implements EnrichmentModule {
 
     @Override
     public void init(Map<String, Object> params) {
-        String a = (String) params.get("host");
-        if (address != null) {
+        String a = (String) params.get("address");
+        if (a != null) {
             address = a;
         }
     }
