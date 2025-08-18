@@ -108,7 +108,7 @@ public class BoaviztAPI implements EnrichmentModule {
                 useAndEmbodiedEnergy = client.getEnergyEstimates(Provider.AWS, instanceType);
                 cache.put(instanceType, useAndEmbodiedEnergy);
             } catch (IOException e) {
-                LOG.trace("Exception caught when retrieving estimates for {}", instanceType, e);
+                LOG.error("Exception caught when retrieving estimates for {}", instanceType, e);
                 return row;
             }
         }

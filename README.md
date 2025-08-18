@@ -27,9 +27,18 @@ the CURs at scale without having to export or expose any of your data.
 
 You will need to have CUR reports as inputs. Those are generated via [DataExports](https://docs.aws.amazon.com/cur/latest/userguide/what-is-data-exports.html) and stored on S3 as Parquet files.
 
+You need Docker to be installed on your machine in order to run the tests.
+
+If you rely on the default configuration, the BoaviztAPI enrichment module requires to connect to an instance of the [BoaviztAPI](https://doc.api.boavizta.org/).
+By default, it connects to _localhost:5000_.  The easiest way of launching it is with Docker:
+
+```
+docker run -p 5000:5000 --name boaviztapi ghcr.io/boavizta/boaviztapi:latest
+```
+
 ## Local install
 
-With Apache Maven, Java and Apache Spark installed locally and added to the $PATH.
+With Apache Maven, Java and [Apache Spark](https://spark.apache.org/)  installed locally and added to the $PATH (and the BoaviztAPI on _localhost:5000_):
 
 ```
 mvn clean package
@@ -45,7 +54,8 @@ Build the Docker image with
 
 The command below processes the data locally by mounting the directories containing the CURs and output as volumes:
 ```
-docker run -it -v ./curs:/curs -v ./output:/output  digitalpebble/spruce:1.0 \
+docker run -it -v ./curs:/curs -v ./output:/output --rm --name spruce --network host \
+digitalpebble/spruce:1.0 \
 /opt/spark/bin/spark-submit  \
 --class com.digitalpebble.spruce.SparkJob \
 --driver-memory 4g \
