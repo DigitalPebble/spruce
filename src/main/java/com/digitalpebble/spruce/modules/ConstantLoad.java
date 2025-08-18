@@ -23,6 +23,11 @@ public class ConstantLoad implements EnrichmentModule {
     }
 
     @Override
+    public Column[] columnsNeeded() {
+        return new Column[0];
+    }
+
+    @Override
     public Column[] columnsAdded() {
         return new Column[]{CarbonaraColumn.CPU_LOAD};
     }

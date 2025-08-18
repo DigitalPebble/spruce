@@ -14,6 +14,12 @@
       }
     },
     {
+      "className": "com.digitalpebble.spruce.modules.boavizta.BoaviztAPI",
+      "config": {
+        "address": "http://localhost:5000"
+      }
+    },
+    {
       "className": "com.digitalpebble.spruce.modules.electricitymaps.AverageCarbonIntensity",
       "config": {
       }

@@ -3,6 +3,7 @@
 package com.digitalpebble.spruce.modules;
 
 import com.digitalpebble.spruce.CarbonaraColumn;
+import com.digitalpebble.spruce.Utils;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema;
 import org.apache.spark.sql.types.StructType;
@@ -14,10 +15,10 @@ class ConstantLoadTest {
 
     private ConstantLoad load = new ConstantLoad();
 
+    private final StructType schema = Utils.getSchema(load);
+
     @Test
     void process() {
-        String ddl = CarbonaraColumn.CPU_LOAD.getLabel()+" DOUBLE";
-        StructType schema =  StructType.fromDDL(ddl);
         Object[] values = new Object[] {null};
         Row row = new GenericRowWithSchema(values, schema);
         Row enriched = load.process(row);

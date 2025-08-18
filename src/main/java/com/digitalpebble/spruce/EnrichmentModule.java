@@ -18,6 +18,9 @@ public interface EnrichmentModule extends Serializable {
     /** Initialisation of the module; used to loads resources **/
     public default void init(Map<String, Object> params){}
 
+    /** Returns the columns required by this module **/
+    public Column[] columnsNeeded();
+
     /** Returns the columns added by this module **/
     public Column[] columnsAdded();
 
@@ -55,4 +58,5 @@ public interface EnrichmentModule extends Serializable {
 
         return new GenericRowWithSchema(values, row.schema());
     }
+
 }

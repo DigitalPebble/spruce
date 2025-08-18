@@ -10,6 +10,7 @@ import java.util.List;
 
 import static com.digitalpebble.spruce.CURColumn.LINE_ITEM_TYPE;
 
+/** Wraps the execution of the Enrichment Modules. There are as many instances of EnrichmentPipeline as there are partitions in the data. **/
 public class EnrichmentPipeline implements MapPartitionsFunction<Row, Row> {
 
     private final List<EnrichmentModule> enrichmentModules;

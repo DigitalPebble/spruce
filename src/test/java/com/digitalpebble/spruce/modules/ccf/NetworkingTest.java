@@ -2,6 +2,7 @@
 
 package com.digitalpebble.spruce.modules.ccf;
 
+import com.digitalpebble.spruce.Utils;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema;
 import org.apache.spark.sql.types.StructType;
@@ -17,10 +18,10 @@ class NetworkingTest {
 
     private Networking networking = new Networking();
 
+    private StructType schema = Utils.getSchema(networking);
+
     @Test
     void processNoValues() {
-        String ddl = "product_servicecode STRING, product MAP<STRING,STRING>, line_item_usage_amount DOUBLE";
-        StructType schema =  StructType.fromDDL(ddl);
         Object[] values = new Object[] {null, null, null};
         Row row = new GenericRowWithSchema(values, schema);
         Row enriched = networking.process(row);
@@ -30,8 +31,6 @@ class NetworkingTest {
 
     @Test
     void processValues() {
-        String ddl = "product_servicecode STRING, product MAP<STRING,STRING>, line_item_usage_amount DOUBLE, energy_usage_kwh DOUBLE";
-        StructType schema =  StructType.fromDDL(ddl);
         // 10 GBs of data transfer between regions
         Map<String, String> product = new HashMap<>();
         product.put("transfer_type", "InterRegion");
