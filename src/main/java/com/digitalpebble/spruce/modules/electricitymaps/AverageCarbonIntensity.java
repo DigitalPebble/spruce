@@ -7,7 +7,7 @@ import com.digitalpebble.spruce.*;
 import static com.digitalpebble.spruce.CURColumn.PRODUCT_FROM_REGION_CODE;
 import static com.digitalpebble.spruce.CURColumn.PRODUCT_TO_REGION_CODE;
 import static com.digitalpebble.spruce.CURColumn.PRODUCT_REGION_CODE;
-import static com.digitalpebble.spruce.CarbonaraColumn.*;
+import static com.digitalpebble.spruce.SpruceColumn.*;
 
 import org.apache.spark.sql.Row;
 

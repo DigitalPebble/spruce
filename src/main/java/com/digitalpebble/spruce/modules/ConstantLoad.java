@@ -2,7 +2,7 @@
 
 package com.digitalpebble.spruce.modules;
 
-import com.digitalpebble.spruce.CarbonaraColumn;
+import static com.digitalpebble.spruce.SpruceColumn.CPU_LOAD;
 import com.digitalpebble.spruce.Column;
 import com.digitalpebble.spruce.EnrichmentModule;
 import org.apache.spark.sql.Row;
@@ -29,11 +29,11 @@ public class ConstantLoad implements EnrichmentModule {
 
     @Override
     public Column[] columnsAdded() {
-        return new Column[]{CarbonaraColumn.CPU_LOAD};
+        return new Column[]{CPU_LOAD};
     }
 
     @Override
     public Row process(Row row) {
-        return EnrichmentModule.withUpdatedValue(row, CarbonaraColumn.CPU_LOAD, load_value);
+        return EnrichmentModule.withUpdatedValue(row, CPU_LOAD, load_value);
     }
 }

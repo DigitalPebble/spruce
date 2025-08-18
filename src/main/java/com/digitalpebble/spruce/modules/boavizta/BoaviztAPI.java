@@ -15,7 +15,7 @@ import static com.digitalpebble.spruce.CURColumn.PRODUCT_INSTANCE_TYPE;
 import static com.digitalpebble.spruce.CURColumn.PRODUCT_SERVICE_CODE;
 import static com.digitalpebble.spruce.CURColumn.LINE_ITEM_OPERATION;
 import static com.digitalpebble.spruce.CURColumn.LINE_ITEM_PRODUCT_CODE;
-import static com.digitalpebble.spruce.CarbonaraColumn.ENERGY_USED;
+import static com.digitalpebble.spruce.SpruceColumn.ENERGY_USED;
 
 /**
  * Adds power usage estimates for instance types used in the EC2, ElasticSearch and RDS services

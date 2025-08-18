@@ -2,7 +2,6 @@
 
 package com.digitalpebble.spruce.modules;
 
-import com.digitalpebble.spruce.CarbonaraColumn;
 import com.digitalpebble.spruce.Utils;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema;
@@ -13,8 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ConstantLoadTest {
 
-    private ConstantLoad load = new ConstantLoad();
-
+    private final ConstantLoad load = new ConstantLoad();
     private final StructType schema = Utils.getSchema(load);
 
     @Test

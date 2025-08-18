@@ -9,7 +9,7 @@ import org.apache.spark.sql.Row;
 import java.util.Map;
 
 import static com.digitalpebble.spruce.CURColumn.*;
-import static com.digitalpebble.spruce.CarbonaraColumn.ENERGY_USED;
+import static com.digitalpebble.spruce.SpruceColumn.ENERGY_USED;
 
 /**
  * Provides an estimate of energy used for networking in and out of data centres.
