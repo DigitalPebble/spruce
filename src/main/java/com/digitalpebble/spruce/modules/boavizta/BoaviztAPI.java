@@ -76,12 +76,12 @@ public class BoaviztAPI implements EnrichmentModule {
         final String operation = LINE_ITEM_OPERATION.getString(row);
         final String product_code = LINE_ITEM_PRODUCT_CODE.getString(row);
 
-        if (service_code == null || operation == null || product_code == null) {
+        if (operation == null || product_code == null) {
             return row;
         }
 
         // conditions for EC2 instances
-        if (service_code.equals("AmazonEC2") && operation.startsWith("RunInstances") && product_code.equals("AmazonEC2")) {
+        if (product_code.equals("AmazonEC2") && operation.startsWith("RunInstances") && "AmazonEC2".equals(service_code)  ) {
             LOG.debug("EC2 instance {}", instanceType);
         }
         // conditions for search service
