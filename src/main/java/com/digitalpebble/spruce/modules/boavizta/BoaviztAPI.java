@@ -11,7 +11,10 @@ import org.jspecify.annotations.Nullable;
 import java.io.IOException;
 import java.util.Map;
 
+import static com.digitalpebble.spruce.CURColumn.PRODUCT_INSTANCE_TYPE;
 import static com.digitalpebble.spruce.CURColumn.PRODUCT_SERVICE_CODE;
+import static com.digitalpebble.spruce.CURColumn.LINE_ITEM_OPERATION;
+import static com.digitalpebble.spruce.CURColumn.LINE_ITEM_PRODUCT_CODE;
 import static com.digitalpebble.spruce.CarbonaraColumn.ENERGY_USED;
 
 /**
@@ -40,6 +43,11 @@ public class BoaviztAPI implements EnrichmentModule {
     }
 
     @Override
+    public Column[] columnsNeeded() {
+        return new Column[]{PRODUCT_INSTANCE_TYPE, PRODUCT_SERVICE_CODE, LINE_ITEM_OPERATION, LINE_ITEM_PRODUCT_CODE};
+    }
+
+    @Override
     public Column[] columnsAdded() {
         return new Column[]{ENERGY_USED};
     }
@@ -59,15 +67,18 @@ public class BoaviztAPI implements EnrichmentModule {
 
         // TODO handle non-default CPU loads
 
-        String instanceType = CURColumn.PRODUCT_INSTANCE_TYPE.getString(row);
+        String instanceType = PRODUCT_INSTANCE_TYPE.getString(row);
         if (instanceType == null) {
             return row;
         }
 
-        // EC2 instances
-        String service_code = PRODUCT_SERVICE_CODE.getString(row);
-        String operation = CURColumn.LINE_ITEM_OPERATION.getString(row);
-        String product_code = CURColumn.LINE_ITEM_PRODUCT_CODE.getString(row);
+        final String service_code = PRODUCT_SERVICE_CODE.getString(row);
+        final String operation = LINE_ITEM_OPERATION.getString(row);
+        final String product_code = LINE_ITEM_PRODUCT_CODE.getString(row);
+
+        if (service_code == null || operation == null || product_code == null) {
+            return row;
+        }
 
         // conditions for EC2 instances
         if (service_code.equals("AmazonEC2") && operation.startsWith("RunInstances") && product_code.equals("AmazonEC2")) {
@@ -102,6 +113,6 @@ public class BoaviztAPI implements EnrichmentModule {
             }
         }
 
-        return EnrichmentModule.withUpdatedValue(row, CarbonaraColumn.ENERGY_USED, useAndEmbodiedEnergy[0]);
+        return EnrichmentModule.withUpdatedValue(row, ENERGY_USED, useAndEmbodiedEnergy[0]);
     }
 }

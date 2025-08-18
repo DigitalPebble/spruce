@@ -27,6 +27,11 @@ public class ConfigTest {
         }
 
         @Override
+        public Column[] columnsNeeded() {
+            return new Column[0];
+        }
+
+        @Override
         public Column[] columnsAdded() {
             return new Column[0];
         }

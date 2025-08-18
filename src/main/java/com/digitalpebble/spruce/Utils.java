@@ -5,11 +5,14 @@ package com.digitalpebble.spruce;
 import com.digitalpebble.spruce.modules.ccf.Networking;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.spark.sql.types.StructField;
+import org.apache.spark.sql.types.StructType;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -44,6 +47,23 @@ public abstract class Utils {
                 return reader.lines().toList();
             }
         }
+    }
+
+
+    /** Returns the schema for a module based on the list of columns it needs and the ones it generates **/
+    public static StructType getSchema(EnrichmentModule module) {
+        String ddl = "product_instance_type STRING, line_item_usage_amount DOUBLE, energy_usage_kwh DOUBLE";
+        final List<StructField> fields = new ArrayList<>();
+
+        for (Column column : module.columnsNeeded()) {
+            fields.add(StructField.apply(column.getLabel(), column.getType(), true, null));
+        }
+
+        for (Column column : module.columnsAdded()) {
+            fields.add(StructField.apply(column.getLabel(), column.getType(), true, null));
+        }
+
+        return new StructType(fields.toArray(new StructField[fields.size()]));
     }
 
 }

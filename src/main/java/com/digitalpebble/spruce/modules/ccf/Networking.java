@@ -32,6 +32,11 @@ public class Networking implements EnrichmentModule {
     }
 
     @Override
+    public Column[] columnsNeeded() {
+        return new Column[]{PRODUCT_SERVICE_CODE, PRODUCT, USAGE_AMOUNT};
+    }
+
+    @Override
     public Column[] columnsAdded() {
         return new Column[]{ENERGY_USED};
     }

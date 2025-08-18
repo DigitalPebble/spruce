@@ -2,6 +2,7 @@
 
 package com.digitalpebble.spruce.modules.ccf;
 
+import com.digitalpebble.spruce.Utils;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema;
 import org.apache.spark.sql.types.StructType;
@@ -13,10 +14,10 @@ class StorageTest {
 
     private final Storage storage = new Storage();
 
+    private final StructType schema = Utils.getSchema(storage);
+
     @Test
     void processCreateVolumeSSD() {
-        String ddl = "line_item_operation STRING, line_item_usage_amount DOUBLE, energy_usage_kwh DOUBLE";
-        StructType schema = StructType.fromDDL(ddl);
         Object[] values = new Object[] {"CreateVolume-Gp3", 10d, null};
         Row row = new GenericRowWithSchema(values, schema);
         Row result = storage.process(row);
@@ -26,8 +27,6 @@ class StorageTest {
 
     @Test
     void processCreateVolumeSSD2() {
-        String ddl = "line_item_operation STRING, line_item_usage_amount DOUBLE, energy_usage_kwh DOUBLE";
-        StructType schema = StructType.fromDDL(ddl);
         Object[] values = new Object[] {"CreateVolume-Gp2", 10d, null};
         Row row = new GenericRowWithSchema(values, schema);
         Row result = storage.process(row);
@@ -37,8 +36,6 @@ class StorageTest {
 
     @Test
     void processCreateVolumeHDD() {
-        String ddl = "line_item_operation STRING, line_item_usage_amount DOUBLE, energy_usage_kwh DOUBLE";
-        StructType schema = StructType.fromDDL(ddl);
         Object[] values = new Object[] {"CreateVolume", 10d, null};
         Row row = new GenericRowWithSchema(values, schema);
         Row result = storage.process(row);

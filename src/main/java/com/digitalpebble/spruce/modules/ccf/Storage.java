@@ -37,6 +37,11 @@ public class Storage implements EnrichmentModule {
     }
 
     @Override
+    public Column[] columnsNeeded() {
+        return new Column[]{LINE_ITEM_OPERATION, USAGE_AMOUNT};
+    }
+
+    @Override
     public Column[] columnsAdded() {
         return new Column[]{ENERGY_USED};
     }

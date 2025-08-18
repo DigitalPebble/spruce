@@ -6,6 +6,7 @@ import com.digitalpebble.spruce.*;
 
 import static com.digitalpebble.spruce.CURColumn.PRODUCT_FROM_REGION_CODE;
 import static com.digitalpebble.spruce.CURColumn.PRODUCT_TO_REGION_CODE;
+import static com.digitalpebble.spruce.CURColumn.PRODUCT_REGION_CODE;
 import static com.digitalpebble.spruce.CarbonaraColumn.*;
 
 import org.apache.spark.sql.Row;
@@ -47,6 +48,11 @@ public class AverageCarbonIntensity implements EnrichmentModule {
         }
     }
 
+    @Override
+    public Column[] columnsNeeded() {
+        return new Column[]{ENERGY_USED, PRODUCT_REGION_CODE, PRODUCT_FROM_REGION_CODE, PRODUCT_TO_REGION_CODE};
+    }
+
     /**
       Get the average intensity for the given region ID
       in gCO2perKWH
@@ -72,7 +78,7 @@ public class AverageCarbonIntensity implements EnrichmentModule {
         // get the location
         // in most cases you have a product_region_code but can be product_to_region_code or product_from_region_code
         // when the traffic is between two regions or to/from the outside
-        final Column[] location_columns = new Column[]{CURColumn.PRODUCT_REGION_CODE, PRODUCT_FROM_REGION_CODE, PRODUCT_TO_REGION_CODE};
+        final Column[] location_columns = new Column[]{PRODUCT_REGION_CODE, PRODUCT_FROM_REGION_CODE, PRODUCT_TO_REGION_CODE};
         for (Column c : location_columns) {
             locationCode = c.getString(row);
             if (locationCode != null) {
