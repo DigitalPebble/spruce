@@ -107,3 +107,9 @@ from (
 
 ## License
 Licensed under the Apache License, Version 2.0: http://www.apache.org/licenses/LICENSE-2.0
+
+## Contributing
+We welcome contributions to the project, see [CONTRIBUTING.md] for instructions on how to do so. Contributions are not only about code: by testing the project on your data, talking about it or asking questions, you will be contributing too!
+
+
+
