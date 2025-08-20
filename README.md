@@ -42,7 +42,7 @@ With Apache Maven, Java and [Apache Spark](https://spark.apache.org/)  installed
 
 ```
 mvn clean package
-spark-submit --class com.digitalpebble.spruce.SparkJob --driver-memory 8g ./target/spruce-1.0.jar -i ./curs -o ./output
+spark-submit --class com.digitalpebble.spruce.SparkJob --driver-memory 8g ./target/spruce-*.jar -i ./curs -o ./output
 ```
 
 The option `-c` allows to specify a JSON configuration file to override the default settings.
@@ -50,17 +50,17 @@ The option `-c` allows to specify a JSON configuration file to override the defa
 ## Docker
 
 Build the Docker image with
-`docker build -t digitalpebble/spruce:1.0 .`
+`docker build -t digitalpebble/spruce .`
 
 The command below processes the data locally by mounting the directories containing the CURs and output as volumes:
 ```
 docker run -it -v ./curs:/curs -v ./output:/output --rm --name spruce --network host \
-digitalpebble/spruce:1.0 \
+digitalpebble/spruce \
 /opt/spark/bin/spark-submit  \
 --class com.digitalpebble.spruce.SparkJob \
 --driver-memory 4g \
 --master 'local[*]' \
-/usr/local/lib/spruce-1.0.jar \
+/usr/local/lib/spruce.jar \
 -i /curs -o /output/enriched
 ```
 
