@@ -2,19 +2,20 @@
 
 package com.digitalpebble.spruce.modules.boavizta;
 
-import com.digitalpebble.spruce.*;
+import com.digitalpebble.spruce.Column;
+import com.digitalpebble.spruce.EnrichmentModule;
+import com.digitalpebble.spruce.Provider;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.apache.spark.sql.Row;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
-import static com.digitalpebble.spruce.CURColumn.PRODUCT_INSTANCE_TYPE;
-import static com.digitalpebble.spruce.CURColumn.PRODUCT_SERVICE_CODE;
-import static com.digitalpebble.spruce.CURColumn.LINE_ITEM_OPERATION;
-import static com.digitalpebble.spruce.CURColumn.LINE_ITEM_PRODUCT_CODE;
+import static com.digitalpebble.spruce.CURColumn.*;
 import static com.digitalpebble.spruce.SpruceColumn.ENERGY_USED;
 
 /**
@@ -29,6 +30,8 @@ public class BoaviztAPI implements EnrichmentModule {
     // store the default load values in a cache
     // to save a trip to the API
     private static Cache<Object, @Nullable Object> cache;
+
+    private static Set<String> unknownInstanceTypes;
 
     private String address = "http://localhost:5000";
 
@@ -65,6 +68,10 @@ public class BoaviztAPI implements EnrichmentModule {
             client = new BoaviztAPIClient(address);
         }
 
+        if (unknownInstanceTypes == null) {
+            unknownInstanceTypes = new HashSet<>();
+        }
+
         // TODO handle non-default CPU loads
 
         String instanceType = PRODUCT_INSTANCE_TYPE.getString(row);
@@ -81,7 +88,7 @@ public class BoaviztAPI implements EnrichmentModule {
         }
 
         // conditions for EC2 instances
-        if (product_code.equals("AmazonEC2") && operation.startsWith("RunInstances") && "AmazonEC2".equals(service_code)  ) {
+        if (product_code.equals("AmazonEC2") && operation.startsWith("RunInstances") && "AmazonEC2".equals(service_code)) {
             LOG.debug("EC2 instance {}", instanceType);
         }
         // conditions for search service
@@ -101,12 +108,21 @@ public class BoaviztAPI implements EnrichmentModule {
             return row;
         }
 
+        // don't look for instance types that are known to be unknown
+        if (unknownInstanceTypes.contains(instanceType)) {
+            return row;
+        }
+
         double[] useAndEmbodiedEnergy = (double[]) cache.getIfPresent(instanceType);
 
         if (useAndEmbodiedEnergy == null) {
             try {
                 useAndEmbodiedEnergy = client.getEnergyEstimates(Provider.AWS, instanceType);
                 cache.put(instanceType, useAndEmbodiedEnergy);
+            } catch (InstanceTypeUknown e1) {
+                LOG.info("Unknown instance type {}", instanceType);
+                unknownInstanceTypes.add(instanceType);
+                return row;
             } catch (IOException e) {
                 LOG.error("Exception caught when retrieving estimates for {}", instanceType, e);
                 return row;
