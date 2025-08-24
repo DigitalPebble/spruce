@@ -36,7 +36,12 @@ public class BoaviztAPIClient {
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
-            if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+            if (!response.isSuccessful()) {
+                if (response.message().equals("Not Found")) {
+                    throw new InstanceTypeUknown(instanceType);
+                }
+                throw new IOException("Unexpected code " + response.code());
+            }
 
             Map<String, Object> result = objectMapper.readValue(response.body().byteStream(), new TypeReference<Map<String, Object>>() {
             });
