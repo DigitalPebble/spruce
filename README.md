@@ -88,23 +88,22 @@ Using [DuckDB](https://duckdb.org/) locally or [Athena](https://docs.aws.amazon.
 ```sql
 create table enriched_curs as select * from 'output/**/*.parquet';
 
-select line_item_product_code, product_servicecode, 
-       round(sum(operational_emissions_co2eq_g),2) as co2_usage_g, 
-       round(sum(energy_usage_kwh),2) as energy_usage_kwh 
-       from enriched_curs where operational_emissions_co2eq_g > 0.01 
-       group by line_item_product_code, product_servicecode order by co2_usage_g desc;
+select line_item_product_code, product_servicecode,
+       round(sum(operational_emissions_co2eq_g)/1000,2) as co2_usage_kg,
+       round(sum(energy_usage_kwh),2) as energy_usage_kwh
+       from enriched_curs where operational_emissions_co2eq_g > 0.01
+       group by line_item_product_code, product_servicecode order by co2_usage_kg desc;
 ```
 
 should give an output similar to
 
-| line_item_product_code | product_servicecode | co2_usage_g | energy_usage_kwh |
-|------------------------|---------------------|-------------|------------------|
-| AmazonS3               | AWSDataTransfer     | 659.2       | 3.31             |
-| AmazonRDS              | AWSDataTransfer     | 361.59      | 1.09             |
-| AmazonEC2              | AWSDataTransfer     | 162.59      | 1.43             |
-| AmazonECR              | AWSDataTransfer     | 88.75       | 0.8              |
-| AmazonVPC              | AWSDataTransfer     | 40.55       | 0.38             |
-| AWSELB                 | AWSDataTransfer     | 6.3         | 0.06             |
+| line_item_product_code | product_servicecode | co2_usage_kg | energy_usage_kwh |
+|------------------------|---------------------|-------------:|-----------------:|
+| AmazonEC2              | AmazonEC2           | 5411.49      | 17501.57         |
+| AWSELB                 | AWSDataTransfer     | 1.82         | 5.67             |
+| AmazonS3               | AWSDataTransfer     | 1.42         | 4.6              |
+| AmazonEC2              | AWSDataTransfer     | 0.7          | 2.36             |
+| AmazonECR              | AWSDataTransfer     | 0.07         | 0.28             |
 
 To measure the proportion of the costs for which emissions where calculated
 
