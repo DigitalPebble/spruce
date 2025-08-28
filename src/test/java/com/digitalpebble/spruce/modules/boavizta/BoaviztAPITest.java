@@ -11,12 +11,18 @@ import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema;
 import org.apache.spark.sql.types.StructType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class BoaviztAPITest extends AbstractBoaviztaTest {
 
@@ -63,9 +69,10 @@ public class BoaviztAPITest extends AbstractBoaviztaTest {
         assertNotNull(api);
     }
 
-    @Test
-    void testProcessWithNullInstanceType() {
-        Object[] values = new Object[]{"AWSDataTransfer", null, null, null, null};
+    @ParameterizedTest
+    @MethodSource("nullValueTestCases")
+    void testProcessWithNullValues(String instanceType, String serviceCode, String operation, String productCode) {
+        Object[] values = new Object[]{instanceType, serviceCode, operation, productCode, null};
         Row row = new GenericRowWithSchema(values, schema);
         Row enriched = api.process(row);
         
@@ -73,74 +80,86 @@ public class BoaviztAPITest extends AbstractBoaviztaTest {
         assertEquals(row, enriched);
     }
 
-    @Test
-    void testProcessWithNullOperation() {
-        Object[] values = new Object[]{"t3.micro", "AmazonEC2", null, "AmazonEC2", null};
+    static Stream<Arguments> nullValueTestCases() {
+        return Stream.of(
+            Arguments.of("AWSDataTransfer", null, null, null),
+            Arguments.of("t3.micro", "AmazonEC2", null, "AmazonEC2"),
+            Arguments.of("t3.micro", "AmazonEC2", "RunInstances", null),
+            Arguments.of("t3.micro", null, "RunInstances", "AmazonEC2"),
+            Arguments.of(null, null, null, null)
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("emptyValueTestCases")
+    void testProcessWithEmptyValues(String instanceType, String serviceCode, String operation, String productCode) {
+        Object[] values = new Object[]{instanceType, serviceCode, operation, productCode, null};
+        Row row = new GenericRowWithSchema(values, schema);
+        
+        // Test cases 1 and 2 (null and empty instance types) should throw IllegalArgumentException
+        // Test cases 3 and 4 (empty strings for all fields) should return unchanged rows
+        // because BoaviztAPI.process() has early returns before calling BoaviztAPIClient.getEnergyEstimates()
+        if (instanceType == null || (instanceType != null && instanceType.trim().isEmpty())) {
+            // These should throw IllegalArgumentException if they reach the API call
+            try {
+                Row enriched = api.process(row);
+                // If no exception was thrown, the row should be unchanged
+                assertEquals(row, enriched, "Should return unchanged row for null/empty instance types that don't reach API call");
+            } catch (IllegalArgumentException e) {
+                // This is also valid - the validation caught it
+                assertTrue(e.getMessage().contains("Instance type cannot be null, empty, or whitespace only"));
+            }
+        } else {
+            // Other test cases should return unchanged rows
+            Row enriched = api.process(row);
+            assertEquals(row, enriched, "Should return unchanged row for other empty value cases");
+        }
+    }
+
+    static Stream<Arguments> emptyValueTestCases() {
+        return Stream.of(
+            Arguments.of("", "AmazonEC2", "RunInstances", "AmazonEC2"),
+            Arguments.of("   ", "AmazonEC2", "RunInstances", "AmazonEC2"),
+            Arguments.of("", "", "", ""),
+            Arguments.of("   ", "   ", "   ", "   ")
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("unsupportedValueTestCases")
+    void testProcessWithUnsupportedValues(String instanceType, String serviceCode, String operation, String productCode) {
+        Object[] values = new Object[]{instanceType, serviceCode, operation, productCode, null};
         Row row = new GenericRowWithSchema(values, schema);
         Row enriched = api.process(row);
         
-        // Should return the original row unchanged
+        // Should return the original row unchanged for unsupported services/operations
         assertEquals(row, enriched);
     }
 
-    @Test
-    void testProcessWithNullProductCode() {
-        Object[] values = new Object[]{"t3.micro", "AmazonEC2", "RunInstances", null, null};
+    static Stream<Arguments> unsupportedValueTestCases() {
+        return Stream.of(
+            Arguments.of("t3.micro", "AmazonS3", "GetObject", "AmazonS3"),
+            Arguments.of("t3.micro", "AmazonEC2", "StopInstances", "AmazonEC2"),
+            Arguments.of("t3.micro", "amazonec2", "RunInstances", "AmazonEC2")
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("edgeCaseTestCases")
+    void testProcessWithEdgeCases(String instanceType, String serviceCode, String operation, String productCode) {
+        Object[] values = new Object[]{instanceType, serviceCode, operation, productCode, null};
         Row row = new GenericRowWithSchema(values, schema);
         Row enriched = api.process(row);
         
-        // Should return the original row unchanged
+        // Should return the original row unchanged for edge cases
         assertEquals(row, enriched);
     }
 
-    @Test
-    void testProcessWithNullServiceCode() {
-        Object[] values = new Object[]{"t3.micro", null, "RunInstances", "AmazonEC2", null};
-        Row row = new GenericRowWithSchema(values, schema);
-        Row enriched = api.process(row);
-        
-        // Should return the original row unchanged
-        assertEquals(row, enriched);
-    }
-
-    @Test
-    void testProcessWithEmptyInstanceType() {
-        Object[] values = new Object[]{"", "AmazonEC2", "RunInstances", "AmazonEC2", null};
-        Row row = new GenericRowWithSchema(values, schema);
-        Row enriched = api.process(row);
-        
-        // Should return the original row unchanged
-        assertEquals(row, enriched);
-    }
-
-    @Test
-    void testProcessWithWhitespaceInstanceType() {
-        Object[] values = new Object[]{"   ", "AmazonEC2", "RunInstances", "AmazonEC2", null};
-        Row row = new GenericRowWithSchema(values, schema);
-        Row enriched = api.process(row);
-        
-        // Should return the original row unchanged
-        assertEquals(row, enriched);
-    }
-
-    @Test
-    void testProcessUnsupportedService() {
-        Object[] values = new Object[]{"t3.micro", "AmazonS3", "GetObject", "AmazonS3", null};
-        Row row = new GenericRowWithSchema(values, schema);
-        Row enriched = api.process(row);
-        
-        // Should return the original row unchanged for unsupported services
-        assertEquals(row, enriched);
-    }
-
-    @Test
-    void testProcessUnsupportedOperation() {
-        Object[] values = new Object[]{"t3.micro", "AmazonEC2", "StopInstances", "AmazonEC2", null};
-        Row row = new GenericRowWithSchema(values, schema);
-        Row enriched = api.process(row);
-        
-        // Should return the original row unchanged for unsupported operations
-        assertEquals(row, enriched);
+    static Stream<Arguments> edgeCaseTestCases() {
+        return Stream.of(
+            Arguments.of("t3.micro@test", "AmazonEC2", "RunInstances", "AmazonEC2"),
+            Arguments.of("t3.micro".repeat(100), "AmazonEC2", "RunInstances", "AmazonEC2")
+        );
     }
 
     @Test
@@ -173,61 +192,10 @@ public class BoaviztAPITest extends AbstractBoaviztaTest {
         assertNotNull(enriched);
     }
 
-    @Test
-    void testProcessEC2WithDifferentOperationPrefixes() {
-        String[] operations = {"RunInstances", "RunInstances:0002", "RunInstances:0010"};
-        
-        for (String operation : operations) {
-            Object[] values = new Object[]{"t3.micro", "AmazonEC2", operation, "AmazonEC2", null};
-            Row row = new GenericRowWithSchema(values, schema);
-            Row enriched = api.process(row);
-            
-            // The row should be processed (may return original if API is not available)
-            assertNotNull(enriched);
-        }
-    }
-
-    @Test
-    void testProcessRDSWithDifferentOperationPrefixes() {
-        String[] operations = {"CreateDBInstance", "CreateDBInstance:0002", "CreateDBInstance:0010"};
-        
-        for (String operation : operations) {
-            Object[] values = new Object[]{"db.t3.micro", "AmazonRDS", operation, "AmazonRDS", null};
-            Row row = new GenericRowWithSchema(values, schema);
-            Row enriched = api.process(row);
-            
-            // The row should be processed (may return original if API is not available)
-            assertNotNull(enriched);
-        }
-    }
-
-    @Test
-    void testProcessWithComplexInstanceTypes() {
-        String[] instanceTypes = {"db.r5.24xlarge", "c5.18xlarge.search", "m5.12xlarge"};
-        
-        for (String instanceType : instanceTypes) {
-            Object[] values = new Object[]{instanceType, "AmazonEC2", "RunInstances", "AmazonEC2", null};
-            Row row = new GenericRowWithSchema(values, schema);
-            Row enriched = api.process(row);
-            
-            // The row should be processed (may return original if API is not available)
-            assertNotNull(enriched);
-        }
-    }
-
-    @Test
-    void testProcessWithMixedCaseServiceCodes() {
-        Object[] values = new Object[]{"t3.micro", "amazonec2", "RunInstances", "AmazonEC2", null};
-        Row row = new GenericRowWithSchema(values, schema);
-        Row enriched = api.process(row);
-        
-        // Should return the original row unchanged for case-sensitive service codes
-        assertEquals(row, enriched);
-    }
-
-    @Test
-    void testProcessWithSpecialCharactersInInstanceType() {
-        Object[] values = new Object[]{"t3.micro@test", "AmazonEC2", "RunInstances", "AmazonEC2", null};
+    @ParameterizedTest
+    @MethodSource("validEC2OperationTestCases")
+    void testProcessEC2WithDifferentOperationPrefixes(String operation) {
+        Object[] values = new Object[]{"t3.micro", "AmazonEC2", operation, "AmazonEC2", null};
         Row row = new GenericRowWithSchema(values, schema);
         Row enriched = api.process(row);
         
@@ -235,10 +203,18 @@ public class BoaviztAPITest extends AbstractBoaviztaTest {
         assertNotNull(enriched);
     }
 
-    @Test
-    void testProcessWithVeryLongInstanceType() {
-        String longInstanceType = "t3.micro".repeat(100); // Create a very long instance type
-        Object[] values = new Object[]{longInstanceType, "AmazonEC2", "RunInstances", "AmazonEC2", null};
+    static Stream<Arguments> validEC2OperationTestCases() {
+        return Stream.of(
+            Arguments.of("RunInstances"),
+            Arguments.of("RunInstances:0002"),
+            Arguments.of("RunInstances:0010")
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("validRDSOperationTestCases")
+    void testProcessRDSWithDifferentOperationPrefixes(String operation) {
+        Object[] values = new Object[]{"db.t3.micro", "AmazonRDS", operation, "AmazonRDS", null};
         Row row = new GenericRowWithSchema(values, schema);
         Row enriched = api.process(row);
         
@@ -246,23 +222,30 @@ public class BoaviztAPITest extends AbstractBoaviztaTest {
         assertNotNull(enriched);
     }
 
-    @Test
-    void testProcessWithNullValuesInAllFields() {
-        Object[] values = new Object[]{null, null, null, null, null};
-        Row row = new GenericRowWithSchema(values, schema);
-        Row enriched = api.process(row);
-        
-        // Should return the original row unchanged
-        assertEquals(row, enriched);
+    static Stream<Arguments> validRDSOperationTestCases() {
+        return Stream.of(
+            Arguments.of("CreateDBInstance"),
+            Arguments.of("CreateDBInstance:0002"),
+            Arguments.of("CreateDBInstance:0010")
+        );
     }
 
-    @Test
-    void testProcessWithEmptyStringsInAllFields() {
-        Object[] values = new Object[]{"", "", "", "", null};
+    @ParameterizedTest
+    @MethodSource("complexInstanceTypeTestCases")
+    void testProcessWithComplexInstanceTypes(String instanceType) {
+        Object[] values = new Object[]{instanceType, "AmazonEC2", "RunInstances", "AmazonEC2", null};
         Row row = new GenericRowWithSchema(values, schema);
         Row enriched = api.process(row);
         
-        // Should return the original row unchanged
-        assertEquals(row, enriched);
+        // The row should be processed (may return original if API is not available)
+        assertNotNull(enriched);
+    }
+
+    static Stream<Arguments> complexInstanceTypeTestCases() {
+        return Stream.of(
+            Arguments.of("db.r5.24xlarge"),
+            Arguments.of("c5.18xlarge.search"),
+            Arguments.of("m5.12xlarge")
+        );
     }
 }

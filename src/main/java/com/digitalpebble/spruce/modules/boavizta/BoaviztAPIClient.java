@@ -5,6 +5,8 @@ package com.digitalpebble.spruce.modules.boavizta;
 import com.digitalpebble.spruce.Provider;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.jspecify.annotations.NonNull;
+
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -23,11 +25,20 @@ public class BoaviztAPIClient {
 
     private final String host;
 
-    public BoaviztAPIClient(String host) {
+    public BoaviztAPIClient(@NonNull String host) {
+        if (host == null || host.trim().isEmpty()) {
+            throw new IllegalArgumentException("Host cannot be null, empty, or whitespace only");
+        }
         this.host = host;
     }
 
-    public double[] getEnergyEstimates(Provider p, String instanceType) throws IOException, NullPointerException {
+    public double[] getEnergyEstimates(@NonNull Provider p, @NonNull String instanceType) throws IOException {
+        if (p == null) {
+            throw new IllegalArgumentException("Provider cannot be null");
+        }
+        if (instanceType == null || instanceType.trim().isEmpty()) {
+            throw new IllegalArgumentException("Instance type cannot be null, empty, or whitespace only");
+        }
 
         final String url = String.format(URLPattern, host, instanceType);
 
