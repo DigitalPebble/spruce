@@ -36,7 +36,9 @@ By default, it connects to _localhost:5000_.  The easiest way of launching it is
 docker run -p 5000:5000 --name boaviztapi ghcr.io/boavizta/boaviztapi:latest
 ```
 
-## Build
+## Run Spruce
+
+### With Spark installed
 
 You can copy the Jar from the [latest release](https://github.com/DigitalPebble/spruce/releases) or alternatively, build from source,
 which requires Apache Maven and Java 17 or above.
@@ -44,10 +46,6 @@ which requires Apache Maven and Java 17 or above.
 ```
 mvn clean package
 ```
-
-## Run Spruce
-
-### With Spark installed
 
 To run Spruce locally, you need [Apache Spark](https://spark.apache.org/)  installed  and added to the $PATH (and the BoaviztAPI on _localhost:5000_):
 
@@ -64,15 +62,16 @@ The option `-c` allows to specify a JSON configuration file to override the defa
 
 ## With Docker
 
-Build the Docker image with
-`docker build -t digitalpebble/spruce .`
+Pull the latest Docker image with 
 
-This generated a Docker image containing Apache Spark as well as the Spruce jar.
+`docker pull ghcr.io/digitalpebble/spruce`
+
+This retrieves a Docker image containing Apache Spark as well as the Spruce jar.
 
 The command below processes the data locally by mounting the directories containing the CURs and output as volumes:
 ```
 docker run -it -v ./curs:/curs -v ./output:/output --rm --name spruce --network host \
-digitalpebble/spruce \
+ghcr.io/digitalpebble/spruce \
 /opt/spark/bin/spark-submit  \
 --class com.digitalpebble.spruce.SparkJob \
 --driver-memory 4g \
