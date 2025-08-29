@@ -3,48 +3,54 @@
 package com.digitalpebble.spruce.modules.boavizta;
 
 import com.digitalpebble.spruce.Provider;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.IOException;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class BoaviztAPIClientTest extends AbstractBoaviztaTest {
+public class BoaviztAPIClientTest {
 
+    private MockWebServer mockWebServer;
     private BoaviztAPIClient client;
     private static final String TEST_HOST = "http://localhost:5000";
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws IOException {
+        mockWebServer = new MockWebServer();
+        mockWebServer.start(5000);
         client = new BoaviztAPIClient(TEST_HOST);
+    }
+
+    @AfterEach
+    void tearDown() throws IOException {
+        mockWebServer.shutdown();
     }
 
     @Test
     void testConstructor() {
-        BoaviztAPIClient testClient = new BoaviztAPIClient("http://custom-host:8080");
-        assertNotNull(testClient);
-    }
-
-    @Test
-    void testConstructorWithNullHost() {
-        assertThrows(IllegalArgumentException.class, () -> {
-            new BoaviztAPIClient(null);
+        assertDoesNotThrow(() -> {
+            new BoaviztAPIClient(TEST_HOST);
         });
     }
 
-    @Test
-    void testConstructorWithEmptyHost() {
+    @ParameterizedTest
+    @MethodSource("invalidHostProvider")
+    void testConstructorWithInvalidHosts(String invalidHost) {
         assertThrows(IllegalArgumentException.class, () -> {
-            new BoaviztAPIClient("");
-        });
+            new BoaviztAPIClient(invalidHost);
+        }, "Constructor should throw IllegalArgumentException for invalid host: " + invalidHost);
     }
 
-    @Test
-    void testConstructorWithWhitespaceHost() {
-        assertThrows(IllegalArgumentException.class, () -> {
-            new BoaviztAPIClient("   ");
-        });
+    static Stream<String> invalidHostProvider() {
+        return Stream.of(null, "", "   ", "\t", "\n");
     }
 
     @Test
@@ -52,20 +58,39 @@ public class BoaviztAPIClientTest extends AbstractBoaviztaTest {
         String[] instanceTypes = {"t3.micro", "t3.small", "t3.medium", "c5.large", "m5.xlarge"};
         
         for (String instanceType : instanceTypes) {
-            try {
-                double[] result = client.getEnergyEstimates(Provider.AWS, instanceType);
-                assertNotNull(result);
-                assertEquals(2, result.length);
-                assertTrue(result[0] >= 0, "Use energy should be non-negative for " + instanceType);
-                assertTrue(result[1] >= 0, "Embedded energy should be non-negative for " + instanceType);
-            } catch (IOException e) {
-                // Expected if the test container is not accessible
-                assertTrue(e.getMessage().contains("Unexpected code") || 
-                          e.getMessage().contains("Connection refused") ||
-                          e.getMessage().contains("Failed to connect"),
-                          "Expected connection-related error for " + instanceType + ", got: " + e.getMessage());
-            }
+            // Mock the API response for this instance type
+            String mockResponse = createMockResponse(instanceType);
+            mockWebServer.enqueue(new MockResponse()
+                .setBody(mockResponse)
+                .setResponseCode(200)
+                .addHeader("Content-Type", "application/json"));
+            
+            double[] result = client.getEnergyEstimates(Provider.AWS, instanceType);
+            assertNotNull(result);
+            assertEquals(2, result.length);
+            assertTrue(result[0] >= 0, "Use energy should be non-negative for " + instanceType);
+            assertTrue(result[1] >= 0, "Embedded energy should be non-negative for " + instanceType);
         }
+    }
+
+    private String createMockResponse(String instanceType) {
+        // Create a realistic mock response based on the BoaviztAPI format
+        return String.format("""
+            {
+                "impacts": {
+                    "pe": {
+                        "use": {
+                            "value": 15.5,
+                            "unit": "MJ"
+                        },
+                        "embedded": {
+                            "value": 120.0,
+                            "unit": "MJ"
+                        }
+                    }
+                }
+            }
+            """);
     }
 
     @Test
@@ -94,17 +119,16 @@ public class BoaviztAPIClientTest extends AbstractBoaviztaTest {
         Provider[] providers = {Provider.AWS, Provider.AZURE, Provider.GOOGLE};
         
         for (Provider provider : providers) {
-            try {
-                double[] result = client.getEnergyEstimates(provider, "t3.micro");
-                assertNotNull(result);
-                assertEquals(2, result.length);
-            } catch (IOException e) {
-                // Expected if the test container is not accessible or provider not supported
-                assertTrue(e.getMessage().contains("Unexpected code") || 
-                          e.getMessage().contains("Connection refused") ||
-                          e.getMessage().contains("Failed to connect"),
-                          "Expected connection-related error for " + provider + ", got: " + e.getMessage());
-            }
+            // Mock the API response
+            String mockResponse = createMockResponse("t3.micro");
+            mockWebServer.enqueue(new MockResponse()
+                .setBody(mockResponse)
+                .setResponseCode(200)
+                .addHeader("Content-Type", "application/json"));
+            
+            double[] result = client.getEnergyEstimates(provider, "t3.micro");
+            assertNotNull(result);
+            assertEquals(2, result.length);
         }
     }
 
@@ -118,19 +142,18 @@ public class BoaviztAPIClientTest extends AbstractBoaviztaTest {
         };
         
         for (String instanceType : complexInstanceTypes) {
-            try {
-                double[] result = client.getEnergyEstimates(Provider.AWS, instanceType);
-                assertNotNull(result);
-                assertEquals(2, result.length);
-                assertTrue(result[0] >= 0, "Use energy should be non-negative for " + instanceType);
-                assertTrue(result[1] >= 0, "Embedded energy should be non-negative for " + instanceType);
-            } catch (IOException e) {
-                // Expected if the test container is not accessible
-                assertTrue(e.getMessage().contains("Unexpected code") || 
-                          e.getMessage().contains("Connection refused") ||
-                          e.getMessage().contains("Failed to connect"),
-                          "Expected connection-related error for " + instanceType + ", got: " + e.getMessage());
-            }
+            // Mock the API response
+            String mockResponse = createMockResponse(instanceType);
+            mockWebServer.enqueue(new MockResponse()
+                .setBody(mockResponse)
+                .setResponseCode(200)
+                .addHeader("Content-Type", "application/json"));
+            
+            double[] result = client.getEnergyEstimates(Provider.AWS, instanceType);
+            assertNotNull(result);
+            assertEquals(2, result.length);
+            assertTrue(result[0] >= 0, "Use energy should be non-negative for " + instanceType);
+            assertTrue(result[1] >= 0, "Embedded energy should be non-negative for " + instanceType);
         }
     }
 
@@ -152,10 +175,10 @@ public class BoaviztAPIClientTest extends AbstractBoaviztaTest {
 
     @Test
     void testGetEnergyEstimatesWithMalformedHost() {
-        BoaviztAPIClient malformedClient = new BoaviztAPIClient("not-a-valid-url");
+        BoaviztAPIClient invalidClient = new BoaviztAPIClient("not-a-valid-url");
         
         assertThrows(IllegalArgumentException.class, () -> {
-            malformedClient.getEnergyEstimates(Provider.AWS, "t3.micro");
+            invalidClient.getEnergyEstimates(Provider.AWS, "t3.micro");
         });
     }
 }

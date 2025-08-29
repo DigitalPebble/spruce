@@ -20,8 +20,8 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class BoaviztAPITest extends AbstractBoaviztaTest {
@@ -54,19 +54,21 @@ public class BoaviztAPITest extends AbstractBoaviztaTest {
 
     @Test
     void testInitWithDefaultAddress() {
-        Map<String, Object> params = new HashMap<>();
-        api.init(params);
-        // Should use default address "http://localhost:5000"
-        assertNotNull(api);
+        assertDoesNotThrow(() -> {
+            Map<String, Object> params = new HashMap<>();
+            api.init(params);
+            // Should use default address "http://localhost:5000"
+        });
     }
 
     @Test
     void testInitWithCustomAddress() {
-        Map<String, Object> params = new HashMap<>();
-        params.put("address", "http://custom-host:8080");
-        api.init(params);
-        // The address should be set to the custom value
-        assertNotNull(api);
+        assertDoesNotThrow(() -> {
+            Map<String, Object> params = new HashMap<>();
+            params.put("address", "http://custom-host:8080");
+            api.init(params);
+            // The address should be set to the custom value
+        });
     }
 
     @ParameterizedTest
