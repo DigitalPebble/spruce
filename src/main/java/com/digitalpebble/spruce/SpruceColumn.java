@@ -14,6 +14,7 @@ public class SpruceColumn extends Column {
     public static Column OPERATIONAL_EMISSIONS = new SpruceColumn("operational_emissions_co2eq_g", DoubleType);
     public static Column EMBODIED_EMISSIONS = new SpruceColumn("embodied_emissions_co2eq_g", DoubleType);
     public static Column CPU_LOAD = new SpruceColumn("cpu_load_percentage", DoubleType);
+    public static Column PUE = new SpruceColumn("power_usage_effectiveness", DoubleType);
 
     private SpruceColumn(String l, DataType t) {
         super(l, t);
