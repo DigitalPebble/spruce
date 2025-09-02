@@ -23,9 +23,10 @@
       "className": "com.digitalpebble.spruce.modules.ccf.PUE"
     },
     {
-      "className": "com.digitalpebble.spruce.modules.electricitymaps.AverageCarbonIntensity",
-      "config": {
-      }
+      "className": "com.digitalpebble.spruce.modules.electricitymaps.AverageCarbonIntensity"
+    },
+    {
+      "className": "com.digitalpebble.spruce.modules.OperationalEmissions"
     }
   ]
 }

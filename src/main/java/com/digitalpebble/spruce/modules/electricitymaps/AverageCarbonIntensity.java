@@ -17,8 +17,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Populate the CARBON_INTENSITY and OPERATIONAL_EMISSIONS using ElecticityMaps' 2024 datasets
- * for rows where energy usage has been estimated. Takes into account the PUE if present.
+ * Populate the CARBON_INTENSITY field using ElecticityMaps' 2024 datasets
+ * for rows where energy usage has been estimated.
  **/
 public class AverageCarbonIntensity implements EnrichmentModule {
 
@@ -51,7 +51,7 @@ public class AverageCarbonIntensity implements EnrichmentModule {
 
     @Override
     public Column[] columnsNeeded() {
-        return new Column[]{ENERGY_USED, PRODUCT_REGION_CODE, PRODUCT_FROM_REGION_CODE, PRODUCT_TO_REGION_CODE, PUE};
+        return new Column[]{ENERGY_USED, PRODUCT_REGION_CODE, PRODUCT_FROM_REGION_CODE, PRODUCT_TO_REGION_CODE};
     }
 
     /**
@@ -65,7 +65,7 @@ public class AverageCarbonIntensity implements EnrichmentModule {
 
     @Override
     public Column[] columnsAdded() {
-        return new Column[]{CARBON_INTENSITY, OPERATIONAL_EMISSIONS};
+        return new Column[]{CARBON_INTENSITY};
     }
 
     @Override
@@ -99,16 +99,7 @@ public class AverageCarbonIntensity implements EnrichmentModule {
                 // if the coefficient is 0 it means that the region is not supported
                 return row;
             }
-
-            // take into account the PUE if present
-            double pue = PUE.isNullAt(row)? 1.0 : PUE.getDouble(row);
-
-            // compute the usage emissions
-            double emissions = energyUsed * coeff * pue;
-            Map<Column, Object> additions = new HashMap<>();
-            additions.put(CARBON_INTENSITY, coeff);
-            additions.put(OPERATIONAL_EMISSIONS, emissions);
-            return EnrichmentModule.withUpdatedValues(row, additions);
+            return EnrichmentModule.withUpdatedValue(row, CARBON_INTENSITY, coeff);
         } catch (Exception exception) {
             // if the region is not supported, we cannot compute the carbon intensity
             return row;
