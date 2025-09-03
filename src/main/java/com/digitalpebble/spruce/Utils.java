@@ -22,7 +22,7 @@ public abstract class Utils {
     public static Map<String, Object> loadJSONResources(String resourceFileName) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
 
-        try (InputStream inputStream = Networking.class
+        try (InputStream inputStream = Utils.class
                 .getClassLoader()
                 .getResourceAsStream(resourceFileName)) {
 
