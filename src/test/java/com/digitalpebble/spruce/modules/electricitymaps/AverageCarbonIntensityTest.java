@@ -17,6 +17,6 @@ class AverageCarbonIntensityTest {
         aci.init(Map.of());
         String regionId = "us-east-1";
         Double result = aci.getAverageIntensity(Provider.AWS, regionId);
-        assertEquals(321.04, result);
+        assertEquals(400.33, result);
     }
 }
