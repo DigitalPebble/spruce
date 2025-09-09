@@ -5,6 +5,8 @@ package com.digitalpebble.spruce.modules.ccf;
 import com.digitalpebble.spruce.Column;
 import com.digitalpebble.spruce.EnrichmentModule;
 import org.apache.spark.sql.Row;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
@@ -20,6 +22,8 @@ import static com.digitalpebble.spruce.SpruceColumn.ENERGY_USED;
  **/
 public class Networking implements EnrichmentModule {
 
+    private static final Logger log = LoggerFactory.getLogger(Networking.class);
+
     // estimated kWh/Gb
     double network_coefficient = 0.001;
 
@@ -29,6 +33,7 @@ public class Networking implements EnrichmentModule {
         if (coef != null) {
             network_coefficient = coef;
         }
+        log.info("network_coefficient: {}", network_coefficient);
     }
 
     @Override

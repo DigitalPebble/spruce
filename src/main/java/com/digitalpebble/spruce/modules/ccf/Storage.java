@@ -5,6 +5,8 @@ package com.digitalpebble.spruce.modules.ccf;
 import com.digitalpebble.spruce.Column;
 import com.digitalpebble.spruce.EnrichmentModule;
 import org.apache.spark.sql.Row;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
@@ -22,6 +24,8 @@ import static com.digitalpebble.spruce.Utils.loadJSONResources;
  * @see <a href="https://github.com/cloud-carbon-footprint/cloud-carbon-footprint/blob/9f2cf436e5ad020830977e52c3b0a1719d20a8b9/packages/aws/src/lib/CostAndUsageTypes.ts#L25">resource file</a>
  **/
 public class Storage implements EnrichmentModule {
+
+    private static final Logger log = LoggerFactory.getLogger(Storage.class);
 
     //  0.65 Watt-Hours per Terabyte-Hour for HDD
     double hdd_gb_coefficient = 0.65 / 1024d;
@@ -42,6 +46,9 @@ public class Storage implements EnrichmentModule {
         if (coef != null) {
             ssd_gb_coefficient = coef / 1024d;
         }
+
+        log.info("hdd_gb_coefficient: {}", hdd_gb_coefficient);
+        log.info("ssd_gb_coefficient: {}", ssd_gb_coefficient);
 
         try {
             Map<String, Object> map = loadJSONResources("ccf/storage.json");
@@ -106,7 +113,7 @@ public class Storage implements EnrichmentModule {
         // Log so that can improve coverage in the longer term
         String product_product_family = PRODUCT_PRODUCT_FAMILY.getString(row);
         if ("Storage".equals(product_product_family)) {
-            System.out.println("Storage type not found for " + operation + " "+ usage_type);
+            log.debug("Storage type not found for {} {}",operation, usage_type);
         }
 
         // not been found
