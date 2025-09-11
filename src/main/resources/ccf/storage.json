@@ -95,5 +95,12 @@
     "AMP:MetricStorageByteHrs",
     "TimedStorage-INT-AIA-ByteHrs",
     "TimedStorage-GIR-ByteHrs"
+  ],
+  "KNOWN_USAGE_UNITS" : [
+    "GB-Hours",
+    "GB-Mo",
+    "GB-Month",
+    "GB-Mp",
+    "GB-month"
   ]
 }
