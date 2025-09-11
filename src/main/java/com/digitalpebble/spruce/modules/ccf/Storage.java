@@ -63,7 +63,7 @@ public class Storage implements EnrichmentModule {
 
     @Override
     public Column[] columnsNeeded() {
-        return new Column[]{LINE_ITEM_OPERATION, USAGE_AMOUNT, LINE_ITEM_USAGE_TYPE};
+        return new Column[]{LINE_ITEM_OPERATION, USAGE_AMOUNT, LINE_ITEM_USAGE_TYPE, PRODUCT_SERVICE_CODE};
     }
 
     @Override
@@ -107,6 +107,18 @@ public class Storage implements EnrichmentModule {
         for (String hdd : hdd_usage_types) {
             if (usage_type.endsWith(hdd)) {
                 return enrich(row, true);
+            }
+        }
+
+        // check the services
+        // https://github.com/cloud-carbon-footprint/cloud-carbon-footprint/blob/9f2cf436e5ad020830977e52c3b0a1719d20a8b9/packages/aws/src/lib/CostAndUsageReports.ts#L518
+        String serviceCode = PRODUCT_SERVICE_CODE.getString(row);
+        if (serviceCode != null && !usage_type.contains("Backup")) {
+            for (String service : ssd_services) {
+                if (serviceCode.endsWith(service)) {
+                    log.info("Classified as SSD because service code {}", serviceCode);
+                    return enrich(row, false);
+                }
             }
         }
 

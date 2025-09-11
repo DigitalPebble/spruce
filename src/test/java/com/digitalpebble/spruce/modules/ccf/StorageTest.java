@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 import static com.digitalpebble.spruce.SpruceColumn.ENERGY_USED;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class StorageTest {
 
@@ -27,37 +27,46 @@ class StorageTest {
 
     @Test
     void processCreateVolumeSSD() {
-        Object[] values = new Object[] {"CreateVolume-Gp3", 10d, null, null};
+        Object[] values = new Object[]{"CreateVolume-Gp3", 10d, null, null, null};
         Row row = new GenericRowWithSchema(values, schema);
         Row result = storage.process(row);
-        double expected = 10d *  storage.ssd_gb_coefficient;
+        double expected = 10d * storage.ssd_gb_coefficient;
         assertEquals(expected, ENERGY_USED.getDouble(result));
     }
 
     @Test
     void processCreateVolumeSSD2() {
-        Object[] values = new Object[] {"CreateVolume-Gp2", 10d, null, null};
+        Object[] values = new Object[]{"CreateVolume-Gp2", 10d, null, null, null};
         Row row = new GenericRowWithSchema(values, schema);
         Row result = storage.process(row);
-        double expected = 10d *  storage.ssd_gb_coefficient;
+        double expected = 10d * storage.ssd_gb_coefficient;
         assertEquals(expected, ENERGY_USED.getDouble(result));
     }
 
     @Test
     void processCreateVolumeHDD() {
-        Object[] values = new Object[] {"CreateVolume", 10d, null, null};
+        Object[] values = new Object[]{"CreateVolume", 10d, null, null, null};
         Row row = new GenericRowWithSchema(values, schema);
         Row result = storage.process(row);
-        double expected = 10d *  storage.hdd_gb_coefficient;
+        double expected = 10d * storage.hdd_gb_coefficient;
         assertEquals(expected, ENERGY_USED.getDouble(result));
     }
 
     @Test
     void processS3() {
-        Object[] values = new Object[] {"Storage", 10d, "EUW2-TimedStorage-ByteHrs", null};
+        Object[] values = new Object[]{"Storage", 10d, "EUW2-TimedStorage-ByteHrs", null, null};
         Row row = new GenericRowWithSchema(values, schema);
         Row result = storage.process(row);
-        double expected = 10d *  storage.hdd_gb_coefficient;
+        double expected = 10d * storage.hdd_gb_coefficient;
+        assertEquals(expected, ENERGY_USED.getDouble(result));
+    }
+
+    @Test
+    void processSSDService() {
+        Object[] values = new Object[]{"Storage", 10d, "SomeUsageType", "AmazonFSx", null};
+        Row row = new GenericRowWithSchema(values, schema);
+        Row result = storage.process(row);
+        double expected = 10d * storage.ssd_gb_coefficient;
         assertEquals(expected, ENERGY_USED.getDouble(result));
     }
 }
