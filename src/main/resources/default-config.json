@@ -14,10 +14,7 @@
       }
     },
     {
-      "className": "com.digitalpebble.spruce.modules.boavizta.BoaviztAPI",
-      "config": {
-        "address": "http://localhost:5000"
-      }
+      "className": "com.digitalpebble.spruce.modules.boavizta.BoaviztAPIstatic"
     },
     {
       "className": "com.digitalpebble.spruce.modules.ccf.PUE"
