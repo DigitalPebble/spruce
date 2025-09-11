@@ -8,14 +8,16 @@ import org.apache.spark.sql.Encoder;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.catalyst.encoders.RowEncoder;
+import scala.Option;
 
 import java.io.IOException;
 import java.nio.file.Paths;
 
 import static org.apache.spark.sql.functions.lit;
 
-
 public class SparkJob {
+
+    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(SparkJob.class);
 
     public static void main(String[] args) {
 
@@ -60,11 +62,20 @@ public class SparkJob {
                 config = Config.loadDefault();
             }
         } catch (IOException e) {
-            System.err.println(e.getMessage());
+            LOG.error(e.getMessage());
             System.exit(1);
         }
 
         for (EnrichmentModule module : config.getModules()) {
+            // check that the data contains the columns needed by this module
+            for (Column c : module.columnsNeeded()) {
+                Option<Object> index = dataframe.schema().getFieldIndex(c.getLabel());
+                if (index.isEmpty()) {
+                    LOG.error("Missing column: '{}' needed by module '{}'", c.getLabel(), module.getClass().getName());
+                    System.exit(2);
+                }
+            }
+
             // add new columns for the current module
             // with the correct type but a value of null
             for (Column c : module.columnsAdded()) {
