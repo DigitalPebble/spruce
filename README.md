@@ -29,13 +29,6 @@ You will need to have CUR reports as inputs. Those are generated via [DataExport
 
 You need Docker to be installed on your machine in order to run the tests.
 
-If you rely on the default configuration, the BoaviztAPI enrichment module requires to connect to an instance of the [BoaviztAPI](https://doc.api.boavizta.org/).
-By default, it connects to _localhost:5000_.  The easiest way of launching it is with Docker:
-
-```
-docker run -p 5000:5000 --name boaviztapi ghcr.io/boavizta/boaviztapi:latest
-```
-
 ## Run Spruce
 
 ### With Spark installed
@@ -47,7 +40,7 @@ which requires Apache Maven and Java 17 or above.
 mvn clean package
 ```
 
-To run Spruce locally, you need [Apache Spark](https://spark.apache.org/)  installed  and added to the $PATH (and the BoaviztAPI on _localhost:5000_):
+To run Spruce locally, you need [Apache Spark](https://spark.apache.org/)  installed  and added to the $PATH:
 
 ```
 spark-submit --class com.digitalpebble.spruce.SparkJob --driver-memory 8g ./target/spruce-*.jar -i ./curs -o ./output
@@ -91,18 +84,26 @@ select line_item_product_code, product_servicecode,
        round(sum(operational_emissions_co2eq_g)/1000,2) as co2_usage_kg,
        round(sum(energy_usage_kwh),2) as energy_usage_kwh
        from enriched_curs where operational_emissions_co2eq_g > 0.01
-       group by line_item_product_code, product_servicecode order by co2_usage_kg desc;
+       group by line_item_product_code, product_servicecode
+       order by co2_usage_kg desc, energy_usage_kwh desc, product_servicecode;
 ```
 
 should give an output similar to
 
-| line_item_product_code | product_servicecode | co2_usage_kg | energy_usage_kwh |
-|------------------------|---------------------|-------------:|-----------------:|
-| AmazonEC2              | AmazonEC2           | 5411.49      | 17501.57         |
-| AWSELB                 | AWSDataTransfer     | 1.82         | 5.67             |
-| AmazonS3               | AWSDataTransfer     | 1.42         | 4.6              |
-| AmazonEC2              | AWSDataTransfer     | 0.7          | 2.36             |
-| AmazonECR              | AWSDataTransfer     | 0.07         | 0.28             |
+| line_item_product_code |    product_servicecode     | co2_usage_kg | energy_usage_kwh |
+|------------------------|----------------------------|-------------:|-----------------:|
+| AmazonEC2              | AmazonEC2                  | 7707.34      | 17505.07         |
+| AmazonECS              | AmazonECS                  | 377.95       | 953.7            |
+| AmazonS3               | AmazonS3                   | 208.27       | 463.54           |
+| AWSELB                 | AWSDataTransfer            | 2.58         | 5.67             |
+| AmazonS3               | AWSDataTransfer            | 2.03         | 4.6              |
+| AmazonECR              | AmazonECR                  | 1.64         | 3.85             |
+| AmazonEC2              | AWSDataTransfer            | 1.02         | 2.38             |
+| AWSLambda              | AWSLambda                  | 0.2          | 0.44             |
+| AmazonECR              | AWSDataTransfer            | 0.1          | 0.29             |
+| AmazonS3               | AmazonS3GlacierDeepArchive | 0.08         | 0.18             |
+| AmazonCloudWatch       | AmazonCloudWatch           | 0.03         | 0.07             |
+| AWSBackup              | AWSBackup                  | 0.0          | 0.01             |
 
 To measure the proportion of the costs for which emissions where calculated
 
