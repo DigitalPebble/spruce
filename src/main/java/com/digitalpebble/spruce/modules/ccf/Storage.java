@@ -35,6 +35,7 @@ public class Storage implements EnrichmentModule {
     List<String> ssd_usage_types;
     List<String> hdd_usage_types;
     List<String> ssd_services;
+    List<String> units;
 
     @Override
     public void init(Map<String, Object> params) {
@@ -55,6 +56,7 @@ public class Storage implements EnrichmentModule {
             ssd_usage_types = (List<String>) map.get("SSD_USAGE_TYPES");
             hdd_usage_types = (List<String>) map.get("HDD_USAGE_TYPES");
             ssd_services = (List<String>) map.get("SSD_SERVICES");
+            units = (List<String>) map.get("KNOWN_USAGE_UNITS");
         } catch (
                 IOException e) {
             throw new RuntimeException(e);
@@ -63,7 +65,7 @@ public class Storage implements EnrichmentModule {
 
     @Override
     public Column[] columnsNeeded() {
-        return new Column[]{LINE_ITEM_OPERATION, USAGE_AMOUNT, LINE_ITEM_USAGE_TYPE, PRODUCT_SERVICE_CODE};
+        return new Column[]{LINE_ITEM_OPERATION, USAGE_AMOUNT, LINE_ITEM_USAGE_TYPE, PRODUCT_SERVICE_CODE, PRICING_UNIT};
     }
 
     @Override
@@ -88,8 +90,12 @@ public class Storage implements EnrichmentModule {
         }
 
         // implement the logic from CCF
+        // first check that the unit corresponds to storage
+        String unit = PRICING_UNIT.getString(row);
+        if (unit == null || !units.contains(unit)) {
+            return row;
+        }
 
-        // TODO detection based on service names
         // TODO handle replication
 
         String usage_type = LINE_ITEM_USAGE_TYPE.getString(row);
@@ -104,21 +110,20 @@ public class Storage implements EnrichmentModule {
             }
         }
 
-        for (String hdd : hdd_usage_types) {
-            if (usage_type.endsWith(hdd)) {
-                return enrich(row, true);
-            }
-        }
-
         // check the services
         // https://github.com/cloud-carbon-footprint/cloud-carbon-footprint/blob/9f2cf436e5ad020830977e52c3b0a1719d20a8b9/packages/aws/src/lib/CostAndUsageReports.ts#L518
         String serviceCode = PRODUCT_SERVICE_CODE.getString(row);
         if (serviceCode != null && !usage_type.contains("Backup")) {
             for (String service : ssd_services) {
                 if (serviceCode.endsWith(service)) {
-                    log.info("Classified as SSD because service code {}", serviceCode);
                     return enrich(row, false);
                 }
+            }
+        }
+
+        for (String hdd : hdd_usage_types) {
+            if (usage_type.endsWith(hdd)) {
+                return enrich(row, true);
             }
         }
 
