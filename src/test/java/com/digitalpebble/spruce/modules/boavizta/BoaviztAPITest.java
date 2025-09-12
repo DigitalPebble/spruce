@@ -328,6 +328,12 @@ public class BoaviztAPITest {
             return String.format("""
                 {
                     "impacts": {
+                        "gwp": {
+                              "unit": "kgCO2eq",
+                              "embedded": {
+                                "value": 0.0086
+                              }
+                        },
                         "pe": {
                             "use": {
                                 "value": 15.5,

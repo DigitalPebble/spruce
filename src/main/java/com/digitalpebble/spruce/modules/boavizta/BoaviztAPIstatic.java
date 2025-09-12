@@ -50,7 +50,7 @@ public class BoaviztAPIstatic implements EnrichmentModule {
                     return; // Skip comments and empty lines
                 }
                 String[] parts = line.split(",");
-                if (parts.length == 2) {
+                if (parts.length == 3) {
                     String instanceType = parts[0].trim();
                     double energyUsed = Double.parseDouble(parts[1].trim());
                     energy_estimates.put(instanceType, energyUsed);

@@ -50,39 +50,39 @@ public class BoaviztAPIClientTest {
         }
 
         @Test
-        void testGetEnergyEstimatesWithNullInstanceType() {
+        void testgetEnergyAndEmbodiedEmissionsEstimatesWithNullInstanceType() {
             assertThrows(IllegalArgumentException.class, () -> {
-                client.getEnergyEstimates(Provider.AWS, null);
+                client.getEnergyAndEmbodiedEmissionsEstimates(Provider.AWS, null);
             });
         }
 
         @Test
-        void testGetEnergyEstimatesWithEmptyInstanceType() {
+        void testgetEnergyAndEmbodiedEmissionsEstimatesWithEmptyInstanceType() {
             assertThrows(IllegalArgumentException.class, () -> {
-                client.getEnergyEstimates(Provider.AWS, "");
+                client.getEnergyAndEmbodiedEmissionsEstimates(Provider.AWS, "");
             });
         }
 
         @Test
-        void testGetEnergyEstimatesWithWhitespaceInstanceType() {
+        void testgetEnergyAndEmbodiedEmissionsEstimatesWithWhitespaceInstanceType() {
             assertThrows(IllegalArgumentException.class, () -> {
-                client.getEnergyEstimates(Provider.AWS, "   ");
+                client.getEnergyAndEmbodiedEmissionsEstimates(Provider.AWS, "   ");
             });
         }
 
         @Test
-        void testGetEnergyEstimatesWithNullProvider() {
+        void testgetEnergyAndEmbodiedEmissionsEstimatesWithNullProvider() {
             assertThrows(IllegalArgumentException.class, () -> {
-                client.getEnergyEstimates(null, "t3.micro");
+                client.getEnergyAndEmbodiedEmissionsEstimates(null, "t3.micro");
             });
         }
 
         @Test
-        void testGetEnergyEstimatesWithMalformedHost() {
+        void testgetEnergyAndEmbodiedEmissionsEstimatesWithMalformedHost() {
             BoaviztAPIClient invalidClient = new BoaviztAPIClient("not-a-valid-url");
             
             assertThrows(IllegalArgumentException.class, () -> {
-                invalidClient.getEnergyEstimates(Provider.AWS, "t3.micro");
+                invalidClient.getEnergyAndEmbodiedEmissionsEstimates(Provider.AWS, "t3.micro");
             });
         }
     }
@@ -105,7 +105,7 @@ public class BoaviztAPIClientTest {
         }
 
         @Test
-        void testGetEnergyEstimatesWithDifferentInstanceTypes() throws IOException {
+        void testgetEnergyAndEmbodiedEmissionsEstimatesWithDifferentInstanceTypes() throws IOException {
             String[] instanceTypes = {"t3.micro", "t3.small", "t3.medium", "c5.large", "m5.xlarge"};
             
             for (String instanceType : instanceTypes) {
@@ -116,16 +116,16 @@ public class BoaviztAPIClientTest {
                     .setResponseCode(200)
                     .addHeader("Content-Type", "application/json"));
                 
-                double[] result = client.getEnergyEstimates(Provider.AWS, instanceType);
+                double[] result = client.getEnergyAndEmbodiedEmissionsEstimates(Provider.AWS, instanceType);
                 assertNotNull(result);
                 assertEquals(2, result.length);
                 assertTrue(result[0] >= 0, "Use energy should be non-negative for " + instanceType);
-                assertTrue(result[1] >= 0, "Embedded energy should be non-negative for " + instanceType);
+                assertTrue(result[1] >= 0, "Embedded emissions should be non-negative for " + instanceType);
             }
         }
 
         @Test
-        void testGetEnergyEstimatesWithDifferentProviders() throws IOException {
+        void testgetEnergyAndEmbodiedEmissionsEstimatesWithDifferentProviders() throws IOException {
             Provider[] providers = {Provider.AWS, Provider.AZURE, Provider.GOOGLE};
             
             for (Provider provider : providers) {
@@ -136,14 +136,14 @@ public class BoaviztAPIClientTest {
                     .setResponseCode(200)
                     .addHeader("Content-Type", "application/json"));
                 
-                double[] result = client.getEnergyEstimates(provider, "t3.micro");
+                double[] result = client.getEnergyAndEmbodiedEmissionsEstimates(provider, "t3.micro");
                 assertNotNull(result);
                 assertEquals(2, result.length);
             }
         }
 
         @Test
-        void testGetEnergyEstimatesWithComplexInstanceTypes() throws IOException {
+        void testgetEnergyAndEmbodiedEmissionsEstimatesWithComplexInstanceTypes() throws IOException {
             String[] complexInstanceTypes = {
                 "db.r5.24xlarge", 
                 "c5.18xlarge.search", 
@@ -159,20 +159,20 @@ public class BoaviztAPIClientTest {
                     .setResponseCode(200)
                     .addHeader("Content-Type", "application/json"));
                 
-                double[] result = client.getEnergyEstimates(Provider.AWS, instanceType);
+                double[] result = client.getEnergyAndEmbodiedEmissionsEstimates(Provider.AWS, instanceType);
                 assertNotNull(result);
                 assertEquals(2, result.length);
                 assertTrue(result[0] >= 0, "Use energy should be non-negative for " + instanceType);
-                assertTrue(result[1] >= 0, "Embedded energy should be non-negative for " + instanceType);
+                assertTrue(result[1] >= 0, "Embedded emissions should be non-negative for " + instanceType);
             }
         }
 
         @Test
-        void testGetEnergyEstimatesWithInvalidHost() {
+        void testgetEnergyAndEmbodiedEmissionsEstimatesWithInvalidHost() {
             BoaviztAPIClient invalidClient = new BoaviztAPIClient("http://invalid-host-that-does-not-exist:9999");
             
             assertThrows(IOException.class, () -> {
-                invalidClient.getEnergyEstimates(Provider.AWS, "t3.micro");
+                invalidClient.getEnergyAndEmbodiedEmissionsEstimates(Provider.AWS, "t3.micro");
             });
         }
 
@@ -181,6 +181,12 @@ public class BoaviztAPIClientTest {
             return String.format("""
                 {
                     "impacts": {
+                        "gwp": {
+                              "unit": "kgCO2eq",
+                              "embedded": {
+                                "value": 0.0086
+                              }
+                        },
                         "pe": {
                             "use": {
                                 "value": 15.5,

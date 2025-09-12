@@ -117,7 +117,7 @@ public class BoaviztAPI implements EnrichmentModule {
 
         if (useAndEmbodiedEnergy == null) {
             try {
-                useAndEmbodiedEnergy = client.getEnergyEstimates(Provider.AWS, instanceType);
+                useAndEmbodiedEnergy = client.getEnergyAndEmbodiedEmissionsEstimates(Provider.AWS, instanceType);
                 cache.put(instanceType, useAndEmbodiedEnergy);
             } catch (InstanceTypeUknown e1) {
                 LOG.info("Unknown instance type {}", instanceType);
