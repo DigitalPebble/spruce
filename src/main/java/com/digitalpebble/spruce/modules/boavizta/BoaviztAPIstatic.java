@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.digitalpebble.spruce.CURColumn.*;
+import static com.digitalpebble.spruce.SpruceColumn.EMBODIED_EMISSIONS;
 import static com.digitalpebble.spruce.SpruceColumn.ENERGY_USED;
 
 /**
@@ -27,7 +28,7 @@ public class BoaviztAPIstatic implements EnrichmentModule {
 
     private final static String DEFAULT_RESOURCE_LOCATION = "boavizta/instanceTypes.csv";
 
-    private static Map<String, Double> energy_estimates;
+    private static Map<String, BoaviztaResult> energy_estimates;
 
     private static Set<String> unknownInstanceTypes;
 
@@ -53,7 +54,8 @@ public class BoaviztAPIstatic implements EnrichmentModule {
                 if (parts.length == 3) {
                     String instanceType = parts[0].trim();
                     double energyUsed = Double.parseDouble(parts[1].trim());
-                    energy_estimates.put(instanceType, energyUsed);
+                    double embodied = Double.parseDouble(parts[2].trim());
+                    energy_estimates.put(instanceType, new BoaviztaResult(energyUsed, embodied));
                 } else {
                     throw new RuntimeException("Invalid estimates mapping line: " + line);
                 }
@@ -70,7 +72,7 @@ public class BoaviztAPIstatic implements EnrichmentModule {
 
     @Override
     public Column[] columnsAdded() {
-        return new Column[]{ENERGY_USED};
+        return new Column[]{ENERGY_USED, EMBODIED_EMISSIONS};
     }
 
     @Override
@@ -115,14 +117,17 @@ public class BoaviztAPIstatic implements EnrichmentModule {
             return row;
         }
 
-        Double usedEnergy = energy_estimates.get(instanceType);
+        BoaviztaResult result = energy_estimates.get(instanceType);
 
-        if (usedEnergy == null) {
+        if (result == null) {
             LOG.info("Unknown instance type {}", instanceType);
             unknownInstanceTypes.add(instanceType);
             return row;
         }
 
-        return EnrichmentModule.withUpdatedValue(row, ENERGY_USED, usedEnergy);
+        Map<Column, Object> kv = new HashMap<>();
+        kv.put(ENERGY_USED, result.getFinalEnergyKWh());
+        kv.put(EMBODIED_EMISSIONS, result.getEmbeddedEmissionsGramsCO2eq());
+        return EnrichmentModule.withUpdatedValues(row, kv);
     }
 }

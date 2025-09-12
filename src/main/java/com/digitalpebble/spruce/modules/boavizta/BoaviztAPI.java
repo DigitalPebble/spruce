@@ -11,11 +11,13 @@ import org.apache.spark.sql.Row;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import static com.digitalpebble.spruce.CURColumn.*;
+import static com.digitalpebble.spruce.SpruceColumn.EMBODIED_EMISSIONS;
 import static com.digitalpebble.spruce.SpruceColumn.ENERGY_USED;
 
 /**
@@ -52,7 +54,7 @@ public class BoaviztAPI implements EnrichmentModule {
 
     @Override
     public Column[] columnsAdded() {
-        return new Column[]{ENERGY_USED};
+        return new Column[]{ENERGY_USED, EMBODIED_EMISSIONS};
     }
 
     @Override
@@ -129,6 +131,9 @@ public class BoaviztAPI implements EnrichmentModule {
             }
         }
 
-        return EnrichmentModule.withUpdatedValue(row, ENERGY_USED, useAndEmbodiedEnergy.getFinalEnergyKWh());
+        Map<Column, Object> kv = new HashMap<>();
+        kv.put(ENERGY_USED, useAndEmbodiedEnergy.getFinalEnergyKWh());
+        kv.put(EMBODIED_EMISSIONS, useAndEmbodiedEnergy.getEmbeddedEmissionsGramsCO2eq());
+        return EnrichmentModule.withUpdatedValues(row, kv);
     }
 }
