@@ -29,7 +29,7 @@ public class BoaviztAPI implements EnrichmentModule {
 
     // store the default load values in a cache
     // to save a trip to the API
-    private static Cache<Object, @Nullable Object> cache;
+    private static Cache<String, @Nullable BoaviztaResult> cache;
 
     private static Set<String> unknownInstanceTypes;
 
@@ -113,7 +113,7 @@ public class BoaviztAPI implements EnrichmentModule {
             return row;
         }
 
-        double[] useAndEmbodiedEnergy = (double[]) cache.getIfPresent(instanceType);
+        BoaviztaResult useAndEmbodiedEnergy = cache.getIfPresent(instanceType);
 
         if (useAndEmbodiedEnergy == null) {
             try {
@@ -129,6 +129,6 @@ public class BoaviztAPI implements EnrichmentModule {
             }
         }
 
-        return EnrichmentModule.withUpdatedValue(row, ENERGY_USED, useAndEmbodiedEnergy[0]);
+        return EnrichmentModule.withUpdatedValue(row, ENERGY_USED, useAndEmbodiedEnergy.getFinalEnergyKWh());
     }
 }

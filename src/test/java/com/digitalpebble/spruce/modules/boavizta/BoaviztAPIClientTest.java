@@ -116,11 +116,10 @@ public class BoaviztAPIClientTest {
                     .setResponseCode(200)
                     .addHeader("Content-Type", "application/json"));
                 
-                double[] result = client.getEnergyAndEmbodiedEmissionsEstimates(Provider.AWS, instanceType);
+                BoaviztaResult result = client.getEnergyAndEmbodiedEmissionsEstimates(Provider.AWS, instanceType);
                 assertNotNull(result);
-                assertEquals(2, result.length);
-                assertTrue(result[0] >= 0, "Use energy should be non-negative for " + instanceType);
-                assertTrue(result[1] >= 0, "Embedded emissions should be non-negative for " + instanceType);
+                assertTrue(result.getFinalEnergyKWh() >= 0, "Use energy should be non-negative for " + instanceType);
+                assertTrue(result.getEmbeddedEmissionsGramsCO2eq() >= 0, "Embedded emissions should be non-negative for " + instanceType);
             }
         }
 
@@ -136,9 +135,8 @@ public class BoaviztAPIClientTest {
                     .setResponseCode(200)
                     .addHeader("Content-Type", "application/json"));
                 
-                double[] result = client.getEnergyAndEmbodiedEmissionsEstimates(provider, "t3.micro");
+                BoaviztaResult result = client.getEnergyAndEmbodiedEmissionsEstimates(provider, "t3.micro");
                 assertNotNull(result);
-                assertEquals(2, result.length);
             }
         }
 
@@ -159,11 +157,10 @@ public class BoaviztAPIClientTest {
                     .setResponseCode(200)
                     .addHeader("Content-Type", "application/json"));
                 
-                double[] result = client.getEnergyAndEmbodiedEmissionsEstimates(Provider.AWS, instanceType);
+                BoaviztaResult result = client.getEnergyAndEmbodiedEmissionsEstimates(Provider.AWS, instanceType);
                 assertNotNull(result);
-                assertEquals(2, result.length);
-                assertTrue(result[0] >= 0, "Use energy should be non-negative for " + instanceType);
-                assertTrue(result[1] >= 0, "Embedded emissions should be non-negative for " + instanceType);
+                assertTrue(result.getFinalEnergyKWh() >= 0, "Use energy should be non-negative for " + instanceType);
+                assertTrue(result.getEmbeddedEmissionsGramsCO2eq() >= 0, "Embedded emissions should be non-negative for " + instanceType);
             }
         }
 

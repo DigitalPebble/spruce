@@ -22,18 +22,18 @@ public class APITester {
                 for (String instanceType : instanceTypes) {
                     if (instanceType.startsWith("#")) continue;
                     try {
-                    double[] usageAndEmbodiedEnergy = client.getEnergyAndEmbodiedEmissionsEstimates(Provider.AWS, instanceType.trim());
-                    writer.write(instanceType + ", " + usageAndEmbodiedEnergy[0]+ ", " + usageAndEmbodiedEnergy[1]);
-                    writer.newLine();
+                        BoaviztaResult usageAndEmbodiedEnergy = client.getEnergyAndEmbodiedEmissionsEstimates(Provider.AWS, instanceType.trim());
+                        writer.write(instanceType + ", " + usageAndEmbodiedEnergy.getFinalEnergyKWh() + ", " + usageAndEmbodiedEnergy.getEmbeddedEmissionsGramsCO2eq());
+                        writer.newLine();
                     } catch (Exception e) {
-                        System.err.println("Exception caught for instance type "+instanceType);
+                        System.err.println("Exception caught for instance type " + instanceType);
                     }
                 }
             }
-        } else if (args.length == 1){
-            double[] usageAndEmbodiedEnergy = client.getEnergyAndEmbodiedEmissionsEstimates(Provider.AWS,args[0]);
-            System.out.println("Usage KWh: " + usageAndEmbodiedEnergy[0]);
-            System.out.println("Embodied emissions gCO2eq: " + usageAndEmbodiedEnergy[1]);
+        } else if (args.length == 1) {
+            BoaviztaResult usageAndEmbodiedEnergy = client.getEnergyAndEmbodiedEmissionsEstimates(Provider.AWS, args[0]);
+            System.out.println("Usage KWh: " + usageAndEmbodiedEnergy.getFinalEnergyKWh());
+            System.out.println("Embodied emissions gCO2eq: " + usageAndEmbodiedEnergy.getEmbeddedEmissionsGramsCO2eq());
         }
     }
 }

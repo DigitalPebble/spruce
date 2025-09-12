@@ -36,7 +36,7 @@ public class BoaviztAPIClient {
         this.host = host;
     }
 
-    public double[] getEnergyAndEmbodiedEmissionsEstimates(@NonNull Provider p, @NonNull String instanceType) throws IOException {
+    public BoaviztaResult getEnergyAndEmbodiedEmissionsEstimates(@NonNull Provider p, @NonNull String instanceType) throws IOException {
         if (p == null) {
             throw new IllegalArgumentException("Provider cannot be null");
         }
@@ -70,7 +70,25 @@ public class BoaviztAPIClient {
             Map<String, Object> embedded = (Map<String, Object>) gwp.get("embedded");
             Double embedded_value_kgCO2eq = (Double) embedded.get("value");
 
-            return new double[]{final_energy_kwh, embedded_value_kgCO2eq * 1000};
+            return new BoaviztaResult(final_energy_kwh, embedded_value_kgCO2eq * 1000);
         }
+    }
+}
+
+class BoaviztaResult {
+    private final double finalEnergyKWh;
+    private final double embeddedEmissionsGramsCO2eq;
+
+    public BoaviztaResult(double finalEnergyKWh, double embeddedEmissionsGramsCO2eq) {
+        this.finalEnergyKWh = finalEnergyKWh;
+        this.embeddedEmissionsGramsCO2eq = embeddedEmissionsGramsCO2eq;
+    }
+
+    public double getFinalEnergyKWh() {
+        return finalEnergyKWh;
+    }
+
+    public double getEmbeddedEmissionsGramsCO2eq() {
+        return embeddedEmissionsGramsCO2eq;
     }
 }
