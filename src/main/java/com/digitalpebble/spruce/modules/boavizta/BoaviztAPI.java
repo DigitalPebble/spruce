@@ -11,11 +11,13 @@ import org.apache.spark.sql.Row;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import static com.digitalpebble.spruce.CURColumn.*;
+import static com.digitalpebble.spruce.SpruceColumn.EMBODIED_EMISSIONS;
 import static com.digitalpebble.spruce.SpruceColumn.ENERGY_USED;
 
 /**
@@ -29,7 +31,7 @@ public class BoaviztAPI implements EnrichmentModule {
 
     // store the default load values in a cache
     // to save a trip to the API
-    private static Cache<Object, @Nullable Object> cache;
+    private static Cache<String, @Nullable BoaviztaResult> cache;
 
     private static Set<String> unknownInstanceTypes;
 
@@ -52,7 +54,7 @@ public class BoaviztAPI implements EnrichmentModule {
 
     @Override
     public Column[] columnsAdded() {
-        return new Column[]{ENERGY_USED};
+        return new Column[]{ENERGY_USED, EMBODIED_EMISSIONS};
     }
 
     @Override
@@ -113,11 +115,11 @@ public class BoaviztAPI implements EnrichmentModule {
             return row;
         }
 
-        double[] useAndEmbodiedEnergy = (double[]) cache.getIfPresent(instanceType);
+        BoaviztaResult useAndEmbodiedEnergy = cache.getIfPresent(instanceType);
 
         if (useAndEmbodiedEnergy == null) {
             try {
-                useAndEmbodiedEnergy = client.getEnergyEstimates(Provider.AWS, instanceType);
+                useAndEmbodiedEnergy = client.getEnergyAndEmbodiedEmissionsEstimates(Provider.AWS, instanceType);
                 cache.put(instanceType, useAndEmbodiedEnergy);
             } catch (InstanceTypeUknown e1) {
                 LOG.info("Unknown instance type {}", instanceType);
@@ -129,6 +131,9 @@ public class BoaviztAPI implements EnrichmentModule {
             }
         }
 
-        return EnrichmentModule.withUpdatedValue(row, ENERGY_USED, useAndEmbodiedEnergy[0]);
+        Map<Column, Object> kv = new HashMap<>();
+        kv.put(ENERGY_USED, useAndEmbodiedEnergy.getFinalEnergyKWh());
+        kv.put(EMBODIED_EMISSIONS, useAndEmbodiedEnergy.getEmbeddedEmissionsGramsCO2eq());
+        return EnrichmentModule.withUpdatedValues(row, kv);
     }
 }

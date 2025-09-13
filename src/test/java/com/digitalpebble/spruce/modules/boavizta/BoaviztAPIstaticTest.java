@@ -53,14 +53,15 @@ public class BoaviztAPIstaticTest {
         @Test
         void testColumnsAdded() {
             Column[] added = module.columnsAdded();
-            assertEquals(1, added.length);
+            assertEquals(2, added.length);
             assertEquals(SpruceColumn.ENERGY_USED, added[0]);
+            assertEquals(SpruceColumn.EMBODIED_EMISSIONS, added[1]);
         }
 
         @ParameterizedTest
         @MethodSource("nullValueTestCases")
         void testProcessWithNullValues(String instanceType, String serviceCode, String operation, String productCode) {
-            Object[] values = new Object[]{instanceType, serviceCode, operation, productCode, null};
+            Object[] values = new Object[]{instanceType, serviceCode, operation, productCode, null, null};
             Row row = new GenericRowWithSchema(values, schema);
             Row enriched = module.process(row);
             
@@ -81,13 +82,13 @@ public class BoaviztAPIstaticTest {
         @ParameterizedTest
         @MethodSource("emptyValueTestCases")
         void testProcessWithEmptyValues(String instanceType, String serviceCode, String operation, String productCode) {
-            Object[] values = new Object[]{instanceType, serviceCode, operation, productCode, null};
+            Object[] values = new Object[]{instanceType, serviceCode, operation, productCode, null, null};
             Row row = new GenericRowWithSchema(values, schema);
             
             // Test cases 1 and 2 (null and empty instance types) should throw IllegalArgumentException
             // Test cases 3 and 4 (empty strings for all fields) should return unchanged rows
             // because BoaviztAPI.process() has early returns before calling BoaviztAPIClient.getEnergyEstimates()
-            if (instanceType == null || (instanceType != null && instanceType.trim().isEmpty())) {
+            if (instanceType == null || instanceType.trim().isEmpty()) {
                 // These should throw IllegalArgumentException if they reach the API call
                 try {
                     Row enriched = module.process(row);
@@ -116,7 +117,7 @@ public class BoaviztAPIstaticTest {
         @ParameterizedTest
         @MethodSource("unsupportedValueTestCases")
         void testProcessWithUnsupportedValues(String instanceType, String serviceCode, String operation, String productCode) {
-            Object[] values = new Object[]{instanceType, serviceCode, operation, productCode, null};
+            Object[] values = new Object[]{instanceType, serviceCode, operation, productCode, null, null};
             Row row = new GenericRowWithSchema(values, schema);
             Row enriched = module.process(row);
             
@@ -135,7 +136,7 @@ public class BoaviztAPIstaticTest {
         @ParameterizedTest
         @MethodSource("edgeCaseTestCases")
         void testProcessWithEdgeCases(String instanceType, String serviceCode, String operation, String productCode) {
-            Object[] values = new Object[]{instanceType, serviceCode, operation, productCode, null};
+            Object[] values = new Object[]{instanceType, serviceCode, operation, productCode, null, null};
             Row row = new GenericRowWithSchema(values, schema);
             Row enriched = module.process(row);
             

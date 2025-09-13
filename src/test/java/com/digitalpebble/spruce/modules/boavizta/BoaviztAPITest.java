@@ -57,8 +57,9 @@ public class BoaviztAPITest {
         @Test
         void testColumnsAdded() {
             Column[] added = api.columnsAdded();
-            assertEquals(1, added.length);
+            assertEquals(2, added.length);
             assertEquals(SpruceColumn.ENERGY_USED, added[0]);
+            assertEquals(SpruceColumn.EMBODIED_EMISSIONS, added[1]);
         }
 
         @Test
@@ -202,7 +203,7 @@ public class BoaviztAPITest {
                 .setResponseCode(200)
                 .addHeader("Content-Type", "application/json"));
 
-            Object[] values = new Object[]{"t3.micro", "AmazonEC2", "RunInstances", "AmazonEC2", null};
+            Object[] values = new Object[]{"t3.micro", "AmazonEC2", "RunInstances", "AmazonEC2", null, null};
             Row row = new GenericRowWithSchema(values, schema);
             Row enriched = api.process(row);
             
@@ -220,7 +221,7 @@ public class BoaviztAPITest {
                 .setResponseCode(200)
                 .addHeader("Content-Type", "application/json"));
 
-            Object[] values = new Object[]{"t3.micro.search", "AmazonES", "ESDomain", "AmazonES", null};
+            Object[] values = new Object[]{"t3.micro.search", "AmazonES", "ESDomain", "AmazonES", null, null};
             Row row = new GenericRowWithSchema(values, schema);
             Row enriched = api.process(row);
             
@@ -237,7 +238,7 @@ public class BoaviztAPITest {
                 .setResponseCode(200)
                 .addHeader("Content-Type", "application/json"));
 
-            Object[] values = new Object[]{"db.t3.micro", "AmazonRDS", "CreateDBInstance", "AmazonRDS", null};
+            Object[] values = new Object[]{"db.t3.micro", "AmazonRDS", "CreateDBInstance", "AmazonRDS", null, null};
             Row row = new GenericRowWithSchema(values, schema);
             Row enriched = api.process(row);
             
@@ -255,7 +256,7 @@ public class BoaviztAPITest {
                 .setResponseCode(200)
                 .addHeader("Content-Type", "application/json"));
 
-            Object[] values = new Object[]{"t3.micro", "AmazonEC2", operation, "AmazonEC2", null};
+            Object[] values = new Object[]{"t3.micro", "AmazonEC2", operation, "AmazonEC2", null, null};
             Row row = new GenericRowWithSchema(values, schema);
             Row enriched = api.process(row);
             
@@ -281,7 +282,7 @@ public class BoaviztAPITest {
                 .setResponseCode(200)
                 .addHeader("Content-Type", "application/json"));
 
-            Object[] values = new Object[]{"db.t3.micro", "AmazonRDS", operation, "AmazonRDS", null};
+            Object[] values = new Object[]{"db.t3.micro", "AmazonRDS", operation, "AmazonRDS", null, null};
             Row row = new GenericRowWithSchema(values, schema);
             Row enriched = api.process(row);
             
@@ -307,7 +308,7 @@ public class BoaviztAPITest {
                 .setResponseCode(200)
                 .addHeader("Content-Type", "application/json"));
 
-            Object[] values = new Object[]{instanceType, "AmazonEC2", "RunInstances", "AmazonEC2", null};
+            Object[] values = new Object[]{instanceType, "AmazonEC2", "RunInstances", "AmazonEC2", null, null};
             Row row = new GenericRowWithSchema(values, schema);
             Row enriched = api.process(row);
             
@@ -328,6 +329,12 @@ public class BoaviztAPITest {
             return String.format("""
                 {
                     "impacts": {
+                        "gwp": {
+                              "unit": "kgCO2eq",
+                              "embedded": {
+                                "value": 0.0086
+                              }
+                        },
                         "pe": {
                             "use": {
                                 "value": 15.5,
