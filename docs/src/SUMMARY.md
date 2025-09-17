@@ -1,9 +1,17 @@
 # Summary
 
 [Introduction](./intro.md)
-- [Quick start](tutorial/tutorial.md)
-  - [Run Spruce with Spark installed](tutorial/with-spark.md)
-  - [Run Spruce on Docker](tutorial/with-docker.md)
+
+# Tutorials 🚀
+
+  - [Quickstart with Docker 🐳](tutorial/with-docker.md)
+  - [Quickstart with Apache Spark installed locally](tutorial/with-spark.md)
   - [Explore the results](tutorial/results.md)
+
+# Explanations 📚
+
 - [Methodology](./methodology.md)
-- [Contributing](./contributing.md)
+
+# How-to 💡
+
+- [Contribute to SPRUCE](./contributing.md)

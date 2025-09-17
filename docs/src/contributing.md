@@ -1,4 +1,4 @@
-Contributing to Spruce
+# Contributing to Spruce
 ============================
 
 Thank you for your intention to contribute to Spruce. As an open-source community, we highly appreciate contributions to our project.

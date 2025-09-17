@@ -1,4 +1,19 @@
 
+# Quick start using Docker 🐳
+
+## Prerequisites
+
+You will need to have CUR reports as inputs. Those are generated via [DataExports](https://docs.aws.amazon.com/cur/latest/userguide/what-is-data-exports.html) and stored on S3 as Parquet files.
+
+For this tutorial, we will assume that you copied the S3 files to your local file system. You can do this with the AWS CLI
+
+```
+aws s3 cp s3://bucket/path_to_curs dipe-curs --recursive
+```
+
+You will also need to have Docker installed.
+
+
 ## With Docker
 
 Pull the latest Docker image with
@@ -23,3 +38,6 @@ The `-i` parameter specifies the location of the directory containing the CUR re
 The `-o` parameter specifies the location of enriched Parquet files generated in output.
 
 The option `-c` allows to specify a JSON configuration file to override the default settings.
+
+The directory _output_ contains an enriched copy of the input CURs. See [Explore the results](tutorial/results.md) to understand
+what the output contains.

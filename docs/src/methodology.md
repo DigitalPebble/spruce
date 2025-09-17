@@ -1,3 +1,5 @@
+# Methodology
+
 Spruce uses third-party resources and models to estimate the environmental impact of cloud services. It enriches cost usage reports (CUR) with additional columns, allowing users to do GreenOps and build dashboards and reports.
 
 Unlike the information provided by CSPs (Cloud Service Providers), Spruce gives total transparency on how the estimates are built.

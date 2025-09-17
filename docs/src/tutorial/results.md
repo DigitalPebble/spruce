@@ -14,7 +14,7 @@ select line_item_product_code, product_servicecode,
        order by co2_usage_kg desc, co2_embodied_kg desc, energy_usage_kwh desc, product_servicecode;
 ```
 
-should give an output similar to
+This should give an output similar to
 
 | line_item_product_code | product_servicecode |      line_item_operation       | co2_usage_kg | energy_usage_kwh | co2_embodied_kg |
 |------------------------|---------------------|--------------------------------|-------------:|-----------------:|----------------:|
