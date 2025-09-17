@@ -13,3 +13,5 @@ target/
 # avoid accidental addition of dirs mentioned in README
 curs/
 output/
+
+docs/book
