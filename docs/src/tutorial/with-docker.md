@@ -37,7 +37,7 @@ ghcr.io/digitalpebble/spruce \
 The `-i` parameter specifies the location of the directory containing the CUR reports in Parquet format.
 The `-o` parameter specifies the location of enriched Parquet files generated in output.
 
-The option `-c` allows to specify a JSON configuration file to override the default settings.
+The option `-c` allows to specify a JSON configuration file to [override the default settings](howto/config_modules.md).
 
 The directory _output_ contains an enriched copy of the input CURs. See [Explore the results](results.md) to understand
 what the output contains.
