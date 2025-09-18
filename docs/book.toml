@@ -3,3 +3,6 @@ authors = ["Julien Nioche"]
 language = "en"
 src = "src"
 title = "SPRUCE"
+
+[output.html]
+additional-css = ["custom.css"]

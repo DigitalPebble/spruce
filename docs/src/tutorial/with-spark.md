@@ -34,5 +34,5 @@ The `-o` parameter specifies the location of enriched Parquet files generated in
 
 The option `-c` allows to specify a JSON configuration file to override the default settings.
 
-The directory _output_ contains an enriched copy of the input CURs. See [Explore the results](tutorial/results.md) to understand
+The directory _output_ contains an enriched copy of the input CURs. See [Explore the results](results.md) to understand
 what the output contains.

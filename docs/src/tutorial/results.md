@@ -1,6 +1,6 @@
-## Explore the output
+# Explore the results
 
-Using [DuckDB](https://duckdb.org/) locally or [Athena](https://docs.aws.amazon.com/athena/latest/ug/what-is.html) on AWS:
+Using [DuckDB](https://duckdb.org/) locally (or [Athena](https://docs.aws.amazon.com/athena/latest/ug/what-is.html) if the output was [written to S3](../howto/s3.md)):
 
 ```sql
 create table enriched_curs as select * from 'output/**/*.parquet';
