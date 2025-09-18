@@ -4,9 +4,9 @@
 
 # Tutorials 🚀
 
-  - [Quickstart with Docker 🐳](tutorial/with-docker.md)
-  - [Quickstart with Apache Spark ⚡](tutorial/with-spark.md)
-  - [Explore the results](tutorial/results.md)
+- [Quickstart with Docker 🐳](tutorial/with-docker.md)
+- [Quickstart with Apache Spark ⚡](tutorial/with-spark.md)
+- [Explore the results](tutorial/results.md)
 
 # Explanations 📚
 
@@ -14,4 +14,5 @@
 
 # How-to 💡
 
-- [Contribute to SPRUCE](./contributing.md)
+- [Read / write to S3](howto/s3.md)
+- [Contribute to SPRUCE](howto/contributing.md)

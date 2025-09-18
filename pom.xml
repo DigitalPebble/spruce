@@ -99,16 +99,11 @@
             <version>${spark.version}</version>
             <scope>provided</scope>
         </dependency>
-        <!-- Add the following dependency to access CURs on S3
-        https://spark.apache.org/docs/latest/cloud-integration.html
-        -->
-        <!--
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-hadoop-cloud_2.13</artifactId>
             <version>${spark.version}</version>
         </dependency>
-        -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
