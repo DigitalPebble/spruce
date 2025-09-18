@@ -28,7 +28,7 @@ the CURs at scale without having to export or expose any of your data.
 
 ## Documentation 
 
-The documentation is at https://opensourcegreenops.cloud/. If you can't wait to try SPRUCE, have a look at [tutorial for Docker](https://opensourcegreenops.cloud/tutorial/with-docker.html).
+The documentation is at https://opensourcegreenops.cloud/. If you can't wait to try SPRUCE, have a look at the [tutorial for Docker](https://opensourcegreenops.cloud/tutorial/with-docker.html).
 
 ## License
 Licensed under the Apache License, Version 2.0: http://www.apache.org/licenses/LICENSE-2.0
