@@ -11,6 +11,7 @@
 # Explanations 📚
 
 - [Methodology](./methodology.md)
+- [Enrichment modules](./modules.md)
 
 # How-to 💡
 
