@@ -9,7 +9,7 @@ To make the process smooth for the project *committers* (those who review and ac
 
 We use GitHub Issues and Pull Requests for tracking contributions. We
 expect participants to adhere to the GitHub Community Guidelines (found
-at <https://help.github.com/articles/github-community-guidelines/> ) as well as our [Code of Conduct](CODE_OF_CONDUCT.md).
+at <https://help.github.com/articles/github-community-guidelines/> ) as well as our [Code of Conduct](https://github.com/DigitalPebble/spruce/blob/main/CODE_OF_CONDUCT.md).
 
 Please note that your contributions will be under the [ASF v2 license](LICENSE).
 
@@ -24,7 +24,7 @@ Feel free to use [GitHub Discussions](https://github.com/DigitalPebble/spruce/di
 
 ### Making a Contribution
 
-- Create a new [issue](https://github.com/DigitalPebble/spruce/issue) on GitHub. Please describe the problem or improvement in the body of the issue. For larger issues, please open a new discussion and describe the problem.
+- Create a new [issue](https://github.com/DigitalPebble/spruce/issues) on GitHub. Please describe the problem or improvement in the body of the issue. For larger issues, please open a new discussion and describe the problem.
 - Next, create a pull request in GitHub.
 
 Contributors who have a history of successful participation are invited to join the project as a committer.
