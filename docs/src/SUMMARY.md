@@ -15,6 +15,7 @@
 
 # How-to 💡
 
+- [Generate Cost and Usage Reports](howto/generate_cur.md)
 - [Read / write to S3](howto/s3.md)
 - [Configure the modules](howto/config_modules.md)
 - [Contribute to SPRUCE](howto/contributing.md)

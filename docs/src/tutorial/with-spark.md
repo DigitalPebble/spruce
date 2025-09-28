@@ -1,20 +1,21 @@
 # Quick start using Apache Spark
 
-Instead of using a container, you can run Spruce directly on [Apache Spark](https://spark.apache.org/) either locally or on a cluster.
+Instead of using a container, you can run SPRUCE directly on [Apache Spark](https://spark.apache.org/) either locally or on a cluster.
 
 ## Prerequisites
 
 You will need to have CUR reports as inputs. Those are generated via [DataExports](https://docs.aws.amazon.com/cur/latest/userguide/what-is-data-exports.html) and stored on S3 as Parquet files.
+See instructions on [Generate Cost and Usage Reports](../howto/generate_cur.md).
 
 For this tutorial, we will assume that you copied the S3 files to your local file system. You can do this with the AWS CLI
 
 ```
-aws s3 cp s3://bucket/path_to_curs dipe-curs --recursive
+aws s3 cp s3://{bucket}/{prefix}/{data_export_name}/data/ curs --recursive
 ```
 
-To run Spruce locally, you need [Apache Spark](https://spark.apache.org/)  installed  and added to the $PATH.
+To run SPRUCE locally, you need [Apache Spark](https://spark.apache.org/)  installed  and added to the $PATH.
 
-Finally, you need the JAR containing the code and resources for Spruce.  You can copy it from the [latest release](https://github.com/DigitalPebble/spruce/releases) or alternatively, build from source,
+Finally, you need the JAR containing the code and resources for SPRUCE.  You can copy it from the [latest release](https://github.com/DigitalPebble/spruce/releases) or alternatively, build from source,
 which requires Apache Maven and Java 17 or above.s
 
 ```
