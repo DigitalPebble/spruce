@@ -3,6 +3,7 @@
 package com.digitalpebble.spruce;
 
 import org.apache.commons.cli.*;
+import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.sql.*;
 import org.apache.spark.sql.catalyst.encoders.RowEncoder;
 import scala.Option;
@@ -83,13 +84,14 @@ public class SparkJob {
         }
 
         EnrichmentPipeline pipeline = new EnrichmentPipeline(config);
-        Encoder<Row> encoder = RowEncoder.encoderFor(dataframe.schema());
+        // Encoder<Row> encoder = RowEncoder.encoderFor(dataframe.schema());
 
-        Dataset<Row> enriched = dataframe.mapPartitions(pipeline, encoder);
+        JavaRDD<Row> enriched = dataframe.javaRDD().mapPartitions(pipeline);
 
-        // Write the result as Parquet, with one subdirectory per billing period, similar to the input
-        DataFrameWriter<Row> writer = enriched.write().mode("overwrite");
+        // Write the result as Parquet
+        DataFrameWriter<Row> writer =  spark.createDataFrame(enriched, dataframe.schema()).write().mode("overwrite");
 
+        // with one subdirectory per billing period, similar to the input?
         if (hasBillingPeriods) {
             writer = writer.partitionBy("BILLING_PERIOD");
         }

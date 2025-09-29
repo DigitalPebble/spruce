@@ -2,6 +2,7 @@
 
 package com.digitalpebble.spruce;
 
+import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.api.java.function.MapPartitionsFunction;
 import org.apache.spark.sql.Row;
 
@@ -11,7 +12,8 @@ import java.util.List;
 import static com.digitalpebble.spruce.CURColumn.LINE_ITEM_TYPE;
 
 /** Wraps the execution of the Enrichment Modules. There are as many instances of EnrichmentPipeline as there are partitions in the data. **/
-public class EnrichmentPipeline implements MapPartitionsFunction<Row, Row> {
+public class EnrichmentPipeline implements MapPartitionsFunction<Row, Row> ,
+        FlatMapFunction<Iterator<Row>, Row> {
 
     private final List<EnrichmentModule> enrichmentModules;
 
@@ -49,4 +51,5 @@ public class EnrichmentPipeline implements MapPartitionsFunction<Row, Row> {
         // can be Usage (for on demand resources), SavingsPlanCoveredUsage or DiscountedUsage
         return item_type != null && item_type.endsWith("Usage");
     }
+
 }
