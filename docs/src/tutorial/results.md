@@ -42,7 +42,7 @@ This should give an output similar to
 | AmazonECR              | AWSDataTransfer     | downloadLayer                  | 0.01         | 0.01             | NULL            |
 | AmazonS3               | AWSDataTransfer     | PutObject                      | 0.0          | 0.0              | NULL            |
 
-To measure the proportion of the costs for which emissions where calculated
+To measure the proportion of the costs for which emissions were calculated
 
 ```sql
 select

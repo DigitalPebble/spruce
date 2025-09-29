@@ -24,7 +24,7 @@ This retrieves a Docker image containing Apache Spark as well as the SPRUCE jar.
 
 The command below processes the data locally by mounting the directories containing the CURs and output as volumes:
 ```
-docker run -it -v ./curs:/curs -v ./output:/output --rm --name spruce --network host \
+docker run -it -v $(pwd)/curs:/curs -v $(pwd)/output:/output --rm --name spruce --network host \
 ghcr.io/digitalpebble/spruce \
 /opt/spark/bin/spark-submit  \
 --class com.digitalpebble.spruce.SparkJob \

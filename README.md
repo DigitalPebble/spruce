@@ -1,4 +1,6 @@
-<img src="logo.png" alt="Spruce" width="512"/>
+<p align="center" width="100%">
+  <img src="logo.png" alt="Spruce" width="512"/>
+</p>
 
 # SPRUCE
 
@@ -22,9 +24,6 @@ A typical sequence of stages would be:
 - application of carbon intensity factors
 
 Have a look at the [methodology section](https://opensourcegreenops.cloud/methodology.html) of our documentation for more details.
-
-One of the benefits of using Apache Spark is that you can use [EMR on AWS](https://aws.amazon.com/emr/features/spark/) to enrich 
-the CURs at scale without having to export or expose any of your data.
 
 ## Documentation 
 
