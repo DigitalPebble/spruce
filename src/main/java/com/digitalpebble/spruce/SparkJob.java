@@ -2,7 +2,7 @@
 
 package com.digitalpebble.spruce;
 
-import org.apache.hadoop.shaded.org.apache.commons.cli.*;
+import org.apache.commons.cli.*;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Encoder;
 import org.apache.spark.sql.Row;
