@@ -3,10 +3,7 @@
 package com.digitalpebble.spruce;
 
 import org.apache.commons.cli.*;
-import org.apache.spark.sql.Dataset;
-import org.apache.spark.sql.Encoder;
-import org.apache.spark.sql.Row;
-import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.*;
 import org.apache.spark.sql.catalyst.encoders.RowEncoder;
 import scala.Option;
 
@@ -66,6 +63,8 @@ public class SparkJob {
             System.exit(1);
         }
 
+        final boolean hasBillingPeriods = !dataframe.schema().getFieldIndex("BILLING_PERIOD").isEmpty();
+
         for (EnrichmentModule module : config.getModules()) {
             // check that the data contains the columns needed by this module
             for (Column c : module.columnsNeeded()) {
@@ -89,7 +88,13 @@ public class SparkJob {
         Dataset<Row> enriched = dataframe.mapPartitions(pipeline, encoder);
 
         // Write the result as Parquet, with one subdirectory per billing period, similar to the input
-        enriched.write().partitionBy("BILLING_PERIOD").mode("overwrite").parquet(outputPath);
+        DataFrameWriter<Row> writer = enriched.write().mode("overwrite");
+
+        if (hasBillingPeriods) {
+            writer = writer.partitionBy("BILLING_PERIOD");
+        }
+
+        writer.parquet(outputPath);
 
         spark.stop();
     }
