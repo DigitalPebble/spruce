@@ -19,6 +19,8 @@ public class APITester {
         if (args.length == 2) {
             List<String> instanceTypes = java.nio.file.Files.readAllLines(java.nio.file.Paths.get(args[0]));
             try (java.io.BufferedWriter writer = java.nio.file.Files.newBufferedWriter(java.nio.file.Paths.get(args[1]))) {
+                writer.write("# instance_type, electricity_consumption_kwh, embodied_emissions_gco2eq, embodied_adp_gsbeq");
+                writer.newLine();
                 for (String instanceType : instanceTypes) {
                     if (instanceType.startsWith("#")) continue;
                     try {

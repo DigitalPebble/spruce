@@ -27,7 +27,14 @@ Populates the column `energy_usage_kwh`.
 
 Provides an estimate of [final energy](https://www.eea.europa.eu/en/analysis/indicators/primary-and-final-energy-consumption) used for computation (EC2, OpenSearch, RDS) as well as the related embodied emissions using the [BoaviztAPI](https://doc.api.boavizta.org/).
 
-Populates the column `energy_usage_kwh` and `embodied_emissions_co2eq_g`.
+Populates the columns `energy_usage_kwh`, `embodied_emissions_co2eq_g` and `embodied_adp_gsbeq`. 
+
+From https://doc.api.boavizta.org/Explanations/impacts/ 
+
+**Abiotic Depletion Potential (ADP)** is an environmental impact indicator. This category corresponds to mineral and resources used and is, in this sense, mainly influenced by the rate of resources extracted. The effect of this consumption on their depletion is estimated according to their availability stock at a global scale. This impact category is divided into two components: a material component and a fossil fuels component (we use a version of ADP which include both).
+This impact is expressed in grams of antimony equivalent (gSbeq).
+
+Source: [sciencedirect](https://www.sciencedirect.com/topics/engineering/abiotic-depletion-potential)
 
 ## boavizta.BoaviztAPIstatic
 
