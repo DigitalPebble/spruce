@@ -19,11 +19,13 @@ public class APITester {
         if (args.length == 2) {
             List<String> instanceTypes = java.nio.file.Files.readAllLines(java.nio.file.Paths.get(args[0]));
             try (java.io.BufferedWriter writer = java.nio.file.Files.newBufferedWriter(java.nio.file.Paths.get(args[1]))) {
+                writer.write("# instance_type, electricity_consumption_kwh, embodied_emissions_gco2eq, embodied_adp_gsbeq");
+                writer.newLine();
                 for (String instanceType : instanceTypes) {
                     if (instanceType.startsWith("#")) continue;
                     try {
-                        BoaviztaResult usageAndEmbodiedEnergy = client.getEnergyAndEmbodiedEmissionsEstimates(Provider.AWS, instanceType.trim());
-                        writer.write(instanceType + ", " + usageAndEmbodiedEnergy.getFinalEnergyKWh() + ", " + usageAndEmbodiedEnergy.getEmbeddedEmissionsGramsCO2eq());
+                        Impacts usageAndEmbodiedEnergy = client.getImpacts(Provider.AWS, instanceType.trim());
+                        writer.write(instanceType + ", " + usageAndEmbodiedEnergy.getFinalEnergyKWh() + ", " + usageAndEmbodiedEnergy.getEmbeddedEmissionsGramsCO2eq() + ", " + usageAndEmbodiedEnergy.getAbioticDepletionPotentialGramsSbeq());
                         writer.newLine();
                     } catch (Exception e) {
                         System.err.println("Exception caught for instance type " + instanceType);
@@ -31,9 +33,10 @@ public class APITester {
                 }
             }
         } else if (args.length == 1) {
-            BoaviztaResult usageAndEmbodiedEnergy = client.getEnergyAndEmbodiedEmissionsEstimates(Provider.AWS, args[0]);
+            Impacts usageAndEmbodiedEnergy = client.getImpacts(Provider.AWS, args[0]);
             System.out.println("Usage KWh: " + usageAndEmbodiedEnergy.getFinalEnergyKWh());
             System.out.println("Embodied emissions gCO2eq: " + usageAndEmbodiedEnergy.getEmbeddedEmissionsGramsCO2eq());
+            System.out.println("Abiotic depletion potential gSbeq: " + usageAndEmbodiedEnergy.getAbioticDepletionPotentialGramsSbeq());
         }
     }
 }

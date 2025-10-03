@@ -24,10 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class BoaviztAPITest {
 
@@ -57,9 +54,10 @@ public class BoaviztAPITest {
         @Test
         void testColumnsAdded() {
             Column[] added = api.columnsAdded();
-            assertEquals(2, added.length);
+            assertEquals(3, added.length);
             assertEquals(SpruceColumn.ENERGY_USED, added[0]);
             assertEquals(SpruceColumn.EMBODIED_EMISSIONS, added[1]);
+            assertEquals(SpruceColumn.EMBODIED_ADP, added[2]);
         }
 
         @Test
@@ -87,18 +85,18 @@ public class BoaviztAPITest {
             Object[] values = new Object[]{instanceType, serviceCode, operation, productCode, null};
             Row row = new GenericRowWithSchema(values, schema);
             Row enriched = api.process(row);
-            
+
             // Should return the original row unchanged
             assertEquals(row, enriched);
         }
 
         static Stream<Arguments> nullValueTestCases() {
             return Stream.of(
-                Arguments.of("AWSDataTransfer", null, null, null),
-                Arguments.of("t3.micro", "AmazonEC2", null, "AmazonEC2"),
-                Arguments.of("t3.micro", "AmazonEC2", "RunInstances", null),
-                Arguments.of("t3.micro", null, "RunInstances", "AmazonEC2"),
-                Arguments.of(null, null, null, null)
+                    Arguments.of("AWSDataTransfer", null, null, null),
+                    Arguments.of("t3.micro", "AmazonEC2", null, "AmazonEC2"),
+                    Arguments.of("t3.micro", "AmazonEC2", "RunInstances", null),
+                    Arguments.of("t3.micro", null, "RunInstances", "AmazonEC2"),
+                    Arguments.of(null, null, null, null)
             );
         }
 
@@ -107,7 +105,7 @@ public class BoaviztAPITest {
         void testProcessWithEmptyValues(String instanceType, String serviceCode, String operation, String productCode) {
             Object[] values = new Object[]{instanceType, serviceCode, operation, productCode, null};
             Row row = new GenericRowWithSchema(values, schema);
-            
+
             // Test cases 1 and 2 (null and empty instance types) should throw IllegalArgumentException
             // Test cases 3 and 4 (empty strings for all fields) should return unchanged rows
             // because BoaviztAPI.process() has early returns before calling BoaviztAPIClient.getEnergyEstimates()
@@ -130,10 +128,10 @@ public class BoaviztAPITest {
 
         static Stream<Arguments> emptyValueTestCases() {
             return Stream.of(
-                Arguments.of("", "AmazonEC2", "RunInstances", "AmazonEC2"),
-                Arguments.of("   ", "AmazonEC2", "RunInstances", "AmazonEC2"),
-                Arguments.of("", "", "", ""),
-                Arguments.of("   ", "   ", "   ", "   ")
+                    Arguments.of("", "AmazonEC2", "RunInstances", "AmazonEC2"),
+                    Arguments.of("   ", "AmazonEC2", "RunInstances", "AmazonEC2"),
+                    Arguments.of("", "", "", ""),
+                    Arguments.of("   ", "   ", "   ", "   ")
             );
         }
 
@@ -143,16 +141,16 @@ public class BoaviztAPITest {
             Object[] values = new Object[]{instanceType, serviceCode, operation, productCode, null};
             Row row = new GenericRowWithSchema(values, schema);
             Row enriched = api.process(row);
-            
+
             // Should return the original row unchanged for unsupported services/operations
             assertEquals(row, enriched);
         }
 
         static Stream<Arguments> unsupportedValueTestCases() {
             return Stream.of(
-                Arguments.of("t3.micro", "AmazonS3", "GetObject", "AmazonS3"),
-                Arguments.of("t3.micro", "AmazonEC2", "StopInstances", "AmazonEC2"),
-                Arguments.of("t3.micro", "amazonec2", "RunInstances", "AmazonEC2")
+                    Arguments.of("t3.micro", "AmazonS3", "GetObject", "AmazonS3"),
+                    Arguments.of("t3.micro", "AmazonEC2", "StopInstances", "AmazonEC2"),
+                    Arguments.of("t3.micro", "amazonec2", "RunInstances", "AmazonEC2")
             );
         }
 
@@ -162,15 +160,15 @@ public class BoaviztAPITest {
             Object[] values = new Object[]{instanceType, serviceCode, operation, productCode, null};
             Row row = new GenericRowWithSchema(values, schema);
             Row enriched = api.process(row);
-            
+
             // Should return the original row unchanged for edge cases
             assertEquals(row, enriched);
         }
 
         static Stream<Arguments> edgeCaseTestCases() {
             return Stream.of(
-                Arguments.of("t3.micro@test", "AmazonEC2", "RunInstances", "AmazonEC2"),
-                Arguments.of("t3.micro".repeat(100), "AmazonEC2", "RunInstances", "AmazonEC2")
+                    Arguments.of("t3.micro@test", "AmazonEC2", "RunInstances", "AmazonEC2"),
+                    Arguments.of("t3.micro".repeat(100), "AmazonEC2", "RunInstances", "AmazonEC2")
             );
         }
     }
@@ -184,8 +182,12 @@ public class BoaviztAPITest {
         @BeforeEach
         void setUp() throws IOException {
             mockWebServer = new MockWebServer();
-            mockWebServer.start(5000);
+            mockWebServer.start(0);
+            final String address = "http://localhost:" + mockWebServer.getPort();
             api = new BoaviztAPI();
+            Map<String, Object> params = new HashMap<>();
+            params.put("address", address);
+            api.init(params);
             schema = Utils.getSchema(api);
         }
 
@@ -199,14 +201,14 @@ public class BoaviztAPITest {
             // Mock the API response
             String mockResponse = createMockResponse("t3.micro");
             mockWebServer.enqueue(new MockResponse()
-                .setBody(mockResponse)
-                .setResponseCode(200)
-                .addHeader("Content-Type", "application/json"));
+                    .setBody(mockResponse)
+                    .setResponseCode(200)
+                    .addHeader("Content-Type", "application/json"));
 
-            Object[] values = new Object[]{"t3.micro", "AmazonEC2", "RunInstances", "AmazonEC2", null, null};
+            Object[] values = new Object[]{"t3.micro", "AmazonEC2", "RunInstances", "AmazonEC2", null, null, null};
             Row row = new GenericRowWithSchema(values, schema);
             Row enriched = api.process(row);
-            
+
             // The row should be processed and enriched with energy data
             assertNotNull(enriched);
             // Verify that the row was enriched (you can add more specific assertions here)
@@ -217,14 +219,14 @@ public class BoaviztAPITest {
             // Mock the API response
             String mockResponse = createMockResponse("t3.micro");
             mockWebServer.enqueue(new MockResponse()
-                .setBody(mockResponse)
-                .setResponseCode(200)
-                .addHeader("Content-Type", "application/json"));
+                    .setBody(mockResponse)
+                    .setResponseCode(200)
+                    .addHeader("Content-Type", "application/json"));
 
-            Object[] values = new Object[]{"t3.micro.search", "AmazonES", "ESDomain", "AmazonES", null, null};
+            Object[] values = new Object[]{"t3.micro.search", "AmazonES", "ESDomain", "AmazonES", null, null, null};
             Row row = new GenericRowWithSchema(values, schema);
             Row enriched = api.process(row);
-            
+
             // The row should be processed and enriched with energy data
             assertNotNull(enriched);
         }
@@ -234,14 +236,14 @@ public class BoaviztAPITest {
             // Mock the API response
             String mockResponse = createMockResponse("t3.micro");
             mockWebServer.enqueue(new MockResponse()
-                .setBody(mockResponse)
-                .setResponseCode(200)
-                .addHeader("Content-Type", "application/json"));
+                    .setBody(mockResponse)
+                    .setResponseCode(200)
+                    .addHeader("Content-Type", "application/json"));
 
-            Object[] values = new Object[]{"db.t3.micro", "AmazonRDS", "CreateDBInstance", "AmazonRDS", null, null};
+            Object[] values = new Object[]{"db.t3.micro", "AmazonRDS", "CreateDBInstance", "AmazonRDS", null, null, null};
             Row row = new GenericRowWithSchema(values, schema);
             Row enriched = api.process(row);
-            
+
             // The row should be processed and enriched with energy data
             assertNotNull(enriched);
         }
@@ -252,23 +254,23 @@ public class BoaviztAPITest {
             // Mock the API response
             String mockResponse = createMockResponse("t3.micro");
             mockWebServer.enqueue(new MockResponse()
-                .setBody(mockResponse)
-                .setResponseCode(200)
-                .addHeader("Content-Type", "application/json"));
+                    .setBody(mockResponse)
+                    .setResponseCode(200)
+                    .addHeader("Content-Type", "application/json"));
 
-            Object[] values = new Object[]{"t3.micro", "AmazonEC2", operation, "AmazonEC2", null, null};
+            Object[] values = new Object[]{"t3.micro", "AmazonEC2", operation, "AmazonEC2", null, null, null};
             Row row = new GenericRowWithSchema(values, schema);
             Row enriched = api.process(row);
-            
+
             // The row should be processed and enriched with energy data
             assertNotNull(enriched);
         }
 
         static Stream<Arguments> validEC2OperationTestCases() {
             return Stream.of(
-                Arguments.of("RunInstances"),
-                Arguments.of("RunInstances:0002"),
-                Arguments.of("RunInstances:0010")
+                    Arguments.of("RunInstances"),
+                    Arguments.of("RunInstances:0002"),
+                    Arguments.of("RunInstances:0010")
             );
         }
 
@@ -278,23 +280,23 @@ public class BoaviztAPITest {
             // Mock the API response
             String mockResponse = createMockResponse("t3.micro");
             mockWebServer.enqueue(new MockResponse()
-                .setBody(mockResponse)
-                .setResponseCode(200)
-                .addHeader("Content-Type", "application/json"));
+                    .setBody(mockResponse)
+                    .setResponseCode(200)
+                    .addHeader("Content-Type", "application/json"));
 
-            Object[] values = new Object[]{"db.t3.micro", "AmazonRDS", operation, "AmazonRDS", null, null};
+            Object[] values = new Object[]{"db.t3.micro", "AmazonRDS", operation, "AmazonRDS", null, null, null};
             Row row = new GenericRowWithSchema(values, schema);
             Row enriched = api.process(row);
-            
+
             // The row should be processed and enriched with energy data
             assertNotNull(enriched);
         }
 
         static Stream<Arguments> validRDSOperationTestCases() {
             return Stream.of(
-                Arguments.of("CreateDBInstance"),
-                Arguments.of("CreateDBInstance:0002"),
-                Arguments.of("CreateDBInstance:0010")
+                    Arguments.of("CreateDBInstance"),
+                    Arguments.of("CreateDBInstance:0002"),
+                    Arguments.of("CreateDBInstance:0010")
             );
         }
 
@@ -304,50 +306,60 @@ public class BoaviztAPITest {
             // Mock the API response
             String mockResponse = createMockResponse(instanceType);
             mockWebServer.enqueue(new MockResponse()
-                .setBody(mockResponse)
-                .setResponseCode(200)
-                .addHeader("Content-Type", "application/json"));
+                    .setBody(mockResponse)
+                    .setResponseCode(200)
+                    .addHeader("Content-Type", "application/json"));
 
-            Object[] values = new Object[]{instanceType, "AmazonEC2", "RunInstances", "AmazonEC2", null, null};
+            Object[] values = new Object[]{instanceType, "AmazonEC2", "RunInstances", "AmazonEC2", null, null, null};
             Row row = new GenericRowWithSchema(values, schema);
             Row enriched = api.process(row);
-            
+
             // The row should be processed and enriched with energy data
             assertNotNull(enriched);
         }
 
         static Stream<Arguments> complexInstanceTypeTestCases() {
             return Stream.of(
-                Arguments.of("db.r5.24xlarge"),
-                Arguments.of("c5.18xlarge.search"),
-                Arguments.of("m5.12xlarge")
+                    Arguments.of("db.r5.24xlarge"),
+                    Arguments.of("c5.18xlarge.search"),
+                    Arguments.of("m5.12xlarge")
             );
         }
 
         private String createMockResponse(String instanceType) {
             // Create a realistic mock response based on the BoaviztAPI format
-            return String.format("""
-                {
-                    "impacts": {
-                        "gwp": {
-                              "unit": "kgCO2eq",
-                              "embedded": {
-                                "value": 0.0086
-                              }
-                        },
-                        "pe": {
-                            "use": {
-                                "value": 15.5,
-                                "unit": "MJ"
+            return """
+                    {
+                        "impacts": {
+                            "gwp": {
+                                  "unit": "kgCO2eq",
+                                  "embedded": {
+                                    "value": 0.0086
+                                  }
                             },
-                            "embedded": {
-                                "value": 120.0,
-                                "unit": "MJ"
+                            "pe": {
+                                "use": {
+                                    "value": 15.5,
+                                    "unit": "MJ"
+                                },
+                                "embedded": {
+                                    "value": 120.0,
+                                    "unit": "MJ"
+                                }
+                            },
+                            "adp": {
+                                "use": {
+                                    "value": 7e-10,
+                                    "unit": "kgSbeq"
+                                },
+                                "embedded": {
+                                    "value": 4.7e-8,
+                                    "unit": "kgSbeq"
+                                }
                             }
                         }
                     }
-                }
-                """);
+                    """;
         }
     }
 }
