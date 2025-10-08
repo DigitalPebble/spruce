@@ -52,7 +52,6 @@ public abstract class Utils {
 
     /** Returns the schema for a module based on the list of columns it needs and the ones it generates **/
     public static StructType getSchema(EnrichmentModule module) {
-        String ddl = "product_instance_type STRING, line_item_usage_amount DOUBLE, energy_usage_kwh DOUBLE";
         final List<StructField> fields = new ArrayList<>();
 
         for (Column column : module.columnsNeeded()) {
