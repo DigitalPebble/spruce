@@ -62,6 +62,13 @@ The [life-cycle](https://portal.electricitymaps.com/developer-hub/api/getting-st
 
 Populates the columns `carbon_intensity`.
 
+## Fargate
+
+Provides an estimate of energy for the memory and vCPU usage of Fargate.
+The default coefficients are taken from the [Tailpipe methodology](https://tailpipe.ai/methodology/serverless-explained/).
+
+Populates the column `energy_usage_kwh`.
+
 ## OperationalEmissions
 
 Computes operational emissions based on the energy usage, average carbon intensity factors and `power_usage_effectiveness` estimated by the preceding modules.
