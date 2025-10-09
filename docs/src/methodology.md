@@ -13,7 +13,7 @@ The overall approach is as follows:
 This is compliant with the [SCI specification](https://sci.greensoftware.foundation/) from the GreenSoftware Foundation.
 
 The main columns added by SPRUCE are:
-* `energy_usage_kwh`: amount of energy in kWh needed for using the corresponding service. 
+* `operational_energy_kwh`: amount of energy in kWh needed for using the corresponding service. 
 * `operational_emissions_co2eq_g`: emissions of CO2 eq in grams from the energy usage.
 * `embodied_emissions_co2eq_g`: emissions of CO2 eq in grams embodied in the hardware used by the service, i.e. how much did it take to produce it.
 

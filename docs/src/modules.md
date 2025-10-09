@@ -18,14 +18,14 @@ The following modules implement the heuristics from the [Cloud Carbon Footprint]
 Provides an estimate of energy used for storage by applying a flat coefficient per Gb, following the approach used by the [Cloud Carbon Footprint](https://www.cloudcarbonfootprint.org/) project.
 See [methodology](https://www.cloudcarbonfootprint.org/docs/methodology#storage) for more details.
 
-Populates the column `energy_usage_kwh`.
+Populates the column `operational_energy_kwh`.
 
 ### ccf.Networking
 
 Provides an estimate of energy used for networking in and out of data centres. Applies a flat coefficient per Gb, following the approach used by the [Cloud Carbon Footprint](https://www.cloudcarbonfootprint.org/) project.
 See [methodology](https://www.cloudcarbonfootprint.org/docs/methodology#storage) for more details.
 
-Populates the column `energy_usage_kwh`.
+Populates the column `operational_energy_kwh`.
 
 ### ccf.PUE
 
@@ -42,7 +42,7 @@ The following modules make use of the [BoaviztAPI](https://doc.api.boavizta.org)
 
 Provides an estimate of [final energy](https://www.eea.europa.eu/en/analysis/indicators/primary-and-final-energy-consumption) used for computation (EC2, OpenSearch, RDS) as well as the related embodied emissions using the [BoaviztAPI](https://doc.api.boavizta.org/).
 
-Populates the columns `energy_usage_kwh`, `embodied_emissions_co2eq_g` and `embodied_adp_gsbeq`. 
+Populates the columns `operational_energy_kwh`, `embodied_emissions_co2eq_g` and `embodied_adp_gsbeq`. 
 
 From https://doc.api.boavizta.org/Explanations/impacts/ 
 
@@ -67,7 +67,7 @@ Populates the columns `carbon_intensity`.
 Provides an estimate of energy for the memory and vCPU usage of Fargate.
 The default coefficients are taken from the [Tailpipe methodology](https://tailpipe.ai/methodology/serverless-explained/).
 
-Populates the column `energy_usage_kwh`.
+Populates the column `operational_energy_kwh`.
 
 ## OperationalEmissions
 
@@ -75,6 +75,6 @@ Computes operational emissions based on the energy usage, average carbon intensi
 
 Populates the columns `operational_emissions_co2eq_g`.
 
-`operational_emissions_co2eq_g` is equal to `energy_usage_kwh` * `carbon_intensity` * `power_usage_effectiveness`.
+`operational_emissions_co2eq_g` is equal to `operational_energy_kwh` * `carbon_intensity` * `power_usage_effectiveness`.
 
 
