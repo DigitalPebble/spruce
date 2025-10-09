@@ -154,8 +154,9 @@ public class BoaviztAPITest {
             );
         }
 
-        @ParameterizedTest
-        @MethodSource("edgeCaseTestCases")
+        // @ParameterizedTest
+        // @MethodSource("edgeCaseTestCases")
+        // this test only makes sense if it can connect to a running instance of the API
         void testProcessWithEdgeCases(String instanceType, String serviceCode, String operation, String productCode) {
             Object[] values = new Object[]{instanceType, serviceCode, operation, productCode, null};
             Row row = new GenericRowWithSchema(values, schema);
