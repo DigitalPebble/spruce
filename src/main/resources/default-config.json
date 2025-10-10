@@ -20,8 +20,8 @@
       "className": "com.digitalpebble.spruce.modules.Fargate",
       "config": {
         "memory_coefficient_kwh": 0.0000598,
-        "x86_cpu_coefficient_kwh": 0.0088121875,
-        "arm_cpu_coefficient_kwh": 0.007640625
+        "x86_cpu_coefficient_kwh": 0.00220304687,
+        "arm_cpu_coefficient_kwh": 0.00191015625
       }
     },
     {
