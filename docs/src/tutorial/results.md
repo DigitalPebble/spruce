@@ -8,7 +8,7 @@ create table enriched_curs as select * from 'output/**/*.parquet';
 select line_item_product_code, product_servicecode,
        round(sum(operational_emissions_co2eq_g)/1000,2) as co2_usage_kg,
        round(sum(embodied_emissions_co2eq_g)/1000, 2) as co2_embodied_kg,
-       round(sum(energy_usage_kwh),2) as energy_usage_kwh
+       round(sum(operational_energy_kwh),2) as energy_usage_kwh
        from enriched_curs where operational_emissions_co2eq_g > 0.01
        group by line_item_product_code, product_servicecode
        order by co2_usage_kg desc, co2_embodied_kg desc, energy_usage_kwh desc, product_servicecode;

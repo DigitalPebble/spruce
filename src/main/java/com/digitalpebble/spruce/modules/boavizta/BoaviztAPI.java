@@ -17,8 +17,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.digitalpebble.spruce.CURColumn.*;
-import static com.digitalpebble.spruce.SpruceColumn.EMBODIED_EMISSIONS;
-import static com.digitalpebble.spruce.SpruceColumn.ENERGY_USED;
+import static com.digitalpebble.spruce.SpruceColumn.*;
 
 /**
  * Adds power usage estimates for instance types used in the EC2, ElasticSearch and RDS services
@@ -31,7 +30,7 @@ public class BoaviztAPI implements EnrichmentModule {
 
     // store the default load values in a cache
     // to save a trip to the API
-    private static Cache<String, @Nullable BoaviztaResult> cache;
+    private static Cache<String, @Nullable Impacts> cache;
 
     private static Set<String> unknownInstanceTypes;
 
@@ -54,7 +53,7 @@ public class BoaviztAPI implements EnrichmentModule {
 
     @Override
     public Column[] columnsAdded() {
-        return new Column[]{ENERGY_USED, EMBODIED_EMISSIONS};
+        return new Column[]{ENERGY_USED, EMBODIED_EMISSIONS, EMBODIED_ADP};
     }
 
     @Override
@@ -115,12 +114,12 @@ public class BoaviztAPI implements EnrichmentModule {
             return row;
         }
 
-        BoaviztaResult useAndEmbodiedEnergy = cache.getIfPresent(instanceType);
+        Impacts impacts = cache.getIfPresent(instanceType);
 
-        if (useAndEmbodiedEnergy == null) {
+        if (impacts == null) {
             try {
-                useAndEmbodiedEnergy = client.getEnergyAndEmbodiedEmissionsEstimates(Provider.AWS, instanceType);
-                cache.put(instanceType, useAndEmbodiedEnergy);
+                impacts = client.getImpacts(Provider.AWS, instanceType);
+                cache.put(instanceType, impacts);
             } catch (InstanceTypeUknown e1) {
                 LOG.info("Unknown instance type {}", instanceType);
                 unknownInstanceTypes.add(instanceType);
@@ -132,8 +131,9 @@ public class BoaviztAPI implements EnrichmentModule {
         }
 
         Map<Column, Object> kv = new HashMap<>();
-        kv.put(ENERGY_USED, useAndEmbodiedEnergy.getFinalEnergyKWh());
-        kv.put(EMBODIED_EMISSIONS, useAndEmbodiedEnergy.getEmbeddedEmissionsGramsCO2eq());
+        kv.put(ENERGY_USED, impacts.getFinalEnergyKWh());
+        kv.put(EMBODIED_EMISSIONS, impacts.getEmbeddedEmissionsGramsCO2eq());
+        kv.put(EMBODIED_ADP, impacts.getAbioticDepletionPotentialGramsSbeq());
         return EnrichmentModule.withUpdatedValues(row, kv);
     }
 }

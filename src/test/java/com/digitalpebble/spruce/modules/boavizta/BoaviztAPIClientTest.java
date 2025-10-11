@@ -52,37 +52,37 @@ public class BoaviztAPIClientTest {
         @Test
         void testgetEnergyAndEmbodiedEmissionsEstimatesWithNullInstanceType() {
             assertThrows(IllegalArgumentException.class, () -> {
-                client.getEnergyAndEmbodiedEmissionsEstimates(Provider.AWS, null);
+                client.getImpacts(Provider.AWS, null);
             });
         }
 
         @Test
         void testgetEnergyAndEmbodiedEmissionsEstimatesWithEmptyInstanceType() {
             assertThrows(IllegalArgumentException.class, () -> {
-                client.getEnergyAndEmbodiedEmissionsEstimates(Provider.AWS, "");
+                client.getImpacts(Provider.AWS, "");
             });
         }
 
         @Test
         void testgetEnergyAndEmbodiedEmissionsEstimatesWithWhitespaceInstanceType() {
             assertThrows(IllegalArgumentException.class, () -> {
-                client.getEnergyAndEmbodiedEmissionsEstimates(Provider.AWS, "   ");
+                client.getImpacts(Provider.AWS, "   ");
             });
         }
 
         @Test
         void testgetEnergyAndEmbodiedEmissionsEstimatesWithNullProvider() {
             assertThrows(IllegalArgumentException.class, () -> {
-                client.getEnergyAndEmbodiedEmissionsEstimates(null, "t3.micro");
+                client.getImpacts(null, "t3.micro");
             });
         }
 
         @Test
         void testgetEnergyAndEmbodiedEmissionsEstimatesWithMalformedHost() {
             BoaviztAPIClient invalidClient = new BoaviztAPIClient("not-a-valid-url");
-            
+
             assertThrows(IllegalArgumentException.class, () -> {
-                invalidClient.getEnergyAndEmbodiedEmissionsEstimates(Provider.AWS, "t3.micro");
+                invalidClient.getImpacts(Provider.AWS, "t3.micro");
             });
         }
     }
@@ -95,8 +95,9 @@ public class BoaviztAPIClientTest {
         @BeforeEach
         void setUp() throws IOException {
             mockWebServer = new MockWebServer();
-            mockWebServer.start(5000);
-            client = new BoaviztAPIClient(TEST_HOST);
+            mockWebServer.start(0);
+            final String address = "http://localhost:" + mockWebServer.getPort();
+            client = new BoaviztAPIClient(address);
         }
 
         @AfterEach
@@ -107,16 +108,16 @@ public class BoaviztAPIClientTest {
         @Test
         void testgetEnergyAndEmbodiedEmissionsEstimatesWithDifferentInstanceTypes() throws IOException {
             String[] instanceTypes = {"t3.micro", "t3.small", "t3.medium", "c5.large", "m5.xlarge"};
-            
+
             for (String instanceType : instanceTypes) {
                 // Mock the API response for this instance type
                 String mockResponse = createMockResponse(instanceType);
                 mockWebServer.enqueue(new MockResponse()
-                    .setBody(mockResponse)
-                    .setResponseCode(200)
-                    .addHeader("Content-Type", "application/json"));
-                
-                BoaviztaResult result = client.getEnergyAndEmbodiedEmissionsEstimates(Provider.AWS, instanceType);
+                        .setBody(mockResponse)
+                        .setResponseCode(200)
+                        .addHeader("Content-Type", "application/json"));
+
+                Impacts result = client.getImpacts(Provider.AWS, instanceType);
                 assertNotNull(result);
                 assertTrue(result.getFinalEnergyKWh() >= 0, "Use energy should be non-negative for " + instanceType);
                 assertTrue(result.getEmbeddedEmissionsGramsCO2eq() >= 0, "Embedded emissions should be non-negative for " + instanceType);
@@ -126,16 +127,16 @@ public class BoaviztAPIClientTest {
         @Test
         void testgetEnergyAndEmbodiedEmissionsEstimatesWithDifferentProviders() throws IOException {
             Provider[] providers = {Provider.AWS, Provider.AZURE, Provider.GOOGLE};
-            
+
             for (Provider provider : providers) {
                 // Mock the API response
                 String mockResponse = createMockResponse("t3.micro");
                 mockWebServer.enqueue(new MockResponse()
-                    .setBody(mockResponse)
-                    .setResponseCode(200)
-                    .addHeader("Content-Type", "application/json"));
-                
-                BoaviztaResult result = client.getEnergyAndEmbodiedEmissionsEstimates(provider, "t3.micro");
+                        .setBody(mockResponse)
+                        .setResponseCode(200)
+                        .addHeader("Content-Type", "application/json"));
+
+                Impacts result = client.getImpacts(provider, "t3.micro");
                 assertNotNull(result);
             }
         }
@@ -143,21 +144,21 @@ public class BoaviztAPIClientTest {
         @Test
         void testgetEnergyAndEmbodiedEmissionsEstimatesWithComplexInstanceTypes() throws IOException {
             String[] complexInstanceTypes = {
-                "db.r5.24xlarge", 
-                "c5.18xlarge.search", 
-                "m5.12xlarge",
-                "db.t3.micro"
+                    "db.r5.24xlarge",
+                    "c5.18xlarge.search",
+                    "m5.12xlarge",
+                    "db.t3.micro"
             };
-            
+
             for (String instanceType : complexInstanceTypes) {
                 // Mock the API response
                 String mockResponse = createMockResponse(instanceType);
                 mockWebServer.enqueue(new MockResponse()
-                    .setBody(mockResponse)
-                    .setResponseCode(200)
-                    .addHeader("Content-Type", "application/json"));
-                
-                BoaviztaResult result = client.getEnergyAndEmbodiedEmissionsEstimates(Provider.AWS, instanceType);
+                        .setBody(mockResponse)
+                        .setResponseCode(200)
+                        .addHeader("Content-Type", "application/json"));
+
+                Impacts result = client.getImpacts(Provider.AWS, instanceType);
                 assertNotNull(result);
                 assertTrue(result.getFinalEnergyKWh() >= 0, "Use energy should be non-negative for " + instanceType);
                 assertTrue(result.getEmbeddedEmissionsGramsCO2eq() >= 0, "Embedded emissions should be non-negative for " + instanceType);
@@ -167,36 +168,46 @@ public class BoaviztAPIClientTest {
         @Test
         void testgetEnergyAndEmbodiedEmissionsEstimatesWithInvalidHost() {
             BoaviztAPIClient invalidClient = new BoaviztAPIClient("http://invalid-host-that-does-not-exist:9999");
-            
+
             assertThrows(IOException.class, () -> {
-                invalidClient.getEnergyAndEmbodiedEmissionsEstimates(Provider.AWS, "t3.micro");
+                invalidClient.getImpacts(Provider.AWS, "t3.micro");
             });
         }
 
         private String createMockResponse(String instanceType) {
             // Create a realistic mock response based on the BoaviztAPI format
-            return String.format("""
-                {
-                    "impacts": {
-                        "gwp": {
-                              "unit": "kgCO2eq",
-                              "embedded": {
-                                "value": 0.0086
-                              }
-                        },
-                        "pe": {
-                            "use": {
-                                "value": 15.5,
-                                "unit": "MJ"
+            return """
+                    {
+                        "impacts": {
+                            "gwp": {
+                                  "unit": "kgCO2eq",
+                                  "embedded": {
+                                    "value": 0.0086
+                                  }
                             },
-                            "embedded": {
-                                "value": 120.0,
-                                "unit": "MJ"
+                            "pe": {
+                                "use": {
+                                    "value": 15.5,
+                                    "unit": "MJ"
+                                },
+                                "embedded": {
+                                    "value": 120.0,
+                                    "unit": "MJ"
+                                }
+                            },
+                            "adp": {
+                                "use": {
+                                    "value": 7e-10,
+                                    "unit": "kgSbeq"
+                                },
+                                "embedded": {
+                                    "value": 4.7e-8,
+                                    "unit": "kgSbeq"
+                                }
                             }
                         }
                     }
-                }
-                """);
+                    """;
         }
     }
 }

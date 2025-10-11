@@ -4,19 +4,14 @@ package com.digitalpebble.spruce.modules.boavizta;
 
 import com.digitalpebble.spruce.Column;
 import com.digitalpebble.spruce.EnrichmentModule;
-import com.digitalpebble.spruce.Provider;
 import com.digitalpebble.spruce.Utils;
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import org.apache.spark.sql.Row;
-import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.*;
 
 import static com.digitalpebble.spruce.CURColumn.*;
-import static com.digitalpebble.spruce.SpruceColumn.EMBODIED_EMISSIONS;
-import static com.digitalpebble.spruce.SpruceColumn.ENERGY_USED;
+import static com.digitalpebble.spruce.SpruceColumn.*;
 
 /**
  * Adds power usage estimates for instance types used in the EC2, ElasticSearch and RDS services
@@ -28,7 +23,7 @@ public class BoaviztAPIstatic implements EnrichmentModule {
 
     private final static String DEFAULT_RESOURCE_LOCATION = "boavizta/instanceTypes.csv";
 
-    private static Map<String, BoaviztaResult> energy_estimates;
+    private static Map<String, Impacts> impactsMap;
 
     private static Set<String> unknownInstanceTypes;
 
@@ -39,8 +34,8 @@ public class BoaviztAPIstatic implements EnrichmentModule {
             unknownInstanceTypes = new HashSet<>();
         }
 
-        if (energy_estimates == null) {
-            energy_estimates = new HashMap<>();
+        if (impactsMap == null) {
+            impactsMap = new HashMap<>();
         }
 
         try {
@@ -51,11 +46,12 @@ public class BoaviztAPIstatic implements EnrichmentModule {
                     return; // Skip comments and empty lines
                 }
                 String[] parts = line.split(",");
-                if (parts.length == 3) {
+                if (parts.length == 4) {
                     String instanceType = parts[0].trim();
                     double energyUsed = Double.parseDouble(parts[1].trim());
                     double embodied = Double.parseDouble(parts[2].trim());
-                    energy_estimates.put(instanceType, new BoaviztaResult(energyUsed, embodied));
+                    double adp = Double.parseDouble(parts[3].trim());
+                    impactsMap.put(instanceType, new Impacts(energyUsed, embodied, adp));
                 } else {
                     throw new RuntimeException("Invalid estimates mapping line: " + line);
                 }
@@ -72,7 +68,7 @@ public class BoaviztAPIstatic implements EnrichmentModule {
 
     @Override
     public Column[] columnsAdded() {
-        return new Column[]{ENERGY_USED, EMBODIED_EMISSIONS};
+        return new Column[]{ENERGY_USED, EMBODIED_EMISSIONS,EMBODIED_ADP};
     }
 
     @Override
@@ -117,17 +113,18 @@ public class BoaviztAPIstatic implements EnrichmentModule {
             return row;
         }
 
-        BoaviztaResult result = energy_estimates.get(instanceType);
+        final Impacts impacts = impactsMap.get(instanceType);
 
-        if (result == null) {
+        if (impacts == null) {
             LOG.info("Unknown instance type {}", instanceType);
             unknownInstanceTypes.add(instanceType);
             return row;
         }
 
         Map<Column, Object> kv = new HashMap<>();
-        kv.put(ENERGY_USED, result.getFinalEnergyKWh());
-        kv.put(EMBODIED_EMISSIONS, result.getEmbeddedEmissionsGramsCO2eq());
+        kv.put(ENERGY_USED, impacts.getFinalEnergyKWh());
+        kv.put(EMBODIED_EMISSIONS, impacts.getEmbeddedEmissionsGramsCO2eq());
+        kv.put(EMBODIED_ADP, impacts.getAbioticDepletionPotentialGramsSbeq());
         return EnrichmentModule.withUpdatedValues(row, kv);
     }
 }
