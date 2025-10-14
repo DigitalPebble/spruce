@@ -6,6 +6,8 @@ SPRUCE is part of a growing ecosystem of open source tools focused on measuring 
 
 [Cloud Carbon Footprint](https://www.cloudcarbonfootprint.org/) is an open source tool that provides cloud carbon emissions estimates.
 
+> **Note**: Cloud Carbon Footprint is no longer actively maintained. As a result, its data and methodology may be outdated. SPRUCE implements CCF's core methodology but with actively maintained data sources and models.
+
 ### Similarities
 
 - Both tools estimate the carbon footprint of cloud usage
@@ -28,6 +30,7 @@ SPRUCE is part of a growing ecosystem of open source tools focused on measuring 
 | **Embodied Carbon** | Includes embodied emissions via Boavizta integration | Limited embodied carbon estimates |
 | **Scalability** | Designed for large-scale data processing with Apache Spark | Suitable for smaller to medium deployments |
 | **Carbon Intensity** | Uses ElectricityMaps average data (lifecycle emissions) | Uses ElectricityMaps API for real-time data |
+| **Maintenance Status** | Actively maintained with regular updates | No longer actively maintained |
 
 ### When to Choose SPRUCE
 
@@ -46,21 +49,42 @@ SPRUCE is part of a growing ecosystem of open source tools focused on measuring 
 
 ## CloudScanner
 
-[CloudScanner](https://github.com/duo-labs/cloudscanner) is an open source tool by Duo Labs (now part of Cisco) that focuses on cloud security and configuration scanning.
+[CloudScanner](https://github.com/Boavizta/cloud-scanner) is an open source tool by Boavizta that focuses on estimating the environmental impact of cloud resources.
+
+### Similarities
+
+- Both tools estimate the environmental impact of cloud usage
+- Both are open source and transparent about their methodologies
+- Both can work with AWS cloud resources
+- Both aim to provide data for sustainability reporting
 
 ### Key Differences
 
-CloudScanner is primarily a **security and compliance tool**, not an environmental impact measurement tool. While both tools analyze cloud resources, they serve fundamentally different purposes:
-
 | Feature | SPRUCE | CloudScanner |
 |---------|--------|--------------|
-| **Primary Purpose** | Environmental impact estimation (GreenOps) | Security and compliance scanning |
-| **Focus** | Carbon emissions, energy usage, embodied carbon | Security vulnerabilities, misconfigurations |
-| **Data Source** | Cost and Usage Reports (CUR) | AWS API calls for resource inventory |
-| **Output** | Enriched reports with emissions data | Security findings and compliance reports |
-| **Use Case** | Sustainability reporting and carbon accounting | Security auditing and compliance |
+| **Primary Purpose** | Enrichment of Cost and Usage Reports (CUR) for GreenOps + FinOps | Direct resource scanning for environmental impact |
+| **Architecture** | Apache Spark-based batch processing | Direct API-based resource scanning |
+| **Data Source** | Cost and Usage Reports (CUR) in Parquet/CSV format | Live cloud resource inventory via cloud provider APIs |
+| **Scope** | Focuses on AWS CUR data enrichment | Scans multiple cloud providers and resource types |
+| **Integration** | Enriches existing billing data for FinOps alignment | Standalone tool for environmental assessment |
+| **Scalability** | Designed for large-scale historical data processing | Suitable for periodic resource audits |
+| **Output** | Enriched reports in Parquet/CSV for custom analytics | Environmental impact reports and metrics |
+| **Boavizta Usage** | Uses BoaviztAPI for embodied emissions | Built by Boavizta, deeply integrated with their methodology |
 
-CloudScanner and SPRUCE are complementary rather than competing tools. An organization might use CloudScanner to ensure their cloud infrastructure is secure and compliant, while using SPRUCE to understand and reduce the environmental impact of that same infrastructure.
+### When to Choose SPRUCE
+
+- You want to combine environmental impact with cost data from CUR reports
+- You need to process large volumes of historical usage data
+- You prefer batch processing over real-time scanning
+- You want fine-grained control through configurable enrichment modules
+- You need to integrate with existing FinOps workflows
+
+### When to Choose CloudScanner
+
+- You want to scan live cloud resources directly without CUR data
+- You need multi-cloud support beyond AWS
+- You prefer periodic audits over continuous batch processing
+- You want a tool specifically designed around Boavizta's methodology
 
 ## Other Related Tools
 
