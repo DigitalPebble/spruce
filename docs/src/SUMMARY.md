@@ -13,9 +13,6 @@
 - [Methodology](./methodology.md)
 - [Enrichment modules](./modules.md)
 - [Comparison with other open source tools](./comparison.md)
-  - [Cloud Carbon Footprint](./comparison.md#cloud-carbon-footprint-ccf)
-  - [CloudScanner](./comparison.md#cloudscanner)
-  - [Others](./comparison.md#other-related-tools)
 
 # How-to 💡
 
