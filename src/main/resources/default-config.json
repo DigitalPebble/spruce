@@ -3,8 +3,8 @@
     {
       "className": "com.digitalpebble.spruce.modules.ccf.Storage",
       "config": {
-        "hdd_gb_coefficient": 0.65,
-        "ssd_gb_coefficient": 1.2
+        "hdd_coefficient_tb_h": 0.65,
+        "ssd_coefficient_tb_h": 1.2
       }
     },
     {
