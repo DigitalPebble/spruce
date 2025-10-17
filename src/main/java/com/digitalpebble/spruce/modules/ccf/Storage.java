@@ -40,11 +40,11 @@ public class Storage implements EnrichmentModule {
 
     @Override
     public void init(Map<String, Object> params) {
-        Double coef = (Double) params.get("hdd_gb_coefficient");
+        Double coef = (Double) params.get("hdd_coefficient_tb_h");
         if (coef != null) {
             hdd_gb_coefficient = coef / 1024d;
         }
-        coef = (Double) params.get("ssd_gb_coefficient");
+        coef = (Double) params.get("ssd_coefficient_tb_h");
         if (coef != null) {
             ssd_gb_coefficient = coef / 1024d;
         }
@@ -133,9 +133,16 @@ public class Storage implements EnrichmentModule {
 
     private Row enrich(Row row, boolean isHDD, int replication) {
         double coefficient = isHDD ? hdd_gb_coefficient : ssd_gb_coefficient;
-        double amount_gb = USAGE_AMOUNT.getDouble(row);
-        double energy_gb = amount_gb * coefficient * replication;
-        return EnrichmentModule.withUpdatedValue(row, ENERGY_USED, energy_gb);
+        double amount = USAGE_AMOUNT.getDouble(row);
+        String unit = PRICING_UNIT.getString(row);
+        // normalisation
+        if (!"GB-Hours".equals(unit)) {
+           // it is in GBMonth
+            amount = convertGigabyteMonthsToGigabyteHours(amount);
+        }
+        //  to kwh
+        double energy_kwh = amount /1000 * coefficient * replication;
+        return EnrichmentModule.withUpdatedValue(row, ENERGY_USED, energy_kwh);
     }
 
     /**
@@ -201,5 +208,13 @@ public class Storage implements EnrichmentModule {
     private static boolean containsAny(String usageType, String... patterns) {
         for (String p : patterns) if (usageType.contains(p)) return true;
         return false;
+    }
+
+    static double convertGigabyteMonthsToGigabyteHours(double usageAmount){
+        // would need to know the exact number of days from the timestamp
+        // but go with average for now
+        final double daysInMonth = 30.42d;
+        // should be divided instead? 0.00136986
+        return usageAmount * 24 * daysInMonth;
     }
 }
