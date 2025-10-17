@@ -140,7 +140,8 @@ public class Storage implements EnrichmentModule {
            // it is in GBMonth
             amount = convertGigabyteMonthsToGigabyteHours(amount);
         }
-        double energy_kwh = amount * coefficient * replication;
+        //  to kwh
+        double energy_kwh = amount /1000 * coefficient * replication;
         return EnrichmentModule.withUpdatedValue(row, ENERGY_USED, energy_kwh);
     }
 
@@ -209,7 +210,7 @@ public class Storage implements EnrichmentModule {
         return false;
     }
 
-    private static double convertGigabyteMonthsToGigabyteHours(double usageAmount){
+    static double convertGigabyteMonthsToGigabyteHours(double usageAmount){
         // would need to know the exact number of days from the timestamp
         // but go with average for now
         final double daysInMonth = 30.42d;
