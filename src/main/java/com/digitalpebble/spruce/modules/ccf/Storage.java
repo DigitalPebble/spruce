@@ -4,6 +4,7 @@ package com.digitalpebble.spruce.modules.ccf;
 
 import com.digitalpebble.spruce.Column;
 import com.digitalpebble.spruce.EnrichmentModule;
+import com.digitalpebble.spruce.Utils;
 import org.apache.spark.sql.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -138,7 +139,7 @@ public class Storage implements EnrichmentModule {
         // normalisation
         if (!"GB-Hours".equals(unit)) {
            // it is in GBMonth
-            amount = convertGigabyteMonthsToGigabyteHours(amount);
+            amount = Utils.Conversions.GBMonthsToGBHours(amount);
         }
         //  to kwh
         double energy_kwh = amount /1000 * coefficient * replication;
@@ -210,11 +211,4 @@ public class Storage implements EnrichmentModule {
         return false;
     }
 
-    static double convertGigabyteMonthsToGigabyteHours(double usageAmount){
-        // would need to know the exact number of days from the timestamp
-        // but go with average for now
-        final double daysInMonth = 30.42d;
-        // should be divided instead? 0.00136986
-        return usageAmount * 24 * daysInMonth;
-    }
 }

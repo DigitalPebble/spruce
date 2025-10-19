@@ -42,7 +42,7 @@ class StorageTest {
         Object[] values = new Object[]{operation, amount, usage, service, unit, null};
         Row row = new GenericRowWithSchema(values, schema);
         Row result = storage.process(row);
-        double gb_hours = Storage.convertGigabyteMonthsToGigabyteHours(amount);
+        double gb_hours = Utils.Conversions.GBMonthsToGBHours(amount);
         int replication = storage.getReplicationFactor(service, usage);
         double coef = isSSD ? storage.ssd_gb_coefficient : storage.hdd_gb_coefficient;
         double expected = gb_hours * coef * replication / 1000;
