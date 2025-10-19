@@ -4,6 +4,7 @@ package com.digitalpebble.spruce.modules.ccf;
 
 import com.digitalpebble.spruce.Column;
 import com.digitalpebble.spruce.EnrichmentModule;
+import com.digitalpebble.spruce.Utils;
 import org.apache.spark.sql.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,14 +37,15 @@ public class Storage implements EnrichmentModule {
     List<String> hdd_usage_types;
     List<String> ssd_services;
     List<String> units;
+    Map<String, Integer> replication_factors;
 
     @Override
     public void init(Map<String, Object> params) {
-        Double coef = (Double) params.get("hdd_gb_coefficient");
+        Double coef = (Double) params.get("hdd_coefficient_tb_h");
         if (coef != null) {
             hdd_gb_coefficient = coef / 1024d;
         }
-        coef = (Double) params.get("ssd_gb_coefficient");
+        coef = (Double) params.get("ssd_coefficient_tb_h");
         if (coef != null) {
             ssd_gb_coefficient = coef / 1024d;
         }
@@ -57,6 +59,7 @@ public class Storage implements EnrichmentModule {
             hdd_usage_types = (List<String>) map.get("HDD_USAGE_TYPES");
             ssd_services = (List<String>) map.get("SSD_SERVICES");
             units = (List<String>) map.get("KNOWN_USAGE_UNITS");
+            replication_factors = (Map<String, Integer>) map.get("REPLICATION_FACTORS");
         } catch (
                 IOException e) {
             throw new RuntimeException(e);
@@ -75,62 +78,53 @@ public class Storage implements EnrichmentModule {
 
     @Override
     public Row process(Row row) {
-        String operation = LINE_ITEM_OPERATION.getString(row);
+        final String operation = LINE_ITEM_OPERATION.getString(row);
         if (operation == null) {
             return row;
         }
 
-        // EC2 instances
-        if (operation.startsWith("CreateVolume")) {
-            //  work out which coefficient should be applied
-            // if the line item operation is CreateVolume without a suffix then it is hdd, sdd otherwise
-            // (https://docs.aws.amazon.com/ebs/latest/userguide/ebs-volume-types.html)
-            boolean isHDD = operation.equals("CreateVolume");
-            return enrich(row, isHDD);
-        }
-
         // implement the logic from CCF
         // first check that the unit corresponds to storage
-        String unit = PRICING_UNIT.getString(row);
+        final String unit = PRICING_UNIT.getString(row);
         if (unit == null || !units.contains(unit)) {
             return row;
         }
 
-        // TODO handle replication
-
-        String usage_type = LINE_ITEM_USAGE_TYPE.getString(row);
+        final String usage_type = LINE_ITEM_USAGE_TYPE.getString(row);
         if (usage_type == null) {
             return row;
         }
 
+        final String serviceCode = PRODUCT_SERVICE_CODE.getString(row);
+        int replication = getReplicationFactor(serviceCode, usage_type);
+
         // loop on the values from the resources
         for (String ssd : ssd_usage_types) {
             if (usage_type.endsWith(ssd)) {
-                return enrich(row, false);
+                return enrich(row, false, replication);
             }
         }
 
         // check the services
         // https://github.com/cloud-carbon-footprint/cloud-carbon-footprint/blob/9f2cf436e5ad020830977e52c3b0a1719d20a8b9/packages/aws/src/lib/CostAndUsageReports.ts#L518
-        String serviceCode = PRODUCT_SERVICE_CODE.getString(row);
         if (serviceCode != null && !usage_type.contains("Backup")) {
             for (String service : ssd_services) {
                 if (serviceCode.endsWith(service)) {
-                    return enrich(row, false);
+                    return enrich(row, false, replication);
                 }
             }
         }
 
         for (String hdd : hdd_usage_types) {
             if (usage_type.endsWith(hdd)) {
-                return enrich(row, true);
+                return enrich(row, true, replication);
             }
         }
 
         // Log so that can improve coverage in the longer term
         String product_product_family = PRODUCT_PRODUCT_FAMILY.getString(row);
         if ("Storage".equals(product_product_family)) {
-            log.debug("Storage type not found for {} {}",operation, usage_type);
+            log.debug("Storage type not found for {} {}", operation, usage_type);
         }
 
         // not been found
@@ -138,14 +132,83 @@ public class Storage implements EnrichmentModule {
     }
 
 
-    private Row enrich(Row row, boolean isHDD) {
+    private Row enrich(Row row, boolean isHDD, int replication) {
         double coefficient = isHDD ? hdd_gb_coefficient : ssd_gb_coefficient;
-
-        // in gb months
-        double amount_gb = USAGE_AMOUNT.getDouble(row);
-
-        double energy_gb = amount_gb * coefficient;
-
-        return EnrichmentModule.withUpdatedValue(row, ENERGY_USED, energy_gb);
+        double amount = USAGE_AMOUNT.getDouble(row);
+        String unit = PRICING_UNIT.getString(row);
+        // normalisation
+        if (!"GB-Hours".equals(unit)) {
+           // it is in GBMonth
+            amount = Utils.Conversions.GBMonthsToGBHours(amount);
+        }
+        //  to kwh
+        double energy_kwh = amount /1000 * coefficient * replication;
+        return EnrichmentModule.withUpdatedValue(row, ENERGY_USED, energy_kwh);
     }
+
+    /**
+     * Get replication factor based on AWS service and usage type.
+     */
+    public int getReplicationFactor(String service, String usageType) {
+        if (service == null || usageType == null) {
+            return replication_factors.get("DEFAULT");
+        }
+
+        switch (service) {
+            case "AmazonS3":
+                if (containsAny(usageType, "TimedStorage-ZIA", "EarlyDelete-ZIA", "TimedStorage-RRS"))
+                    return replication_factors.get("S3_ONE_ZONE_REDUCED_REDUNDANCY");
+                if (containsAny(usageType, "TimedStorage", "EarlyDelete"))
+                    return replication_factors.get("S3");
+                return replication_factors.get("DEFAULT");
+
+            case "AmazonEC2":
+                if (usageType.contains("VolumeUsage"))
+                    return replication_factors.get("EC2_EBS_VOLUME");
+                if (usageType.contains("SnapshotUsage"))
+                    return replication_factors.get("EC2_EBS_SNAPSHOT");
+                return replication_factors.get("DEFAULT");
+
+            case "AmazonEFS":
+                return usageType.contains("ZIA") ?
+                        replication_factors.get("EFS_ONE_ZONE") : replication_factors.get("EFS");
+
+            case "AmazonRDS":
+                if (usageType.contains("BackupUsage"))
+                    return replication_factors.get("RDS_BACKUP");
+                if (usageType.contains("Aurora"))
+                    return replication_factors.get("RDS_AURORA");
+                if (usageType.contains("Multi-AZ"))
+                    return replication_factors.get("RDS_MULTI_AZ");
+                return replication_factors.get("DEFAULT");
+
+            case "AmazonDocDB":
+                return usageType.contains("BackupUsage") ?
+                        replication_factors.get("DOCUMENT_DB_BACKUP") : replication_factors.get("DOCUMENT_DB_STORAGE");
+
+            case "AmazonDynamoDB":
+                return replication_factors.get("DYNAMO_DB");
+
+            case "AmazonECR":
+                return usageType.contains("TimedStorage") ?
+                        replication_factors.get("ECR_STORAGE") : replication_factors.get("DEFAULT");
+
+            case "AmazonElastiCache":
+                return usageType.contains("BackupUsage") ?
+                        replication_factors.get("DOCUMENT_ELASTICACHE_BACKUP") : replication_factors.get("DEFAULT");
+
+            case "AmazonSimpleDB":
+                return usageType.contains("TimedStorage") ?
+                        replication_factors.get("SIMPLE_DB") : replication_factors.get("DEFAULT");
+
+            default:
+                return replication_factors.get("DEFAULT");
+        }
+    }
+
+    private static boolean containsAny(String usageType, String... patterns) {
+        for (String p : patterns) if (usageType.contains(p)) return true;
+        return false;
+    }
+
 }
