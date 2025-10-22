@@ -41,7 +41,7 @@ public class Fargate implements EnrichmentModule {
     // https://tailpipe.ai/methodology/serverless-explained/
     // in kWh per vCPU
     //  (173 * 0.815) /16 / 1000
-    Double x86_cpu_coefficient_kwh = 0.00220304687;
+    Double x86_cpu_coefficient_kwh = 0.0088121875;
 
     @Override
     public void init(Map<String, Object> params) {
