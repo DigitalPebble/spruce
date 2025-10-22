@@ -2,7 +2,6 @@
 
 package com.digitalpebble.spruce;
 
-import com.esotericsoftware.minlog.Log;
 import org.apache.commons.cli.*;
 import org.apache.spark.api.java.function.FlatMapGroupsFunction;
 import org.apache.spark.api.java.function.MapFunction;
@@ -10,7 +9,6 @@ import org.apache.spark.sql.*;
 import org.apache.spark.sql.catalyst.encoders.RowEncoder;
 import scala.Option;
 
-import java.io.Serializable;
 import java.util.*;
 
 import static com.digitalpebble.spruce.SpruceColumn.*;
@@ -51,7 +49,7 @@ public class SplitJob {
 
         // Read the input Parquet file(s)
         // csv for now
-        Dataset<Row> dataframe = spark.read().option("header", true).csv(inputPath);
+        Dataset<Row> dataframe = spark.read().option("header", true).option("mode", "FAILFAST").option("delimiter", ",").option("quote", "\"").option("escape", "\"").csv(inputPath);
 
         final boolean hasBillingPeriods = !dataframe.schema().getFieldIndex("BILLING_PERIOD").isEmpty();
 
@@ -68,21 +66,20 @@ public class SplitJob {
             Option<Object> index = dataframe.schema().getFieldIndex(c.getLabel());
             if (index.isEmpty()) {
                 LOG.error("Missing column: '{}'", c.getLabel());
-                // System.exit(2);
+                System.exit(2);
             }
             // create separate columns to avoid double counting
-            // dataframe = dataframe.withColumn("split_" + c.getLabel(), lit(null).cast(c.getType()));
+            dataframe = dataframe.withColumn("split_" + c.getLabel(), lit(null).cast(c.getType()));
         }
 
         Encoder<Row> encoder = RowEncoder.encoderFor(dataframe.schema());
 
         KeyValueGroupedDataset<GroupKey, Row> grouped = dataframe.groupByKey((MapFunction<Row, GroupKey>) row -> {
                     String date = row.getAs("identity_time_interval");
-
                     // COALESCE: if split_line_item_parent_resource_id is null, use identity_line_item_id
                     String resourceId = row.getAs("split_line_item_parent_resource_id");
-                    if (resourceId == null) {
-                        resourceId = row.getAs("identity_line_item_id");
+                    if (resourceId == null || resourceId.equalsIgnoreCase("null")) {
+                        resourceId = row.getAs("line_item_resource_id");
                     }
 
                     return new GroupKey(date, resourceId);
@@ -90,24 +87,36 @@ public class SplitJob {
         );
 
         // Aggregate parent values
-        final String[] impactNames = Arrays.stream(impactColumns)
-                .map(Column::getLabel)
-                .toArray(String[]::new);
+        final String[] impactNames = Arrays.stream(impactColumns).map(Column::getLabel).toArray(String[]::new);
 
         // Step 3: FlatMapGroups to perform custom aggregation
         Dataset<Row> enriched = grouped.flatMapGroups((FlatMapGroupsFunction<GroupKey, Row, Row>) (key, iterator) -> {
-
-            LOG.info("Group key resource {} date {}", key.getResourceId(), key.getDate());
 
             List<Row> rows = new ArrayList<>();
             iterator.forEachRemaining(rows::add);
 
             Map<String, Double> agg = ParentAggregator.aggregate(rows, impactNames);
 
+            LOG.info("Group key resource {} date {} - {} rows found", key.getResourceId(), key.getDate(), rows.size());
+
+            // check that aggregated impacts have been found
+            boolean noImpactsForParentsInGroup = agg.values().stream().mapToDouble(Double::doubleValue).sum() <= 0;
+            if (noImpactsForParentsInGroup) {
+                LOG.error("No aggregated impacts found for group {}-{}", key.getResourceId(), key.getDate());
+            }
+
             List<Row> output = new ArrayList<>();
             for (Row r : rows) {
+                // no parents impact - just write it all out
+                if (noImpactsForParentsInGroup){
+                    output.add(r);
+                    continue;
+                }
+
                 // Only enrich children
-                if (r.getAs("split_line_item_parent_resource_id") != null) {
+                String parent_resource_id = r.getAs("split_line_item_parent_resource_id");
+
+                if (parent_resource_id == null | "null".equalsIgnoreCase(parent_resource_id)) {
                     // parents can go straight out
                     output.add(r);
                     continue;
@@ -117,6 +126,7 @@ public class SplitJob {
 
                 // TODO add to output
                 // output.add(RowFactory.create(values));
+                output.add(r);
             }
             return output.iterator();
         }, encoder);
@@ -129,7 +139,8 @@ public class SplitJob {
             writer = writer.partitionBy("BILLING_PERIOD");
         }
 
-        writer.parquet(outputPath);
+        writer.csv(outputPath);
+        // writer.parquet(outputPath);
 
         spark.stop();
     }
@@ -139,25 +150,41 @@ class ParentAggregator {
 
     /**
      * Aggregate parent values for a group
-     * There should be 1 EC2 instance run and potentially several other items e.g. network
+     * There should be at least 1 EC2 instance run and potentially several other items e.g. network
      * Impacts contain energy, and emission estimates
      */
     public static Map<String, Double> aggregate(List<Row> rows, String[] impactColumns) {
         Map<String, Double> agg = new HashMap<>();
 
-        for (String column : impactColumns){
+        for (String column : impactColumns) {
             agg.put(column, 0.0);
         }
 
         for (Row r : rows) {
+            String parent_resource_id = r.getAs("split_line_item_parent_resource_id");
             // parents only
-            if (!r.isNullAt(r.fieldIndex("split_line_item_parent_resource_id"))) {
-                continue;
-            }
-            // for each impact
-            for (String column : impactColumns){
-                Double val = r.getAs(column);
-                agg.compute(column, (label, value) -> value + val);
+            // second part merely for testing from csv
+            if (parent_resource_id == null || "null".equalsIgnoreCase(parent_resource_id)) {
+                // for each impact
+                for (String column : impactColumns) {
+                    // another csv related problem
+                    // loaded as string
+                    int index = r.fieldIndex(column);
+                    Object val = r.get(index);
+                    double v = 0;
+                    if (val instanceof Double) {
+                        v = (Double) val;
+                    } else if (val instanceof String) {
+                        // can be null if not set?
+                        try {
+                            v = Double.parseDouble((String) val);
+                        } catch (Exception e) {
+                            continue;
+                        }
+                    }
+                    final double fd = v;
+                    agg.compute(column, (label, value) -> value + fd);
+                }
             }
         }
         return agg;
