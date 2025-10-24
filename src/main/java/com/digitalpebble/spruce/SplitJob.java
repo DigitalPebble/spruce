@@ -9,8 +9,10 @@ import org.apache.spark.sql.*;
 import org.apache.spark.sql.catalyst.encoders.RowEncoder;
 import scala.Option;
 
+import java.io.Serializable;
 import java.util.*;
 
+import static com.digitalpebble.spruce.CURColumn.PRODUCT_PRODUCT_FAMILY;
 import static com.digitalpebble.spruce.SpruceColumn.*;
 import static org.apache.spark.sql.functions.lit;
 
@@ -22,11 +24,15 @@ public class SplitJob {
 
     private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(SplitJob.class);
 
+    public static String split_impact_prefix = "split_";
+    public static String ec2_prefix_aggregates = "EC2_";
+
     public static void main(String[] args) {
 
         final Options options = new Options();
         options.addRequiredOption("i", "input", true, "input path");
         options.addRequiredOption("o", "output", true, "output path");
+        // TODO add option to specify non-SPRUCE impact columns
 
         String inputPath = null;
         String outputPath = null;
@@ -69,12 +75,12 @@ public class SplitJob {
                 System.exit(2);
             }
             // create separate columns to avoid double counting
-            dataframe = dataframe.withColumn("split_" + c.getLabel(), lit(null).cast(c.getType()));
+            dataframe = dataframe.withColumn(split_impact_prefix + c.getLabel(), lit(null).cast(c.getType()));
         }
 
         Encoder<Row> encoder = RowEncoder.encoderFor(dataframe.schema());
 
-        KeyValueGroupedDataset<GroupKey, Row> grouped = dataframe.groupByKey((MapFunction<Row, GroupKey>) row -> {
+        KeyValueGroupedDataset<ParentAggregator.GroupKey, Row> grouped = dataframe.groupByKey((MapFunction<Row, ParentAggregator.GroupKey>) row -> {
                     String date = row.getAs("identity_time_interval");
                     // COALESCE: if split_line_item_parent_resource_id is null, use identity_line_item_id
                     String resourceId = row.getAs("split_line_item_parent_resource_id");
@@ -82,15 +88,15 @@ public class SplitJob {
                         resourceId = row.getAs("line_item_resource_id");
                     }
 
-                    return new GroupKey(date, resourceId);
-                }, Encoders.javaSerialization(GroupKey.class) // Encoder for the custom key
+                    return new ParentAggregator.GroupKey(date, resourceId);
+                }, Encoders.javaSerialization(ParentAggregator.GroupKey.class) // Encoder for the custom key
         );
 
         // Aggregate parent values
         final String[] impactNames = Arrays.stream(impactColumns).map(Column::getLabel).toArray(String[]::new);
 
         // Step 3: FlatMapGroups to perform custom aggregation
-        Dataset<Row> enriched = grouped.flatMapGroups((FlatMapGroupsFunction<GroupKey, Row, Row>) (key, iterator) -> {
+        Dataset<Row> enriched = grouped.flatMapGroups((FlatMapGroupsFunction<ParentAggregator.GroupKey, Row, Row>) (key, iterator) -> {
 
             List<Row> rows = new ArrayList<>();
             iterator.forEachRemaining(rows::add);
@@ -105,28 +111,50 @@ public class SplitJob {
                 LOG.error("No aggregated impacts found for group {}-{}", key.getResourceId(), key.getDate());
             }
 
+            // TODO keep track of the total impacts for the
+            // splits and make sure they add up with what is found
+            // from the parents
+
             List<Row> output = new ArrayList<>();
-            for (Row r : rows) {
-                // no parents impact - just write it all out
-                if (noImpactsForParentsInGroup){
-                    output.add(r);
+            for (Row row : rows) {
+                // no parents impacts? - just write it all out
+                if (noImpactsForParentsInGroup) {
+                    output.add(row);
                     continue;
                 }
 
                 // Only enrich children
-                String parent_resource_id = r.getAs("split_line_item_parent_resource_id");
-
-                if (parent_resource_id == null | "null".equalsIgnoreCase(parent_resource_id)) {
+                if (isParent(row)) {
                     // parents can go straight out
-                    output.add(r);
+                    output.add(row);
                     continue;
                 }
 
-                // TODO apply logic
+                final double costEC2resource = agg.get("EC2_public_on_demand");
 
-                // TODO add to output
-                // output.add(RowFactory.create(values));
-                output.add(r);
+                // the logic is as follows:
+                // Work out their share of the EC2 impacts based on ratio of used + unused costs
+                // Use splitUsageRatio for their share of non-EC2 impacts
+
+                double split_cost = doubleFromColumn(row, "split_line_item_public_on_demand_split_cost");
+                double unused_cost = doubleFromColumn(row, "split_line_item_public_on_demand_unused_cost");
+                double ratioUsage = doubleFromColumn(row, "split_line_item_split_usage_ratio");
+                double ratioCostForRow = (split_cost + unused_cost) / costEC2resource;
+
+                final Map<String, Object> impactsForRow = new HashMap<>();
+
+                for (String impactName : impactNames){
+                    // get value from EC2 e.g. energy in kwh
+                    double val = agg.get(ec2_prefix_aggregates +impactName);
+                    double localValue = val * ratioCostForRow;
+                    // now add any impacts for non-EC2 usage like network
+                    val = agg.get(impactName);
+                    localValue += val * ratioUsage;
+                    // add with the prefix
+                    impactsForRow.put(split_impact_prefix+impactName, localValue);
+                }
+
+                output.add(Utils.withUpdatedValues(row, impactsForRow));
             }
             return output.iterator();
         }, encoder);
@@ -139,54 +167,126 @@ public class SplitJob {
             writer = writer.partitionBy("BILLING_PERIOD");
         }
 
-        writer.csv(outputPath);
+        writer.option("header", true).csv(outputPath);
         // writer.parquet(outputPath);
 
         spark.stop();
     }
+
+    /**
+     * Temporary workaround while mucking about with csv inputs
+     * A row is a parent if it does not have a parent resource id
+     **/
+    public static boolean isParent(Row r) {
+        String parent_resource_id = r.getAs("split_line_item_parent_resource_id");
+        return (parent_resource_id == null || "null".equalsIgnoreCase(parent_resource_id));
+    }
+
+    /**
+     * Temporary workaround while mucking about with csv inputs
+     **/
+    public static Double doubleFromColumn(Row row, String columnName) {
+        // another csv related problem
+        // loaded as string
+        int index = row.fieldIndex(columnName);
+        Object val = row.get(index);
+        double v = 0;
+        if (val instanceof Double) {
+            return (Double) val;
+        }
+        if (val instanceof String) {
+            // can be null if not set?
+            try {
+                return Double.parseDouble((String) val);
+            } catch (Exception e) {
+                return null;
+            }
+        }
+        return null;
+    }
+
 }
 
 class ParentAggregator {
 
     /**
      * Aggregate parent values for a group
-     * There should be at least 1 EC2 instance run and potentially several other items e.g. network
+     * There should be at most 1 EC2 instance run and potentially several other items e.g. network
      * Impacts contain energy, and emission estimates
+     * Impacts from EC2 resource are kept separate from other resources and prefixed with "EC2_"
      */
     public static Map<String, Double> aggregate(List<Row> rows, String[] impactColumns) {
         Map<String, Double> agg = new HashMap<>();
 
         for (String column : impactColumns) {
             agg.put(column, 0.0);
+            agg.put(SplitJob.ec2_prefix_aggregates + column, 0.0);
         }
 
+        boolean ec2Found = false;
+
         for (Row r : rows) {
-            String parent_resource_id = r.getAs("split_line_item_parent_resource_id");
             // parents only
-            // second part merely for testing from csv
-            if (parent_resource_id == null || "null".equalsIgnoreCase(parent_resource_id)) {
+            if (SplitJob.isParent(r)) {
+                boolean isEC2 = "Compute Instance".equalsIgnoreCase(PRODUCT_PRODUCT_FAMILY.getString(r));
+                if (isEC2) {
+                    // crash it for now
+                    if (ec2Found) {
+                        throw new RuntimeException("More than one EC2 instance found within a group");
+                    } else ec2Found = true;
+                    // get the cost
+                    final Double cost = SplitJob.doubleFromColumn(r, "line_item_unblended_cost");
+                    agg.put("EC2_public_on_demand", cost);
+                }
                 // for each impact
                 for (String column : impactColumns) {
-                    // another csv related problem
-                    // loaded as string
-                    int index = r.fieldIndex(column);
-                    Object val = r.get(index);
-                    double v = 0;
-                    if (val instanceof Double) {
-                        v = (Double) val;
-                    } else if (val instanceof String) {
-                        // can be null if not set?
-                        try {
-                            v = Double.parseDouble((String) val);
-                        } catch (Exception e) {
-                            continue;
-                        }
-                    }
-                    final double fd = v;
-                    agg.compute(column, (label, value) -> value + fd);
+                    final Double v = SplitJob.doubleFromColumn(r, column);
+                    if (v == null) continue;
+                    if (isEC2) column = "EC2_" + column;
+                    agg.compute(column, (label, value) -> value + v.doubleValue());
                 }
             }
         }
+
+        if (!ec2Found) {
+            // TODO log
+        }
+
         return agg;
+    }
+
+    public static class GroupKey implements Serializable {
+        private final String date;
+        private final String resourceId;
+
+        public GroupKey(String date, String resourceId) {
+            this.date = date;
+            this.resourceId = resourceId;
+        }
+
+        public String getDate() {
+            return date;
+        }
+
+        public String getResourceId() {
+            return resourceId;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof GroupKey groupKey)) return false;
+            return Objects.equals(date, groupKey.date) && Objects.equals(resourceId, groupKey.resourceId);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(date, resourceId);
+        }
+
+        @Override
+        public String toString() {
+            return "GroupKey{" + "date='" + date + '\'' + ", resourceId='" + resourceId + '\'' + '}';
+        }
     }
 }
