@@ -46,14 +46,15 @@ public class SplitJob {
             CommandLine cmd = parser.parse(options, args);
             inputPath = cmd.getOptionValue("i");
             outputPath = cmd.getOptionValue("o");
-            impactColumnAsSingleLine = cmd.getOptionValue("c" , impactColumnAsSingleLine);
+            impactColumnAsSingleLine = cmd.getOptionValue("c", impactColumnAsSingleLine);
         } catch (ParseException e) {
             HelpFormatter formatter = new HelpFormatter();
             formatter.printHelp("SplitJob", options);
             System.exit(1);
         }
 
-        SparkSession spark = SparkSession.builder().appName("SPRUCE-split").master("local[*]") // run locally, can step through
+        SparkSession spark = SparkSession.builder().appName("SPRUCE-split")
+                .master("local[*]") // run locally, can step through
                 .getOrCreate();
 
         spark.conf().set("mapreduce.fileoutputcommitter.marksuccessfuljobs", "false");
@@ -63,7 +64,58 @@ public class SplitJob {
         // csv for now while working on made up example
         Dataset<Row> dataframe = spark.read().option("header", true).option("mode", "FAILFAST").option("delimiter", ",").option("quote", "\"").option("escape", "\"").csv(inputPath);
 
+        final String[] impactNames = impactColumnAsSingleLine.split(", ?");
+
         final boolean hasBillingPeriods = !dataframe.schema().getFieldIndex("BILLING_PERIOD").isEmpty();
+
+        Dataset<Row> enriched = enrichSplits(dataframe, impactNames);
+
+        // Write the result as Parquet, with one subdirectory per billing period, similar to the input
+        DataFrameWriter<Row> writer = enriched.write().mode("overwrite");
+
+        if (hasBillingPeriods) {
+            writer = writer.partitionBy("BILLING_PERIOD");
+        }
+
+        writer.option("header", true).option("delimiter", ",").option("quote", "\"").option("escape", "\"").csv(outputPath);
+        // writer.parquet(outputPath);
+
+        spark.stop();
+    }
+
+    /**
+     * Temporary workaround while mucking about with csv inputs
+     * A row is a parent if it does not have a parent resource id
+     **/
+    public static boolean isParent(Row r) {
+        String parent_resource_id = r.getAs("split_line_item_parent_resource_id");
+        return (parent_resource_id == null || "null".equalsIgnoreCase(parent_resource_id));
+    }
+
+    /**
+     * Temporary workaround while mucking about with csv inputs
+     **/
+    public static Double doubleFromColumn(Row row, String columnName) {
+        // another csv related problem
+        // loaded as string
+        int index = row.fieldIndex(columnName);
+        Object val = row.get(index);
+        double v = 0;
+        if (val instanceof Double) {
+            return (Double) val;
+        }
+        if (val instanceof String) {
+            // can be null if not set?
+            try {
+                return Double.parseDouble((String) val);
+            } catch (Exception e) {
+                return null;
+            }
+        }
+        return null;
+    }
+
+    static Dataset<Row> enrichSplits(Dataset<Row> dataframe,  final String[] impactNames) {
 
         // check that the input contains splits
         boolean noSplits = dataframe.schema().getFieldIndex("split_line_item_parent_resource_id").isEmpty();
@@ -72,8 +124,6 @@ public class SplitJob {
             LOG.error("Input files do not have split line items");
             System.exit(1);
         }
-
-        final String[] impactNames = impactColumnAsSingleLine.split(", ?");
 
         for (String columnName : impactNames) {
             Option<Object> index = dataframe.schema().getFieldIndex(columnName);
@@ -100,7 +150,7 @@ public class SplitJob {
         );
 
         // Step 3: FlatMapGroups to perform custom aggregation
-        Dataset<Row> enriched = grouped.flatMapGroups((FlatMapGroupsFunction<ParentAggregator.GroupKey, Row, Row>) (key, iterator) -> {
+        return grouped.flatMapGroups((FlatMapGroupsFunction<ParentAggregator.GroupKey, Row, Row>) (key, iterator) -> {
 
             List<Row> rows = new ArrayList<>();
             iterator.forEachRemaining(rows::add);
@@ -147,66 +197,21 @@ public class SplitJob {
 
                 final Map<String, Object> impactsForRow = new HashMap<>();
 
-                for (String impactName : impactNames){
+                for (String impactName : impactNames) {
                     // get value from EC2 e.g. energy in kwh
-                    double val = agg.get(ec2_prefix_aggregates +impactName);
+                    double val = agg.get(ec2_prefix_aggregates + impactName);
                     double localValue = val * ratioCostForRow;
                     // now add any impacts for non-EC2 usage like network
                     val = agg.get(impactName);
                     localValue += val * ratioUsage;
                     // add with the prefix
-                    impactsForRow.put(split_impact_prefix+impactName, localValue);
+                    impactsForRow.put(split_impact_prefix + impactName, localValue);
                 }
 
                 output.add(Utils.withUpdatedValues(row, impactsForRow));
             }
             return output.iterator();
         }, encoder);
-
-
-        // Write the result as Parquet, with one subdirectory per billing period, similar to the input
-        DataFrameWriter<Row> writer = enriched.write().mode("overwrite");
-
-        if (hasBillingPeriods) {
-            writer = writer.partitionBy("BILLING_PERIOD");
-        }
-
-        writer.option("header", true).option("delimiter", ",").option("quote", "\"").option("escape", "\"").csv(outputPath);
-        // writer.parquet(outputPath);
-
-        spark.stop();
-    }
-
-    /**
-     * Temporary workaround while mucking about with csv inputs
-     * A row is a parent if it does not have a parent resource id
-     **/
-    public static boolean isParent(Row r) {
-        String parent_resource_id = r.getAs("split_line_item_parent_resource_id");
-        return (parent_resource_id == null || "null".equalsIgnoreCase(parent_resource_id));
-    }
-
-    /**
-     * Temporary workaround while mucking about with csv inputs
-     **/
-    public static Double doubleFromColumn(Row row, String columnName) {
-        // another csv related problem
-        // loaded as string
-        int index = row.fieldIndex(columnName);
-        Object val = row.get(index);
-        double v = 0;
-        if (val instanceof Double) {
-            return (Double) val;
-        }
-        if (val instanceof String) {
-            // can be null if not set?
-            try {
-                return Double.parseDouble((String) val);
-            } catch (Exception e) {
-                return null;
-            }
-        }
-        return null;
     }
 
 }
