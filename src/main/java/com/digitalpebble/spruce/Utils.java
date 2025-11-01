@@ -4,6 +4,9 @@ package com.digitalpebble.spruce;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.spark.sql.Row;
+import org.apache.spark.sql.RowFactory;
+import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 
@@ -61,6 +64,33 @@ public abstract class Utils {
         }
 
         return new StructType(fields.toArray(new StructField[fields.size()]));
+    }
+
+    /**
+     * Clone a Row and give it new values
+     **/
+    public static Row withUpdatedValues(Row row, Map<String, Object> updates) {
+
+        Object[] values = new Object[row.size()];
+        for (int i = 0; i < row.size(); i++) {
+            values[i] = row.get(i);
+        }
+
+        for (Map.Entry<String, Object> entry : updates.entrySet()) {
+            String field = entry.getKey();
+            Object newValue = entry.getValue();
+
+            int index;
+            try {
+                index = row.fieldIndex(field);
+            } catch (IllegalArgumentException e) {
+                throw new RuntimeException("Field not found in row: " + field, e);
+            }
+
+            values[index] = newValue;
+        }
+
+        return new GenericRowWithSchema(values, row.schema());
     }
 
     /**
