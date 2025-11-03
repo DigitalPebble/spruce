@@ -12,6 +12,7 @@
 
 - [Methodology](./methodology.md)
 - [Enrichment modules](./modules.md)
+- [Comparison with other open source tools](./comparison.md)
 
 # How-to 💡
 
