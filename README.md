@@ -14,7 +14,7 @@ place makes it easier to expose your costs and impacts side by side.
 
 Please note that SPRUCE handles only CUR reports from AWS and not all their services are covered. However, most of the cost from a typical usage already gets estimates.
 
-*SPRUCE* uses [Apache Spark](https://spark.apache.org/) to read and write the usage reports (typically in Parquet format) in a scalable way and, thanks to its modular approach, 
+*SPRUCE* uses [Apache Spark®](https://spark.apache.org/) to read and write the usage reports (typically in Parquet format) in a scalable way and, thanks to its modular approach, 
 splits the enrichment of the data into configurable stages.
 
 A typical sequence of stages would be:
