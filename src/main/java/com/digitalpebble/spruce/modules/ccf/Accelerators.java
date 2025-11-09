@@ -95,7 +95,10 @@ public class Accelerators implements EnrichmentModule {
 
         double amount = USAGE_AMOUNT.getDouble(row);
 
+        // watts to kw
+        energy_used = (amount * energy_used * quantity / 1000);
+
         // add it to an existing value or create it
-        return EnrichmentModule.withUpdatedValue(row, ENERGY_USED, amount * energy_used * quantity, true);
+        return EnrichmentModule.withUpdatedValue(row, ENERGY_USED, energy_used, true);
     }
 }
