@@ -39,11 +39,12 @@ public class BoaviztAPIstaticTest {
         @Test
         void testColumnsNeeded() {
             Column[] needed = module.columnsNeeded();
-            assertEquals(4, needed.length);
+            assertEquals(5, needed.length);
             assertEquals(CURColumn.PRODUCT_INSTANCE_TYPE, needed[0]);
             assertEquals(CURColumn.PRODUCT_SERVICE_CODE, needed[1]);
             assertEquals(CURColumn.LINE_ITEM_OPERATION, needed[2]);
             assertEquals(CURColumn.LINE_ITEM_PRODUCT_CODE, needed[3]);
+            assertEquals(CURColumn.USAGE_AMOUNT, needed[4]);
         }
 
         @Test

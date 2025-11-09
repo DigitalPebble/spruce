@@ -44,11 +44,12 @@ public class BoaviztAPITest {
         @Test
         void testColumnsNeeded() {
             Column[] needed = api.columnsNeeded();
-            assertEquals(4, needed.length);
+            assertEquals(5, needed.length);
             assertEquals(CURColumn.PRODUCT_INSTANCE_TYPE, needed[0]);
             assertEquals(CURColumn.PRODUCT_SERVICE_CODE, needed[1]);
             assertEquals(CURColumn.LINE_ITEM_OPERATION, needed[2]);
             assertEquals(CURColumn.LINE_ITEM_PRODUCT_CODE, needed[3]);
+            assertEquals(CURColumn.USAGE_AMOUNT, needed[4]);
         }
 
         @Test
@@ -197,6 +198,12 @@ public class BoaviztAPITest {
             mockWebServer.shutdown();
         }
 
+        private Row enrich(String productInstanceType, String productServiceCode,String lineItemOperation, String lineItemProductCode, double usageAmount){
+            Object[] values = new Object[]{productInstanceType, productServiceCode, lineItemOperation, lineItemProductCode, usageAmount, null, null, null};
+            Row row = new GenericRowWithSchema(values, schema);
+            return api.process(row);
+        }
+
         @Test
         void testProcessEC2InstanceWithValidData() throws IOException {
             // Mock the API response
@@ -206,9 +213,7 @@ public class BoaviztAPITest {
                     .setResponseCode(200)
                     .addHeader("Content-Type", "application/json"));
 
-            Object[] values = new Object[]{"t3.micro", "AmazonEC2", "RunInstances", "AmazonEC2", null, null, null};
-            Row row = new GenericRowWithSchema(values, schema);
-            Row enriched = api.process(row);
+            Row enriched = enrich("t3.micro", "AmazonEC2", "RunInstances", "AmazonEC2", 10);
 
             // The row should be processed and enriched with energy data
             assertNotNull(enriched);
@@ -224,9 +229,7 @@ public class BoaviztAPITest {
                     .setResponseCode(200)
                     .addHeader("Content-Type", "application/json"));
 
-            Object[] values = new Object[]{"t3.micro.search", "AmazonES", "ESDomain", "AmazonES", null, null, null};
-            Row row = new GenericRowWithSchema(values, schema);
-            Row enriched = api.process(row);
+            Row enriched = enrich("t3.micro.search", "AmazonES", "ESDomain", "AmazonES", 1.0);
 
             // The row should be processed and enriched with energy data
             assertNotNull(enriched);
@@ -241,9 +244,7 @@ public class BoaviztAPITest {
                     .setResponseCode(200)
                     .addHeader("Content-Type", "application/json"));
 
-            Object[] values = new Object[]{"db.t3.micro", "AmazonRDS", "CreateDBInstance", "AmazonRDS", null, null, null};
-            Row row = new GenericRowWithSchema(values, schema);
-            Row enriched = api.process(row);
+            Row enriched = enrich("db.t3.micro", "AmazonRDS", "CreateDBInstance", "AmazonRDS", 1.0);
 
             // The row should be processed and enriched with energy data
             assertNotNull(enriched);
@@ -259,9 +260,7 @@ public class BoaviztAPITest {
                     .setResponseCode(200)
                     .addHeader("Content-Type", "application/json"));
 
-            Object[] values = new Object[]{"t3.micro", "AmazonEC2", operation, "AmazonEC2", null, null, null};
-            Row row = new GenericRowWithSchema(values, schema);
-            Row enriched = api.process(row);
+            Row enriched = enrich("t3.micro", "AmazonEC2", operation, "AmazonEC2", 1.0);
 
             // The row should be processed and enriched with energy data
             assertNotNull(enriched);
@@ -285,9 +284,7 @@ public class BoaviztAPITest {
                     .setResponseCode(200)
                     .addHeader("Content-Type", "application/json"));
 
-            Object[] values = new Object[]{"db.t3.micro", "AmazonRDS", operation, "AmazonRDS", null, null, null};
-            Row row = new GenericRowWithSchema(values, schema);
-            Row enriched = api.process(row);
+            Row enriched = enrich("db.t3.micro", "AmazonRDS", operation, "AmazonRDS", 1.0);
 
             // The row should be processed and enriched with energy data
             assertNotNull(enriched);
@@ -311,9 +308,7 @@ public class BoaviztAPITest {
                     .setResponseCode(200)
                     .addHeader("Content-Type", "application/json"));
 
-            Object[] values = new Object[]{instanceType, "AmazonEC2", "RunInstances", "AmazonEC2", null, null, null};
-            Row row = new GenericRowWithSchema(values, schema);
-            Row enriched = api.process(row);
+            Row enriched = enrich(instanceType, "AmazonEC2", "RunInstances", "AmazonEC2", 1.0);
 
             // The row should be processed and enriched with energy data
             assertNotNull(enriched);
