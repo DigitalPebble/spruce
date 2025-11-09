@@ -2,6 +2,7 @@
 
 package com.digitalpebble.spruce;
 
+import org.apache.spark.SparkIllegalArgumentException;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.types.DataType;
 
@@ -40,12 +41,29 @@ public abstract class Column {
         return r.getDouble(index);
     }
 
+
+    /**
+     * Utility method to get the value for the column in the row or null if it does not exist.
+     * Returns null if the field is not defined in the schema and optional is set to true,
+     * propagates an exception otherwise.
+     **/
+    public String getString(Row r, boolean optional) {
+        try {
+            final int index = r.fieldIndex(this.label);
+            return r.getString(index);
+        } catch (SparkIllegalArgumentException e) {
+            if (optional) {
+                return null;
+            }
+            throw e;
+        }
+    }
+
     /**
      * Utility method to get the value for the column in the row or null if it does not exist
      **/
     public String getString(Row r) {
-        final int index = r.fieldIndex(this.label);
-        return r.getString(index);
+        return getString(r, false);
     }
 
     /**
