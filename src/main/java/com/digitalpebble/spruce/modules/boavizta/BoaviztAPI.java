@@ -48,7 +48,7 @@ public class BoaviztAPI implements EnrichmentModule {
 
     @Override
     public Column[] columnsNeeded() {
-        return new Column[]{PRODUCT_INSTANCE_TYPE, PRODUCT_SERVICE_CODE, LINE_ITEM_OPERATION, LINE_ITEM_PRODUCT_CODE};
+        return new Column[]{PRODUCT_INSTANCE_TYPE, PRODUCT_SERVICE_CODE, LINE_ITEM_OPERATION, LINE_ITEM_PRODUCT_CODE, USAGE_AMOUNT};
     }
 
     @Override
@@ -130,10 +130,12 @@ public class BoaviztAPI implements EnrichmentModule {
             }
         }
 
+        double amount = USAGE_AMOUNT.getDouble(row);
+
         Map<Column, Object> kv = new HashMap<>();
-        kv.put(ENERGY_USED, impacts.getFinalEnergyKWh());
-        kv.put(EMBODIED_EMISSIONS, impacts.getEmbeddedEmissionsGramsCO2eq());
-        kv.put(EMBODIED_ADP, impacts.getAbioticDepletionPotentialGramsSbeq());
+        kv.put(ENERGY_USED, impacts.getFinalEnergyKWh() * amount);
+        kv.put(EMBODIED_EMISSIONS, impacts.getEmbeddedEmissionsGramsCO2eq() * amount);
+        kv.put(EMBODIED_ADP, impacts.getAbioticDepletionPotentialGramsSbeq() * amount);
         return EnrichmentModule.withUpdatedValues(row, kv);
     }
 }
