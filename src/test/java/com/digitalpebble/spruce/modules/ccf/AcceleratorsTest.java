@@ -31,7 +31,7 @@ class AcceleratorsTest {
 
     //  {PRODUCT_INSTANCE_TYPE, LINE_ITEM_OPERATION, LINE_ITEM_PRODUCT_CODE, USAGE_AMOUNT};
     private static Stream<Arguments> provideArgsWithType() {
-        return Stream.of(Arguments.of("g5.xlarge", "RunInstances", "AmazonEC2", 1.0d, 0.0855d), Arguments.of("g5.xlarge", "RunInstances", "AmazonEC2", 2.0d, 0.171d), Arguments.of("g4dn.xlarge", "RunInstances", "AmazonEC2", 1.0d, 0.0395d), Arguments.of("c5.xlarge", "RunInstances", "AmazonEC2", 1.0d, null));
+        return Stream.of(Arguments.of("g5.xlarge", "RunInstances", "AmazonEC2", 1.0d, 0.0855d), Arguments.of("g5.xlarge", "RunInstances", "AmazonEC2", 2.0d, 0.171d), Arguments.of("g4dn.xlarge", "RunInstances", "AmazonEC2", 1.0d, 0.0395d), Arguments.of("c5.xlarge", "RunInstances", "AmazonEC2", 1.0d, null), Arguments.of("g6.8xlarge", "RunInstances", "AmazonEC2", 1.0d, 0.04d));
     }
 
     @ParameterizedTest

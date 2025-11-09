@@ -158,6 +158,78 @@
     "g5g.metal": {
       "quantity": 2,
       "type": "NVIDIA_T4"
+    },
+    "g6.xlarge": {
+      "quantity": 1,
+      "type": "NVIDIA_L4"
+    },
+    "g6.2xlarge": {
+      "quantity": 1,
+      "type": "NVIDIA_L4"
+    },
+    "g6.4xlarge": {
+      "quantity": 1,
+      "type": "NVIDIA_L4"
+    },
+    "g6.8xlarge": {
+      "quantity": 1,
+      "type": "NVIDIA_L4"
+    },
+    "g6.16xlarge": {
+      "quantity": 1,
+      "type": "NVIDIA_L4"
+    },
+    "gr6.4xlarge": {
+      "quantity": 1,
+      "type": "NVIDIA_L4"
+    },
+    "gr6.8xlarge": {
+      "quantity": 1,
+      "type": "NVIDIA_L4"
+    },
+    "g6.12xlarge": {
+      "quantity": 4,
+      "type": "NVIDIA_L4"
+    },
+    "g6.24xlarge": {
+      "quantity": 4,
+      "type": "NVIDIA_L4"
+    },
+    "g6.48xlarge": {
+      "quantity": 8,
+      "type": "NVIDIA_L4"
+    },
+    "g6e.xlarge": {
+      "quantity": 1,
+      "type": "NVIDIA_L40S"
+    },
+    "g6e.2xlarge": {
+      "quantity": 1,
+      "type": "NVIDIA_L40S"
+    },
+    "g6e.4xlarge": {
+      "quantity": 1,
+      "type": "NVIDIA_L40S"
+    },
+    "g6e.8xlarge": {
+      "quantity": 1,
+      "type": "NVIDIA_L40S"
+    },
+    "g6e.16xlarge": {
+      "quantity": 1,
+      "type": "NVIDIA_L40S"
+    },
+    "g6e.12xlarge": {
+      "quantity": 4,
+      "type": "NVIDIA_L40S"
+    },
+    "g6e.24xlarge": {
+      "quantity": 4,
+      "type": "NVIDIA_L40S"
+    },
+    "g6e.48xlarge": {
+      "quantity": 8,
+      "type": "NVIDIA_L40S"
     }
   },
   "GPU_INFO": {
@@ -172,6 +244,16 @@
     "NVIDIA_T4": {
       "min": 8,
       "max": 71
+    },
+    "NVIDIA_L4": {
+      "source": "https://www.nvidia.com/en-eu/data-center/l4/",
+      "min": 8,
+      "max": 72
+    },
+    "NVIDIA_L40S": {
+      "source": "https://resources.nvidia.com/en-us-l40s/l40s-datasheet-28413",
+      "min": 40,
+      "max": 350
     },
     "NVIDIA_TESLA_M60": {
       "min": 35,
