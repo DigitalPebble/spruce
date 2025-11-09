@@ -75,13 +75,16 @@ public class Accelerators implements EnrichmentModule {
             return row;
         }
 
-        // check product instance family
-        // if GPU then log if we have no info about it
-
         // check that they have a GPU
         // and how many of them
         Map instanceTypeInfo = gpu_instance_types.get(instanceType);
         if (instanceTypeInfo == null) {
+            // check product instance family
+            // if GPU then log if we have no info about it
+            String fam = PRODUCT_INSTANCE_FAMILY.getString(row, true);
+            if ("GPU instance".equals(fam)) {
+                LOG.debug("Lacking info for instance type with GPU {}", instanceType);
+            }
             return row;
         }
 

@@ -17,6 +17,7 @@ public class CURColumn extends Column {
     public static Column PRICING_UNIT= new CURColumn("pricing_unit", StringType);
     public static Column PRODUCT = new CURColumn("product", MapType.apply(StringType,StringType));
     public static Column PRODUCT_INSTANCE_TYPE = new CURColumn("product_instance_type", StringType);
+    public static Column PRODUCT_INSTANCE_FAMILY = new CURColumn("product_instance_family", StringType);
     public static Column PRODUCT_PRODUCT_FAMILY = new CURColumn("product_product_family", StringType);
     public static Column PRODUCT_REGION_CODE = new CURColumn("product_region_code", StringType);
     public static Column PRODUCT_FROM_REGION_CODE = new CURColumn("product_from_region_code", StringType);
