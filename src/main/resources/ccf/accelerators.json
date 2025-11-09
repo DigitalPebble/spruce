@@ -1,0 +1,205 @@
+{
+  "info": {
+    "description": "GPU info for instance types",
+    "sources": [
+      "https://github.com/cloud-carbon-footprint/cloud-carbon-footprint/blob/trunk/packages/aws/src/lib/AWSInstanceTypes.ts#L1449",
+      "https://github.com/cloud-carbon-footprint/cloud-carbon-footprint/blob/trunk/packages/aws/src/domain/AwsFootprintEstimationConstants.ts#L97C1-L106C56"
+    ]
+  },
+  "GPU_INSTANCES_TYPES": {
+    "p2.xlarge": {
+      "quantity": 1,
+      "type": "NVIDIA_TESLA_K80"
+    },
+    "p2.8xlarge": {
+      "quantity": 8,
+      "type": "NVIDIA_TESLA_K80"
+    },
+    "p2.16xlarge": {
+      "quantity": 16,
+      "type": "NVIDIA_TESLA_K80"
+    },
+    "p3.2xlarge": {
+      "quantity": 1,
+      "type": "NVIDIA_TESLA_V100"
+    },
+    "p3.8xlarge": {
+      "quantity": 4,
+      "type": "NVIDIA_TESLA_V100"
+    },
+    "p3.16xlarge": {
+      "quantity": 8,
+      "type": "NVIDIA_TESLA_V100"
+    },
+    "p3dn.24xlarge": {
+      "quantity": 8,
+      "type": "NVIDIA_TESLA_V100"
+    },
+    "p4d.24xlarge": {
+      "quantity": 8,
+      "type": "NVIDIA_TESLA_A100"
+    },
+    "g2.2xlarge": {
+      "quantity": 1,
+      "type": "NVIDIA_K520"
+    },
+    "g2.8xlarge": {
+      "quantity": 4,
+      "type": "NVIDIA_K520"
+    },
+    "g3s.xlarge": {
+      "quantity": 1,
+      "type": "NVIDIA_TESLA_M60"
+    },
+    "g3.4xlarge": {
+      "quantity": 1,
+      "type": "NVIDIA_TESLA_M60"
+    },
+    "g3.8xlarge": {
+      "quantity": 2,
+      "type": "NVIDIA_TESLA_M60"
+    },
+    "g3.16xlarge": {
+      "quantity": 4,
+      "type": "NVIDIA_TESLA_M60"
+    },
+    "g4dn.xlarge": {
+      "quantity": 1,
+      "type": "NVIDIA_T4"
+    },
+    "g4dn.2xlarge": {
+      "quantity": 1,
+      "type": "NVIDIA_T4"
+    },
+    "g4dn.4xlarge": {
+      "quantity": 1,
+      "type": "NVIDIA_T4"
+    },
+    "g4dn.8xlarge": {
+      "quantity": 1,
+      "type": "NVIDIA_T4"
+    },
+    "g4dn.16xlarge": {
+      "quantity": 1,
+      "type": "NVIDIA_T4"
+    },
+    "g4dn.12xlarge": {
+      "quantity": 4,
+      "type": "NVIDIA_T4"
+    },
+    "g4dn.metal": {
+      "quantity": 8,
+      "type": "NVIDIA_T4"
+    },
+    "g4ad.4xlarge": {
+      "quantity": 1,
+      "type": "AMD_RADEON_PRO_V520"
+    },
+    "g4ad.8xlarge": {
+      "quantity": 2,
+      "type": "AMD_RADEON_PRO_V520"
+    },
+    "g4ad.16xlarge": {
+      "quantity": 4,
+      "type": "AMD_RADEON_PRO_V520"
+    },
+    "g5.xlarge": {
+      "quantity": 1,
+      "type": "NVIDIA_A10G"
+    },
+    "g5.2xlarge": {
+      "quantity": 1,
+      "type": "NVIDIA_A10G"
+    },
+    "g5.4xlarge": {
+      "quantity": 1,
+      "type": "NVIDIA_A10G"
+    },
+    "g5.8xlarge": {
+      "quantity": 1,
+      "type": "NVIDIA_A10G"
+    },
+    "g5.16xlarge": {
+      "quantity": 1,
+      "type": "NVIDIA_A10G"
+    },
+    "g5.12xlarge": {
+      "quantity": 4,
+      "type": "NVIDIA_A10G"
+    },
+    "g5.24xlarge": {
+      "quantity": 4,
+      "type": "NVIDIA_A10G"
+    },
+    "g5.48xlarge": {
+      "quantity": 8,
+      "type": "NVIDIA_A10G"
+    },
+    "g5g.xlarge": {
+      "quantity": 1,
+      "type": "NVIDIA_T4"
+    },
+    "g5g.2xlarge": {
+      "quantity": 1,
+      "type": "NVIDIA_T4"
+    },
+    "g5g.4xlarge": {
+      "quantity": 1,
+      "type": "NVIDIA_T4"
+    },
+    "g5g.8xlarge": {
+      "quantity": 1,
+      "type": "NVIDIA_T4"
+    },
+    "g5g.16xlarge": {
+      "quantity": 2,
+      "type": "NVIDIA_T4"
+    },
+    "g5g.metal": {
+      "quantity": 2,
+      "type": "NVIDIA_T4"
+    }
+  },
+  "GPU_INFO": {
+    "NVIDIA_K520": {
+      "min": 26,
+      "max": 229
+    },
+    "NVIDIA_A10G": {
+      "min": 18,
+      "max": 153
+    },
+    "NVIDIA_T4": {
+      "min": 8,
+      "max": 71
+    },
+    "NVIDIA_TESLA_M60": {
+      "min": 35,
+      "max": 306
+    },
+    "NVIDIA_TESLA_K80": {
+      "min": 35,
+      "max": 306
+    },
+    "NVIDIA_TESLA_V100": {
+      "min": 35,
+      "max": 306
+    },
+    "NVIDIA_TESLA_A100": {
+      "min": 46,
+      "max": 407
+    },
+    "NVIDIA_TESLA_P4": {
+      "min": 9,
+      "max": 76.5
+    },
+    "NVIDIA_TESLA_P100": {
+      "min": 36,
+      "max": 306
+    },
+    "AMD_RADEON_PRO_V520": {
+      "min": 26,
+      "max": 229
+    }
+  }
+}

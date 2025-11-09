@@ -27,6 +27,13 @@ See [methodology](https://www.cloudcarbonfootprint.org/docs/methodology#storage)
 
 Populates the column `operational_energy_kwh`.
 
+### ccf.Accelerators
+
+Provides an estimate of energy used accelerators, following the approach used by the [Cloud Carbon Footprint](https://www.cloudcarbonfootprint.org/) project.
+See [methodology](https://www.cloudcarbonfootprint.org/docs/methodology/#graphic-processing-units-gpus) for more details.
+
+Populates the column `operational_energy_kwh`.
+
 ### ccf.PUE
 
 Applies a fixed ratio for [Power Usage_Effectiveness](https://en.wikipedia.org/wiki/Power_usage_effectiveness) to row for which energy usage has been estimated, following the approach used by the [Cloud Carbon Footprint](https://www.cloudcarbonfootprint.org/) project.
