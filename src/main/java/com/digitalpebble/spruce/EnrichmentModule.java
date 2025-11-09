@@ -8,25 +8,26 @@ import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema;
 import java.io.Serializable;
 import java.util.Map;
 
-/** A module adds new columns to a Dataset and populates them based on its content.
- *  The columns can represent energy or water consumption, carbon intensity, carbon emissions etc...
- *  The bulk of the work is done in the map function.
+/**
+ * A module adds new columns to a Dataset and populates them based on its content.
+ * The columns can represent energy or water consumption, carbon intensity, carbon emissions etc...
+ * The bulk of the work is done in the map function.
  **/
 
 public interface EnrichmentModule extends Serializable {
 
     /** Initialisation of the module; used to loads resources **/
-    public default void init(Map<String, Object> params){}
+    default void init(Map<String, Object> params){}
 
     /** Returns the columns required by this module **/
-    public Column[] columnsNeeded();
+    Column[] columnsNeeded();
 
     /** Returns the columns added by this module **/
-    public Column[] columnsAdded();
+    Column[] columnsAdded();
 
-    public Row process(Row row);
+    Row process(Row row);
 
-    public static Row withUpdatedValue(Row row, Column column, Object newValue) {
+    static Row withUpdatedValue(Row row, Column column, Object newValue) {
         Object[] values = new Object[row.size()];
         for (int i = 0; i < row.size(); i++) {
             values[i] = row.get(i);
@@ -36,7 +37,22 @@ public interface EnrichmentModule extends Serializable {
         return new GenericRowWithSchema(values, row.schema());
     }
 
-    public static Row withUpdatedValues(Row row, Map<Column, Object> updates) {
+    static Row withUpdatedValue(Row row, Column column, Double newValue, boolean add) {
+        Object[] values = new Object[row.size()];
+        for (int i = 0; i < row.size(); i++) {
+            values[i] = row.get(i);
+        }
+        int index = row.fieldIndex(column.getLabel());
+        Object existing = values[index];
+        if (add && existing instanceof Double) {
+            values[index] = newValue + (Double)  existing;
+        } else {
+            values[index] = newValue;
+        }
+        return new GenericRowWithSchema(values, row.schema());
+    }
+
+    static Row withUpdatedValues(Row row, Map<Column, Object> updates) {
         Object[] values = new Object[row.size()];
         for (int i = 0; i < row.size(); i++) {
             values[i] = row.get(i);
@@ -58,5 +74,4 @@ public interface EnrichmentModule extends Serializable {
 
         return new GenericRowWithSchema(values, row.schema());
     }
-
 }

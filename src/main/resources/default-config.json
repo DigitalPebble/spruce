@@ -25,6 +25,12 @@
       }
     },
     {
+      "className": "com.digitalpebble.spruce.modules.ccf.Accelerators",
+      "config": {
+        "gpu_utilisation_percent": 50
+      }
+    },
+    {
       "className": "com.digitalpebble.spruce.modules.ccf.PUE"
     },
     {

@@ -9,14 +9,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 
+import static com.digitalpebble.spruce.CURColumn.*;
+import static com.digitalpebble.spruce.SpruceColumn.*;
 import static com.digitalpebble.spruce.Utils.loadJSONResources;
 
 public class Accelerators implements EnrichmentModule {
 
-    private static final Logger log = LoggerFactory.getLogger(Networking.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Accelerators.class);
 
     public int gpu_utilisation_percent = 50;
     public Map<String, Map> gpu_instance_types;
@@ -28,7 +29,7 @@ public class Accelerators implements EnrichmentModule {
         if (val != null) {
             gpu_utilisation_percent = val;
         }
-        log.info("gpu_utilisation_percent: {}", gpu_utilisation_percent);
+        LOG.info("gpu_utilisation_percent: {}", gpu_utilisation_percent);
 
         try {
             Map<String, Object> map = loadJSONResources("ccf/accelerators.json");
@@ -42,28 +43,59 @@ public class Accelerators implements EnrichmentModule {
 
     @Override
     public Column[] columnsNeeded() {
-        return new Column[0];
+        return new Column[]{PRODUCT_INSTANCE_TYPE, LINE_ITEM_OPERATION, LINE_ITEM_PRODUCT_CODE, USAGE_AMOUNT};
     }
 
     @Override
     public Column[] columnsAdded() {
-        return new Column[0];
+        return new Column[]{ENERGY_USED};
     }
 
     @Override
     public Row process(Row row) {
         // limit to EC2 instances
 
+        String instanceType = PRODUCT_INSTANCE_TYPE.getString(row);
+        if (instanceType == null) {
+            return row;
+        }
+
+        final String operation = LINE_ITEM_OPERATION.getString(row);
+        final String product_code = LINE_ITEM_PRODUCT_CODE.getString(row);
+
+        if (operation == null || product_code == null) {
+            return row;
+        }
+
+        // conditions for EC2 instances
+        if (product_code.equals("AmazonEC2") && operation.startsWith("RunInstances")) {
+            LOG.debug("EC2 instance {}", instanceType);
+        }
+        else {
+            return row;
+        }
+
         // check that they have a GPU
         // and how many of them
+        Map instanceTypeInfo = gpu_instance_types.get(instanceType);
+        if (instanceTypeInfo == null) {
+            return row;
+        }
+
+        String gpu = instanceTypeInfo.get("type").toString();
+        int quantity = (Integer)instanceTypeInfo.get("quantity");
 
         // get the min max range for the GPU
+        int minWatts = (Integer) gpu_info.get(gpu).get("min");
+        int maxWatts = (Integer) gpu_info.get(gpu).get("max");
 
         // work out the estimated usage
         // minWatts + (gpu_utilisation_percent / 100) * (maxWatts - minWatts)
+        double energy_used = minWatts + ((double) gpu_utilisation_percent / 100) * (maxWatts - minWatts);
+
+        double amount = USAGE_AMOUNT.getDouble(row);
 
         // add it to an existing value or create it
-
-        return null;
+        return EnrichmentModule.withUpdatedValue(row, ENERGY_USED, amount * energy_used * quantity, true);
     }
 }
