@@ -37,7 +37,11 @@
     },
     "p4d.24xlarge": {
       "quantity": 8,
-      "type": "NVIDIA_TESLA_A100"
+      "type": "NVIDIA_A100"
+    },
+    "p4de.24xlarge": {
+      "quantity": 8,
+      "type": "NVIDIA_A100"
     },
     "g2.2xlarge": {
       "quantity": 1,
@@ -267,7 +271,7 @@
       "min": 35,
       "max": 306
     },
-    "NVIDIA_TESLA_A100": {
+    "NVIDIA_A100": {
       "min": 46,
       "max": 407
     },
