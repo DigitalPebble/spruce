@@ -2,45 +2,80 @@
 
 Using [DuckDB](https://duckdb.org/) locally (or [Athena](https://docs.aws.amazon.com/athena/latest/ug/what-is.html) if the output was [written to S3](../howto/s3.md)):
 
+## Breakdown by billing period
+
 ```sql
 create table enriched_curs as select * from 'output/**/*.parquet';
 
-select line_item_product_code, product_servicecode,
-       round(sum(operational_emissions_co2eq_g)/1000,2) as co2_usage_kg,
-       round(sum(embodied_emissions_co2eq_g)/1000, 2) as co2_embodied_kg,
+select 
+       BILLING_PERIOD,
+       round(sum(operational_emissions_co2eq_g) / 1000, 2) as co2_usage_kg,
+       round(sum(embodied_emissions_co2eq_g) / 1000, 2) as co2_embodied_kg,
        round(sum(operational_energy_kwh),2) as energy_usage_kwh
-       from enriched_curs where operational_emissions_co2eq_g > 0.01
-       group by line_item_product_code, product_servicecode
-       order by co2_usage_kg desc, co2_embodied_kg desc, energy_usage_kwh desc, product_servicecode;
+       from enriched_curs
+       group by BILLING_PERIOD
+       order by BILLING_PERIOD;
 ```
 
 This should give an output similar to
 
-| line_item_product_code | product_servicecode |      line_item_operation       | co2_usage_kg | energy_usage_kwh | co2_embodied_kg |
-|------------------------|---------------------|--------------------------------|-------------:|-----------------:|----------------:|
-| AmazonEC2              | AmazonEC2           | RunInstances                   | 538.3        | 1220.14          | 303.41          |
-| AmazonECS              | AmazonECS           | FargateTask                    | 181.32       | 399.05           | NULL            |
-| AmazonS3               | AmazonS3            | OneZoneIAStorage               | 102.3        | 225.15           | NULL            |
-| AmazonS3               | AmazonS3            | GlacierInstantRetrievalStorage | 75.89        | 167.03           | NULL            |
-| AmazonEC2              | AmazonEC2           | CreateVolume-Gp3               | 41.63        | 91.62            | NULL            |
-| AmazonS3               | AmazonS3            | StandardStorage                | 28.51        | 62.81            | NULL            |
-| AmazonDocDB            | AmazonDocDB         | CreateCluster                  | 19.79        | 43.56            | NULL            |
-| AmazonECS              | AmazonECS           | ECSTask-EC2                    | 9.26         | 20.37            | NULL            |
-| AmazonS3               | AmazonS3            | IntelligentTieringAIAStorage   | 2.33         | 5.13             | NULL            |
-| AmazonEC2              | AmazonEC2           | CreateSnapshot                 | 2.31         | 5.82             | NULL            |
-| AmazonEC2              | AmazonEC2           | RunInstances:SV001             | 1.79         | 3.94             | 0.78            |
-| AmazonS3               | AmazonS3            | StandardIAStorage              | 1.19         | 2.61             | NULL            |
-| AmazonS3               | AWSDataTransfer     | GetObjectForRepl               | 1.17         | 2.58             | NULL            |
-| AmazonS3               | AWSDataTransfer     | UploadPartForRepl              | 1.01         | 2.22             | NULL            |
-| AmazonS3               | AmazonS3            | OneZoneIASizeOverhead          | 0.89         | 1.96             | NULL            |
-| AmazonEC2              | AmazonEC2           | CreateVolume-Gp2               | 0.84         | 1.84             | NULL            |
-| AmazonEC2              | AWSDataTransfer     | RunInstances                   | 0.18         | 0.39             | NULL            |
-| AmazonS3               | AWSDataTransfer     | PutObjectForRepl               | 0.16         | 0.36             | NULL            |
-| AmazonS3               | AmazonS3            | DeleteObject                   | 0.16         | 0.35             | NULL            |
-| AWSBackup              | AWSBackup           | Storage                        | 0.1          | 0.49             | NULL            |
-| AmazonMQ               | AmazonMQ            | CreateBroker:0001              | 0.02         | 0.04             | NULL            |
-| AmazonECR              | AWSDataTransfer     | downloadLayer                  | 0.01         | 0.01             | NULL            |
-| AmazonS3               | AWSDataTransfer     | PutObject                      | 0.0          | 0.0              | NULL            |
+| BILLING_PERIOD | co2_usage_kg | co2_embodied_kg | energy_usage_kwh |
+|----------------|-------------:|----------------:|-----------------:|
+| 2025-05        | 863.51       | 89.73           | 2029.15          |
+| 2025-06        | 774.01       | 85.01           | 1811.98          |
+| 2025-07        | 812.07       | 87.19           | 1901.13          |
+| 2025-08        | 848.7        | 88.15           | 1982.56          |
+| 2025-09        | 866.24       | 86.76           | 2017.36          |
+
+
+## Breakdown per product, service and operation
+
+```sql
+select line_item_product_code, product_servicecode, line_item_operation,
+       round(sum(operational_emissions_co2eq_g)/1000,2) as co2_usage_kg,
+       round(sum(embodied_emissions_co2eq_g)/1000, 2) as co2_embodied_kg,
+       round(sum(operational_energy_kwh),2) as energy_usage_kwh
+       from enriched_curs where operational_emissions_co2eq_g > 0.01
+       group by all
+       order by 4 desc, 5 desc, 6 desc, 2;
+```
+
+This should give an output similar to
+
+| line_item_product_code |    product_servicecode     |      line_item_operation       | co2_usage_kg | co2_embodied_kg | energy_usage_kwh |
+|------------------------|----------------------------|--------------------------------|-------------:|-----------------|-----------------:|
+| AmazonECS              | AmazonECS                  | FargateTask                    | 1499.93      | NULL            | 3784.91          |
+| AmazonEC2              | AmazonEC2                  | RunInstances                   | 1365.7       | 433.57          | 3068.87          |
+| AmazonS3               | AmazonS3                   | GlacierInstantRetrievalStorage | 554.85       | NULL            | 1224.13          |
+| AmazonS3               | AmazonS3                   | OneZoneIAStorage               | 249.22       | NULL            | 548.48           |
+| AmazonS3               | AmazonS3                   | StandardStorage                | 210.57       | NULL            | 469.54           |
+| AmazonEC2              | AmazonEC2                  | CreateVolume-Gp3               | 102.27       | NULL            | 230.39           |
+| AmazonEC2              | AmazonEC2                  | RunInstances:SV001             | 66.41        | 3.27            | 146.15           |
+| AmazonDocDB            | AmazonDocDB                | CreateCluster                  | 49.93        | NULL            | 109.89           |
+| AmazonS3               | AmazonS3                   | IntelligentTieringAIAStorage   | 17.02        | NULL            | 37.47            |
+| AmazonEC2              | AmazonEC2                  | CreateVolume-Gp2               | 11.03        | NULL            | 34.37            |
+| AmazonS3               | AmazonS3                   | StandardIAStorage              | 9.02         | NULL            | 19.85            |
+| AmazonEC2              | AmazonEC2                  | CreateSnapshot                 | 8.05         | NULL            | 20.6             |
+| AmazonECR              | AmazonECR                  | TimedStorage-ByteHrs           | 6.96         | NULL            | 15.31            |
+| AmazonEC2              | AWSDataTransfer            | RunInstances                   | 2.8          | NULL            | 6.25             |
+| AmazonS3               | AmazonS3                   | OneZoneIASizeOverhead          | 2.23         | NULL            | 4.9              |
+| AmazonS3               | AWSDataTransfer            | GetObjectForRepl               | 1.84         | NULL            | 4.06             |
+| AmazonS3               | AWSDataTransfer            | UploadPartForRepl              | 1.66         | NULL            | 3.64             |
+| AmazonS3               | AmazonS3                   | DeleteObject                   | 1.45         | NULL            | 3.2              |
+| AmazonMQ               | AmazonMQ                   | CreateBroker:0001              | 1.16         | NULL            | 2.55             |
+| AmazonECR              | AmazonECR                  | EUW2-TimedStorage-ByteHrs      | 0.43         | NULL            | 2.16             |
+| AmazonS3               | AmazonS3                   | StandardIASizeOverhead         | 0.3          | NULL            | 0.65             |
+| AmazonS3               | AWSDataTransfer            | PutObjectForRepl               | 0.19         | NULL            | 0.42             |
+| AWSBackup              | AWSBackup                  | Storage                        | 0.13         | NULL            | 0.64             |
+| AmazonS3               | AmazonS3GlacierDeepArchive | DeepArchiveStorage             | 0.1          | NULL            | 0.22             |
+| AmazonS3               | AWSDataTransfer            | PutObject                      | 0.08         | NULL            | 0.17             |
+| AmazonECR              | AWSDataTransfer            | downloadLayer                  | 0.07         | NULL            | 0.19             |
+| AmazonEC2              | AWSDataTransfer            | PublicIP-In                    | 0.06         | NULL            | 0.14             |
+| AmazonCloudWatch       | AmazonCloudWatch           | HourlyStorageMetering          | 0.02         | NULL            | 0.05             |
+| AmazonEFS              | AmazonEFS                  | Storage                        | 0.01         | NULL            | 0.03             |
+
+
+## Cost coverage 
 
 To measure the proportion of the costs for which emissions were calculated
 
