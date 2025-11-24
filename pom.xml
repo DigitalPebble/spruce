@@ -18,7 +18,7 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <spark.version>4.0.1</spark.version>
-        <okhttp.version>4.12.0</okhttp.version>
+        <okhttp.version>5.3.2</okhttp.version>
         <caffeine.version>3.2.2</caffeine.version>
         <junit.jupiter.version>5.13.4</junit.jupiter.version>
         <mockito.version>5.19.0</mockito.version>
