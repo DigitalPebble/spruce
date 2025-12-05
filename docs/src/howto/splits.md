@@ -19,7 +19,7 @@ Split cost allocation data introduces new usage records and new cost metric colu
 
 ## How to Enable Split Cost Allocation Data
 
-When defining the CUR data export, activate the options `Split cost allocation data` as well as `Include resource IDs`. See [Generate Cost and Usage Reports](howto/generate_cur.md) for more details.
+When defining the CUR data export, activate the options `Split cost allocation data` as well as `Include resource IDs`. See [Generate Cost and Usage Reports](generate_cur.md) for more details.
 
 <div class="warning">
 Activating SCAD has a substantial impact on the size of the CUR reports as they contain line items for every split as well as the AWS resources.
@@ -42,7 +42,7 @@ The impact columns for the splits have a prefix `split_`, e.g `split_operational
 
 ## HOWTO
 
-The call is similar to [how you run Spruce](tutorial/with-spark.md#run-on-apache-spark)
+The call is similar to [how you run Spruce](../tutorial/with-spark.md#run-on-apache-spark)
 
 ```
 spark-submit --class com.digitalpebble.spruce.SplitJob --driver-memory 8g ./target/spruce-*.jar -i ./enriched_curs -o ./enriched_curs_with_splits
