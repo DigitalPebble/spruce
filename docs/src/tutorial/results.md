@@ -92,3 +92,47 @@ from (
     line_item_line_item_type like '%Usage'
 );
 ```
+
+The figure will vary depending on the services you use. We have measured up to *77%* coverage for some users. 
+
+
+## Breakdown per region
+
+```sql
+with agg as (
+    select
+        coalesce(product_region_code, product_from_region_code, product_to_region_code) as region_code,
+        sum(operational_emissions_co2eq_g) as operational_emissions_g,
+        sum(embodied_emissions_co2eq_g) as embodied_emissions_g,
+        sum(operational_energy_kwh) as energy_kwh,
+        sum(pricing_public_on_demand_cost) as public_cost,
+        avg(carbon_intensity) as avg_carbon_intensity,
+        avg(power_usage_effectiveness) as pue
+    from enriched_curs
+    where operational_emissions_co2eq_g > 1
+    group by 1
+)
+select
+    region_code,
+    round(operational_emissions_g / 1000, 2) as co2_usage_kg,
+    round(energy_kwh, 2) as energy_usage_kwh,
+    round(avg_carbon_intensity, 2) as carbon_intensity,
+    round(pue,2) as pue,
+    round((operational_emissions_g + embodied_emissions_g) / public_cost, 2) as g_co2_per_dollar
+from agg
+order by energy_usage_kwh desc, co2_usage_kg desc, region_code desc;
+```
+
+*g_co2_per_dollar* being the total emissions (usage + embodied) divided by the public on demand cost.
+
+Below is an example of what the results might look like.
+
+| region_code | co2_usage_kg | energy_usage_kwh | carbon_intensity | pue  | g_co2_per_dollar |
+|-------------|-------------:|-----------------:|-----------------:|-----:|-----------------:|
+| us-east-1   | 6607.83      | 14542.69         | 400.33           | 1.13 | 30.85            |
+| us-east-2   | 1150.96      | 2533.06          | 400.33           | 1.13 | 152.91           |
+| eu-west-2   | 385.54       | 1940.72          | 175.03           | 1.14 | 27.15            |
+
+
+
+
