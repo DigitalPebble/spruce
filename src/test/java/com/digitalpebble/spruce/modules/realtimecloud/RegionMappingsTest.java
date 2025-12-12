@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
-package com.digitalpebble.spruce.modules.electricitymaps;
+package com.digitalpebble.spruce.modules.realtimecloud;
 
 import com.digitalpebble.spruce.Provider;
 import org.junit.jupiter.api.Test;

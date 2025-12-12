@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
-package com.digitalpebble.spruce.modules.electricitymaps;
+package com.digitalpebble.spruce.modules.realtimecloud;
 
 import com.digitalpebble.spruce.Provider;
 import com.digitalpebble.spruce.Utils;
@@ -11,6 +11,7 @@ import java.util.List;
 /**
  * Maps regions to ElectricityMaps region IDs for different cloud providers.
  * The mappings are loaded from a CSV file located in the resources directory.
+ * Source: https://github.com/Green-Software-Foundation/real-time-cloud
  */
 public class RegionMappings {
 
@@ -19,7 +20,7 @@ public class RegionMappings {
     // load the resources
     static {
         try {
-            List<String> region_mappings = Utils.loadLinesResources("electricitymaps/region-mappings.csv");
+            List<String> region_mappings = Utils.loadLinesResources("gsf_realtime_cloud/region-mappings.csv");
             // regions mappings consists of comma separated Provider, region, EM region ID
             region_mappings.forEach(line -> {
                 if (line.startsWith("#") || line.trim().isEmpty()) {
