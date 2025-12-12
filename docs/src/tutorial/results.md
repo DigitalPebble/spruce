@@ -133,6 +133,20 @@ Below is an example of what the results might look like.
 | us-east-2   | 1150.96      | 2533.06          | 400.33           | 1.13 | 152.91           |
 | eu-west-2   | 385.54       | 1940.72          | 175.03           | 1.14 | 27.15            |
 
+## Breakdown per user tag
+
+[User tags](https://docs.aws.amazon.com/tag-editor/latest/userguide/tagging.html) are how environmental impacts can be allocated to a business unit, team, product, environment etc... It is as fundamental for a GreenOps practice as it is for [FinOps](https://www.finops.org/wg/cloud-cost-allocation/).
+By enriching data at the finest possible level, SPRUCE allows to aggregate the impacts by the tags that are relevant for a given organisation. The syntax to do so for a tag `cost_category_top_level` would be for instance 
+
+```sql
+select resource_tags['cost_category_top_level'],
+       round(sum(operational_energy_kwh),2) as energie_kwh,
+       round(sum(operational_emissions_co2eq_g) / 1000, 2) as operational_kg,
+       round(sum(embodied_emissions_co2eq_g) / 1000, 2)    as embodied_kg
+       from enriched_curs
+       group by 1
+       order by 3 desc;
+```
 
 
 
