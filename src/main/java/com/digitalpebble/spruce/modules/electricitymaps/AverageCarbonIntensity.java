@@ -9,6 +9,7 @@ import static com.digitalpebble.spruce.CURColumn.PRODUCT_TO_REGION_CODE;
 import static com.digitalpebble.spruce.CURColumn.PRODUCT_REGION_CODE;
 import static com.digitalpebble.spruce.SpruceColumn.*;
 
+import com.digitalpebble.spruce.modules.realtimecloud.RegionMappings;
 import org.apache.spark.sql.Row;
 
 import java.io.IOException;

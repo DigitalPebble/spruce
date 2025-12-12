@@ -69,6 +69,12 @@ The [life-cycle](https://portal.electricitymaps.com/developer-hub/api/getting-st
 
 Populates the columns `carbon_intensity`.
 
+The mapping between the cloud regions IDs and the ElectricityMaps IDs comes from the [GSF Realtime cloud project](https://github.com/Green-Software-Foundation/real-time-cloud), see below.
+
+## Real Time Cloud 
+
+This module does not do any enrichment as such but provides access to data from the RTC project, see above.
+
 ## Fargate
 
 Provides an estimate of energy for the memory and vCPU usage of Fargate.
