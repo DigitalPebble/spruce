@@ -11,10 +11,12 @@ name: Java CI with Maven
 on:
   push:
     branches: [ "main" ]
+    paths-ignore:
+        - 'docs/**'
   pull_request:
     branches: [ "main" ]
-  paths-ignore:
-      - 'docs/**'
+    paths-ignore:
+        - 'docs/**'
 
 jobs:
   build:
