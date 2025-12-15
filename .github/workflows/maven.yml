@@ -10,13 +10,14 @@ name: Java CI with Maven
 
 on:
   push:
-    branches: [ "main" ]
+    branches-ignore:
+      - 'dependabot/**'
     paths-ignore:
-        - 'docs/**'
+      - 'docs/**'
   pull_request:
     branches: [ "main" ]
     paths-ignore:
-        - 'docs/**'
+      - 'docs/**'
 
 jobs:
   build:
