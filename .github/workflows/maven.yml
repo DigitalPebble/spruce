@@ -13,6 +13,8 @@ on:
     branches: [ "main" ]
     paths-ignore:
         - 'docs/**'
+    branches-ignore:
+      - 'dependabot/**'
   pull_request:
     branches: [ "main" ]
     paths-ignore:
