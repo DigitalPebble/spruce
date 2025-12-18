@@ -18,7 +18,7 @@ A typical sequence of stages would be:
 
 Have a look at the [methodology section](methodology.md) for more details.
 
-One of the benefits of using Apache Spark is that you can use [EMR on AWS](https://aws.amazon.com/emr/features/spark/) to enrich
+One of the benefits of using Apache Spark is that you can use [EMR on AWS](howto/emr.md) to enrich
 the CURs at scale without having to export or expose any of your data.
 
 The code of the project is in our [GitHub repo](https://github.com/DigitalPebble/spruce/).
