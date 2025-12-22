@@ -20,14 +20,15 @@ import static com.digitalpebble.spruce.SpruceColumn.*;
 import static com.digitalpebble.spruce.Utils.loadJSONResources;
 
 /**
- *  Estimates the energy usage for CPU and memory of Fargate
+ *  Estimates the energy usage for CPU and memory of serverless services
+ *  such as Fargate or EMR
  *  Based on the TailPipe methodology
  *  https://tailpipe.ai/methodology/serverless-explained/
  *  as of 08/10/2025
  **/
-public class Fargate implements EnrichmentModule {
+public class Serverless implements EnrichmentModule {
 
-    private static final Logger log = LoggerFactory.getLogger(Fargate.class);
+    private static final Logger log = LoggerFactory.getLogger(Serverless.class);
 
     // https://tailpipe.ai/methodology/serverless-explained/
     // in kWh per GB
@@ -74,31 +75,46 @@ public class Fargate implements EnrichmentModule {
 
     @Override
     public Row process(Row row) {
-        String operation = LINE_ITEM_OPERATION.getString(row);
-        if (!"FargateTask".equals(operation)) {
-            return row;
-        }
-
         String usage_type = LINE_ITEM_USAGE_TYPE.getString(row);
         if (usage_type == null) {
             return row;
         }
 
-        // memory
-        if (usage_type.endsWith("-GB-Hours")) {
-            double amount_gb = USAGE_AMOUNT.getDouble(row);
-            double energy = amount_gb * memory_coefficient_kwh;
-            return EnrichmentModule.withUpdatedValue(row, ENERGY_USED, energy);
+        String operation = LINE_ITEM_OPERATION.getString(row);
+        if ("FargateTask".equals(operation)) {
+            // memory
+            if (usage_type.endsWith("-GB-Hours")) {
+                double amount_gb = USAGE_AMOUNT.getDouble(row);
+                double energy = amount_gb * memory_coefficient_kwh;
+                return EnrichmentModule.withUpdatedValue(row, ENERGY_USED, energy);
+            }
+
+            // cpu
+            if (usage_type.endsWith("-vCPU-Hours:perCPU")) {
+                double amount_vcpu = USAGE_AMOUNT.getDouble(row);
+                boolean isARM = usage_type.contains("-ARM-");
+                double coefficient = isARM ? arm_cpu_coefficient_kwh : x86_cpu_coefficient_kwh;
+                double energy = amount_vcpu * coefficient;
+                return EnrichmentModule.withUpdatedValue(row, ENERGY_USED, energy);
+            }
+        }
+        else if (usage_type.contains("EMR-SERVERLESS")) {
+            if (usage_type.endsWith("MemoryGBHours")) {
+                double amount_gb = USAGE_AMOUNT.getDouble(row);
+                double energy = amount_gb * memory_coefficient_kwh;
+                return EnrichmentModule.withUpdatedValue(row, ENERGY_USED, energy);
+            }
+
+            // cpu
+            if (usage_type.endsWith("-vCPUHours")) {
+                double amount_vcpu = USAGE_AMOUNT.getDouble(row);
+                boolean isARM = usage_type.contains("-ARM-");
+                double coefficient = isARM ? arm_cpu_coefficient_kwh : x86_cpu_coefficient_kwh;
+                double energy = amount_vcpu * coefficient;
+                return EnrichmentModule.withUpdatedValue(row, ENERGY_USED, energy);
+            }
         }
 
-        // cpu
-        if (usage_type.endsWith("-vCPU-Hours:perCPU")) {
-            double amount_vcpu = USAGE_AMOUNT.getDouble(row);
-            boolean isARM = usage_type.contains("-ARM-");
-            double coefficient = isARM? arm_cpu_coefficient_kwh : x86_cpu_coefficient_kwh;
-            double energy = amount_vcpu * coefficient;
-            return EnrichmentModule.withUpdatedValue(row, ENERGY_USED, energy);
-        }
 
         return row;
     }
