@@ -7,11 +7,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
 /** List of modules and their configuration defined as JSON **/
-public class Config {
+public class Config implements Serializable {
 
     private final List<com.digitalpebble.spruce.EnrichmentModule> enrichmentModules = new java.util.ArrayList<>();
     private final List<Map<String, Object>> configs = new java.util.ArrayList<>();
@@ -24,12 +25,13 @@ public class Config {
     /**
      * Initializes each enrichment module with its corresponding configuration.
      * Iterates through the list of enrichment modules and calls their init method
-     * with the associated configuration map.
+     * with the associated configuration map. Return the modules.
      */
-    public void configureModules() {
+    public List<com.digitalpebble.spruce.EnrichmentModule> configureModules() {
         for (int i = 0; i < enrichmentModules.size(); i++) {
             enrichmentModules.get(i).init(configs.get(i));
         }
+        return enrichmentModules;
     }
 
     public static Config loadDefault() throws java.io.IOException  {

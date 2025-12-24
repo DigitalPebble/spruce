@@ -13,16 +13,22 @@ import static com.digitalpebble.spruce.CURColumn.LINE_ITEM_TYPE;
 /** Wraps the execution of the Enrichment Modules. There are as many instances of EnrichmentPipeline as there are partitions in the data. **/
 public class EnrichmentPipeline implements MapPartitionsFunction<Row, Row> {
 
-    private final List<EnrichmentModule> enrichmentModules;
+    private transient List<EnrichmentModule> enrichmentModules;
+
+    private final Config config;
 
     /** Initialises the modules **/
     public EnrichmentPipeline(Config config) {
-        config.configureModules();;
-        this.enrichmentModules = config.getModules();
+        this.config = config;
     }
 
     @Override
     public Iterator<Row> call(Iterator<Row> input) {
+
+        if (enrichmentModules == null) {
+            enrichmentModules = config.configureModules();
+        }
+
         return new Iterator<Row>() {
             @Override
             public boolean hasNext() {
