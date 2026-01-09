@@ -2,6 +2,7 @@
 
 package com.digitalpebble.spruce.modules.ccf;
 
+import com.digitalpebble.spruce.SpruceColumn;
 import com.digitalpebble.spruce.Utils;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema;
@@ -34,7 +35,7 @@ class PUETest {
         Object[] values = new Object[] {10d, null};
         Row row = new GenericRowWithSchema(values, schema);
         Row enriched = pue.process(row);
-        assertEquals(pue.aws_pue, enriched.getDouble(1));
+        assertEquals(SpruceColumn.PUE, enriched.getDouble(1));
     }
 
 }
