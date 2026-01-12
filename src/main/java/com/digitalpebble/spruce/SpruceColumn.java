@@ -5,6 +5,7 @@ package com.digitalpebble.spruce;
 import org.apache.spark.sql.types.DataType;
 
 import static org.apache.spark.sql.types.DataTypes.DoubleType;
+import static org.apache.spark.sql.types.DataTypes.StringType;
 
 /** Defines columns added by the EnrichmentModules **/
 public class SpruceColumn extends Column {
@@ -16,6 +17,7 @@ public class SpruceColumn extends Column {
     public static Column EMBODIED_ADP = new SpruceColumn("embodied_adp_sbeq_g", DoubleType);
     public static Column CPU_LOAD = new SpruceColumn("cpu_load_percentage", DoubleType);
     public static Column PUE = new SpruceColumn("power_usage_effectiveness", DoubleType);
+    public static Column REGION = new SpruceColumn("region", StringType);
 
     private SpruceColumn(String l, DataType t) {
         super(l, t);
