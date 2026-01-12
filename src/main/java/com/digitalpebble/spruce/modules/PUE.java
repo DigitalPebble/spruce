@@ -1,22 +1,18 @@
 // SPDX-License-Identifier: Apache-2.0
 
-package com.digitalpebble.spruce.modules.ccf;
+package com.digitalpebble.spruce.modules;
 
 import com.digitalpebble.spruce.Column;
 import com.digitalpebble.spruce.EnrichmentModule;
+import com.digitalpebble.spruce.Utils;
 import org.apache.spark.sql.Row;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
 import static com.digitalpebble.spruce.CURColumn.*;
-import static com.digitalpebble.spruce.SpruceColumn.ENERGY_USED;
-import static com.digitalpebble.spruce.SpruceColumn.PUE;
+import static com.digitalpebble.spruce.SpruceColumn.*;
 
 /**
  * Enrichment module that applies a Power Usage Effectiveness (PUE) factor.
@@ -35,16 +31,22 @@ import static com.digitalpebble.spruce.SpruceColumn.PUE;
  **/
 public class PUE implements EnrichmentModule {
 
-    private static final double DEFAULT_PUE_VALUE = 1.135;
-    private static final String CSV_RESOURCE_PATH = "/aws-pue.csv";
+    // UPDATE: Maintainer requested 1.15 as default
+    private static final double DEFAULT_PUE_VALUE = 1.15;
+    private static final String CSV_RESOURCE_PATH = "aws-pue.csv";
 
-    // Static caches for PUE data to avoid reloading the CSV for every instance
     private static final Map<String, Double> EXACT_MATCHES = new HashMap<>();
     private static final Map<Pattern, Double> REGEX_MATCHES = new HashMap<>();
 
+    static {
+        // Use the new reusable method in Utils
+        Utils.loadCSVToMaps(CSV_RESOURCE_PATH, EXACT_MATCHES, REGEX_MATCHES);
+    }
+
     @Override
     public Column[] columnsNeeded() {
-        return new Column[]{ENERGY_USED, PRODUCT_REGION_CODE};
+        // UPDATE: Using the new SpruceColumn.REGION
+        return new Column[]{ENERGY_USED, REGION};
     }
 
     @Override
@@ -54,17 +56,16 @@ public class PUE implements EnrichmentModule {
 
     @Override
     public Row process(Row row) {
-        // apply only to rows corresponding for which energy usage
-        // exists and has been estimated
         if (ENERGY_USED.isNullAt(row)) {
             return row;
         }
+
         double energyUsed = ENERGY_USED.getDouble(row);
         if (energyUsed <= 0) return row;
 
         String region = null;
-        if (!PRODUCT_REGION_CODE.isNullAt(row)) {
-            region = PRODUCT_REGION_CODE.getString(row);
+        if (!REGION.isNullAt(row)) {
+            region = REGION.getString(row);
         }
 
         double pueToApply = getPueForRegion(region);
@@ -72,12 +73,6 @@ public class PUE implements EnrichmentModule {
         return EnrichmentModule.withUpdatedValue(row, PUE, pueToApply);
     }
 
-    /**
-     * Resolves the PUE value for a given region string.
-     *
-     * @param region The region code (e.g. "us-east-1")
-     * @return The specific PUE if found, otherwise the default global average.
-     */
     private double getPueForRegion(String region) {
         if (region == null || region.isEmpty()) {
             return DEFAULT_PUE_VALUE;
@@ -94,6 +89,5 @@ public class PUE implements EnrichmentModule {
         }
 
         return DEFAULT_PUE_VALUE;
-
     }
 }
