@@ -8,44 +8,74 @@ import com.digitalpebble.spruce.Utils;
 import org.apache.spark.sql.Row;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import static com.digitalpebble.spruce.CURColumn.*;
-import static com.digitalpebble.spruce.SpruceColumn.*;
+import static com.digitalpebble.spruce.SpruceColumn.ENERGY_USED;
+import static com.digitalpebble.spruce.SpruceColumn.PUE;
+import static com.digitalpebble.spruce.SpruceColumn.REGION;
 
 /**
  * Enrichment module that applies a Power Usage Effectiveness (PUE) factor.
  * <p>
- * It attempts to determine the PUE based on the region code ({@link com.digitalpebble.spruce.CURColumn#PRODUCT_REGION_CODE})
+ * It attempts to determine the PUE based on the region code ({@link com.digitalpebble.spruce.SpruceColumn#REGION})
  * by looking up values in a CSV resource file ({@code aws-pue.csv}).
  * <p>
  * The lookup logic follows this priority:
  * <ol>
  * <li>Exact region match (e.g., "us-east-1")</li>
  * <li>Regex pattern match (e.g., "us-.*")</li>
- * <li>Default global average fallback</li>
+ * <li>Default configured value (fallback to 1.15)</li>
  * </ol>
- *
- * @see <a href="https://www.cloudcarbonfootprint.org/docs/methodology/#power-usage-effectiveness">CCF methodology</a>
  **/
 public class PUE implements EnrichmentModule {
 
-    // UPDATE: Maintainer requested 1.15 as default
-    private static final double DEFAULT_PUE_VALUE = 1.15;
+    private double defaultPueValue = 1.15;
     private static final String CSV_RESOURCE_PATH = "aws-pue.csv";
 
     private static final Map<String, Double> EXACT_MATCHES = new HashMap<>();
     private static final Map<Pattern, Double> REGEX_MATCHES = new HashMap<>();
 
     static {
-        // Use the new reusable method in Utils
-        Utils.loadCSVToMaps(CSV_RESOURCE_PATH, EXACT_MATCHES, REGEX_MATCHES);
+        List<String[]> rows = Utils.loadCSV(CSV_RESOURCE_PATH);
+
+        for (String[] parts : rows) {
+            if (parts.length >= 2) {
+                String key = parts[0].trim();
+                try {
+                    double value = Double.parseDouble(parts[1].trim());
+                    // Treat as Regex if it contains wildcards
+                    if (key.contains("*") || key.contains(".")) {
+                        REGEX_MATCHES.put(Pattern.compile(key), value);
+                    } else {
+                        EXACT_MATCHES.put(key, value);
+                    }
+                } catch (NumberFormatException e) {
+                    System.err.println("Invalid number format in PUE CSV for key: " + key);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void init(Map<String, Object> params) {
+        if (params != null && params.containsKey("default")) {
+            Object val = params.get("default");
+            if (val instanceof Number) {
+                this.defaultPueValue = ((Number) val).doubleValue();
+            } else if (val instanceof String) {
+                try {
+                    this.defaultPueValue = Double.parseDouble((String) val);
+                } catch (NumberFormatException e) {
+                    // ignore and keep fallback
+                }
+            }
+        }
     }
 
     @Override
     public Column[] columnsNeeded() {
-        // UPDATE: Using the new SpruceColumn.REGION
         return new Column[]{ENERGY_USED, REGION};
     }
 
@@ -75,7 +105,7 @@ public class PUE implements EnrichmentModule {
 
     private double getPueForRegion(String region) {
         if (region == null || region.isEmpty()) {
-            return DEFAULT_PUE_VALUE;
+            return defaultPueValue;
         }
 
         if (EXACT_MATCHES.containsKey(region)) {
@@ -88,6 +118,6 @@ public class PUE implements EnrichmentModule {
             }
         }
 
-        return DEFAULT_PUE_VALUE;
+        return defaultPueValue;
     }
 }

@@ -34,7 +34,10 @@
       }
     },
     {
-      "className": "com.digitalpebble.spruce.modules.PUE"
+      "class": "com.digitalpebble.spruce.modules.PUE",
+      "params": {
+        "default": 1.15
+      }
     },
     {
       "className": "com.digitalpebble.spruce.modules.electricitymaps.AverageCarbonIntensity"

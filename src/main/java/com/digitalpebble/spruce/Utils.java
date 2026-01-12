@@ -17,7 +17,6 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 public abstract class Utils {
 
@@ -120,42 +119,23 @@ public abstract class Utils {
     }
 
     /**
-     * Loads a CSV resource and populates two maps: one for exact matches and one for regex patterns.
-     * Expected format: "key,value" per line.
-     * Keys containing '*' or '.' are treated as Regex Patterns.
+     * Loads a CSV resource and returns a list of String arrays.
+     * Skips lines starting with # or empty lines.
      */
-    public static void loadCSVToMaps(String resourceFileName, Map<String, Double> exactMatches, Map<Pattern, Double> regexMatches) {
+    public static List<String[]> loadCSV(String resourceFileName) {
+        List<String[]> entries = new ArrayList<>();
         try {
             List<String> lines = loadLinesResources(resourceFileName);
-
             for (String line : lines) {
                 line = line.trim();
-                // Skip comments and empty lines
                 if (line.isEmpty() || line.startsWith("#")) continue;
 
                 String[] parts = line.split(",");
-                if (parts.length == 2) {
-                    String key = parts[0].trim();
-                    try {
-                        double value = Double.parseDouble(parts[1].trim());
-
-                        // Heuristic: if key contains regex special chars, treat as Pattern
-                        if (key.contains("*") || key.contains(".")) {
-                            if (regexMatches != null) {
-                                regexMatches.put(Pattern.compile(key), value);
-                            }
-                        } else {
-                            if (exactMatches != null) {
-                                exactMatches.put(key, value);
-                            }
-                        }
-                    } catch (NumberFormatException e) {
-                        System.err.println("Invalid number format in " + resourceFileName + " for key: " + key);
-                    }
-                }
+                entries.add(parts);
             }
         } catch (IOException e) {
             System.err.println("Error loading resource " + resourceFileName + ": " + e.getMessage());
         }
+        return entries;
     }
 }
