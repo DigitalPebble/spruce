@@ -101,7 +101,7 @@ The figure will vary depending on the services you use. We have measured up to *
 ```sql
 with agg as (
     select
-        coalesce(product_region_code, product_from_region_code, product_to_region_code) as region_code,
+        region as region_code,
         sum(operational_emissions_co2eq_g) as operational_emissions_g,
         sum(embodied_emissions_co2eq_g) as embodied_emissions_g,
         sum(operational_energy_kwh) as energy_kwh,

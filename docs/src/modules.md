@@ -75,6 +75,12 @@ The mapping between the cloud regions IDs and the ElectricityMaps IDs comes from
 
 This module does not do any enrichment as such but provides access to data from the RTC project, see above.
 
+## RegionExtraction
+
+Extracts the region information from the input and stores it in a standard location.
+
+Populates the column `region`.
+
 ## Fargate
 
 Provides an estimate of energy for the memory and vCPU usage of Fargate.
@@ -84,7 +90,7 @@ Populates the column `operational_energy_kwh`.
 
 ## OperationalEmissions
 
-Computes operational emissions based on the energy usage, average carbon intensity factors and `power_usage_effectiveness` estimated by the preceding modules.
+Computes operational emissions based on the energy usage, average carbon intensity factors and `power_usage_effectiveness` estimated by the preceding modules, based on the `region`.
 
 Populates the columns `operational_emissions_co2eq_g`.
 
