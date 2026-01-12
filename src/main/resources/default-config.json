@@ -34,7 +34,7 @@
       }
     },
     {
-      "class": "com.digitalpebble.spruce.modules.PUE",
+      "className": "com.digitalpebble.spruce.modules.PUE",
       "params": {
         "default": 1.15
       }
