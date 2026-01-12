@@ -34,32 +34,30 @@ public class PUE implements EnrichmentModule {
     private double defaultPueValue = 1.15;
     private static final String CSV_RESOURCE_PATH = "aws-pue.csv";
 
-    private static final Map<String, Double> EXACT_MATCHES = new HashMap<>();
-    private static final Map<Pattern, Double> REGEX_MATCHES = new HashMap<>();
+    private final Map<String, Double> exactMatches = new HashMap<>();
+    private final Map<Pattern, Double> regexMatches = new HashMap<>();
 
-    static {
+    @Override
+    public void init(Map<String, Object> params) {
         List<String[]> rows = Utils.loadCSV(CSV_RESOURCE_PATH);
 
         for (String[] parts : rows) {
-            if (parts.length >= 2) {
-                String key = parts[0].trim();
+            if (parts.length >= 3) {
+                String key = parts[1].trim();
                 try {
-                    double value = Double.parseDouble(parts[1].trim());
-                    // Treat as Regex if it contains wildcards
+                    double value = Double.parseDouble(parts[2].trim());
+
                     if (key.contains("*") || key.contains(".")) {
-                        REGEX_MATCHES.put(Pattern.compile(key), value);
+                        regexMatches.put(Pattern.compile(key), value);
                     } else {
-                        EXACT_MATCHES.put(key, value);
+                        exactMatches.put(key, value);
                     }
                 } catch (NumberFormatException e) {
                     System.err.println("Invalid number format in PUE CSV for key: " + key);
                 }
             }
         }
-    }
 
-    @Override
-    public void init(Map<String, Object> params) {
         if (params != null && params.containsKey("default")) {
             Object val = params.get("default");
             if (val instanceof Number) {
@@ -68,7 +66,7 @@ public class PUE implements EnrichmentModule {
                 try {
                     this.defaultPueValue = Double.parseDouble((String) val);
                 } catch (NumberFormatException e) {
-                    // ignore and keep fallback
+                    // ignore
                 }
             }
         }
@@ -108,11 +106,11 @@ public class PUE implements EnrichmentModule {
             return defaultPueValue;
         }
 
-        if (EXACT_MATCHES.containsKey(region)) {
-            return EXACT_MATCHES.get(region);
+        if (exactMatches.containsKey(region)) {
+            return exactMatches.get(region);
         }
 
-        for (Map.Entry<Pattern, Double> entry : REGEX_MATCHES.entrySet()) {
+        for (Map.Entry<Pattern, Double> entry : regexMatches.entrySet()) {
             if (entry.getKey().matcher(region).matches()) {
                 return entry.getValue();
             }
