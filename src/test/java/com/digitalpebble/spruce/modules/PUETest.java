@@ -1,10 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
-package com.digitalpebble.spruce.modules.ccf;
+package com.digitalpebble.spruce.modules;
 
-import com.digitalpebble.spruce.SpruceColumn;
 import com.digitalpebble.spruce.Utils;
-import com.digitalpebble.spruce.modules.PUE;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema;
 import org.apache.spark.sql.types.StructType;
@@ -15,7 +13,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class PUETest {
 
     private PUE pue = new PUE();
-
     private StructType schema = Utils.getSchema(pue);
 
     @Test
@@ -23,16 +20,15 @@ class PUETest {
         Object[] values = new Object[] {null, null, null};
         Row row = new GenericRowWithSchema(values, schema);
         Row enriched = pue.process(row);
-        // missing values comes back as it was
         assertEquals(row, enriched);
     }
 
     @Test
-    void processValues() {
-        Object[] values = new Object[] {10d, null};
+    void processValuesDefault() {
+        Object[] values = new Object[] {10d, null, null};
         Row row = new GenericRowWithSchema(values, schema);
         Row enriched = pue.process(row);
-        assertEquals(SpruceColumn.PUE, enriched.getDouble(1));
-    }
 
+        assertEquals(1.15, enriched.getDouble(2), 0.001);
+    }
 }
