@@ -1,6 +1,9 @@
 {
   "modules": [
     {
+      "className": "com.digitalpebble.spruce.modules.RegionExtraction"
+    },
+    {
       "className": "com.digitalpebble.spruce.modules.ccf.Storage",
       "config": {
         "hdd_coefficient_tb_h": 0.65,
