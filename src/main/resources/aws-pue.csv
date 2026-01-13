@@ -1,10 +1,10 @@
 # Geography,RegionID,PUE
-Europe,eu-*,1.11
-Midde East,me-*,1.3
-North America,us-*,1.14
-North America,mx-*,1.14
-Asia Pacific (excl. China),ap-*,1.27
-China,cn-*,1.25
+Europe,eu-.+,1.11
+Midde East,me-.+,1.3
+North America,us-.+,1.14
+North America,mx-.+,1.14
+Asia Pacific (excl. China),ap-.+,1.27
+China,cn-.+,1.25
 Africa (Cape Town),af-south-1,1.24
 Asia-Pacific (Tokyo),ap-northeast-1,1.27
 Asia-Pacific (Mumbai),ap-south-1,1.42

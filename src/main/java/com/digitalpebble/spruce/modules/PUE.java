@@ -1,5 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
-
 package com.digitalpebble.spruce.modules;
 
 import com.digitalpebble.spruce.Column;
@@ -25,7 +23,7 @@ import static com.digitalpebble.spruce.SpruceColumn.REGION;
  * The lookup logic follows this priority:
  * <ol>
  * <li>Exact region match (e.g., "us-east-1")</li>
- * <li>Regex pattern match (e.g., "us-.*")</li>
+ * <li>Regex pattern match (e.g., "us-.+")</li>
  * <li>Default configured value (fallback to 1.15)</li>
  * </ol>
  **/
@@ -47,7 +45,9 @@ public class PUE implements EnrichmentModule {
                 try {
                     double value = Double.parseDouble(parts[2].trim());
 
-                    if (key.contains("*") || key.contains(".")) {
+                    // Only treat as regex if it contains regex metacharacters
+                    // Updated based on review: mainly handling patterns like "us-.+"
+                    if (key.contains(".") || key.contains("+") || key.contains("*")) {
                         regexMatches.put(Pattern.compile(key), value);
                     } else {
                         exactMatches.put(key, value);
@@ -117,5 +117,12 @@ public class PUE implements EnrichmentModule {
         }
 
         return defaultPueValue;
+    }
+
+    /**
+     * Helper method to extract PUE value from enriched row.
+     */
+    public static double getDouble(Row row) {
+        return PUE.getDouble(row);
     }
 }

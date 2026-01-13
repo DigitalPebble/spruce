@@ -8,6 +8,8 @@ import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema;
 import org.apache.spark.sql.types.StructType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,14 +37,6 @@ class PUETest {
     }
 
     @Test
-    void processValuesDefault() {
-        Object[] values = new Object[] {10d, null, null};
-        Row row = new GenericRowWithSchema(values, schema);
-        Row enriched = pue.process(row);
-        assertEquals(1.15, enriched.getDouble(2), 0.001);
-    }
-
-    @Test
     void processCustomConfiguration() {
         // Verify that a custom default value passed via config is respected
         PUE customPue = new PUE();
@@ -55,26 +49,26 @@ class PUETest {
         Row row = new GenericRowWithSchema(values, schema);
         Row enriched = customPue.process(row);
 
-        assertEquals(2.5, enriched.getDouble(2), 0.001);
+        assertEquals(2.5, PUE.getDouble(enriched), 0.001);
     }
 
-    @Test
-    void processRealRegionFromCSV() {
-        // Verify exact match lookup from the loaded CSV (e.g. us-east-1 -> 1.15)
-        Object[] values = new Object[] {100d, "us-east-1", null};
+    @ParameterizedTest
+    @CsvSource({
+        "100, , 1.15",                    // No region -> default (1.15)
+        "100, unknown-region, 1.15",      // Unknown region -> default (1.15)
+        "100, us-east-1, 1.15",           // Exact match from CSV (explicitly defined)
+        "100, eu-west-1, 1.11",           // Exact match from CSV
+        // Regex match: 'us-gov-west-1' matches 'us-.+' in CSV -> should be 1.14
+        "100, us-gov-west-1, 1.14",
+        // Regex match: 'eu-central-2' matches 'eu-.+' in CSV -> should be 1.11
+        "100, eu-central-2, 1.11"
+    })
+    void processRegionPUEValues(double energyUsed, String region, double expectedPUE) {
+        Object[] values = new Object[] {energyUsed, region, null};
         Row row = new GenericRowWithSchema(values, schema);
         Row enriched = pue.process(row);
 
-        assertEquals(1.15, enriched.getDouble(2), 0.001);
-    }
-
-    @Test
-    void processRegexRegionFromCSV() {
-        // Verify regex pattern matching (e.g. us-west-custom matches "us-.*" -> 1.15)
-        Object[] values = new Object[] {100d, "us-west-custom", null};
-        Row row = new GenericRowWithSchema(values, schema);
-        Row enriched = pue.process(row);
-
-        assertEquals(1.15, enriched.getDouble(2), 0.001);
+        assertEquals(expectedPUE, PUE.getDouble(enriched), 0.001,
+            "Failed for region: " + region);
     }
 }
