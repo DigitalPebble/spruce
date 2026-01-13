@@ -1,0 +1,28 @@
+# Geography,RegionID,PUE
+Europe,eu-.+,1.11
+Midde East,me-.+,1.3
+North America,us-.+,1.14
+North America,mx-.+,1.14
+Asia Pacific (excl. China),ap-.+,1.27
+China,cn-.+,1.25
+Africa (Cape Town),af-south-1,1.24
+Asia-Pacific (Tokyo),ap-northeast-1,1.27
+Asia-Pacific (Mumbai),ap-south-1,1.42
+Asia-Pacific (Hyderabad),ap-south-2,1.46
+Asia-Pacific (Singapore),ap-southeast-1,1.32
+Asia-Pacific (Jakarta),ap-southeast-3,1.4
+Canada (Central),ca-central-1,1.19
+Canada (West),ca-west-1,1.17
+China (Ningxia),cn-northwest-1,1.25
+Europe (Frankfurt),eu-central-1,1.35
+Europe (Stockholm),eu-north-1,1.1
+Europe (Spain),eu-south-2,1.09
+Europe (Ireland),eu-west-1,1.11
+Middle East (UAE),me-central-1,1.27
+Middle East (Bahrain),me-south-1,1.33
+South America (Sao Paulo),sa-east-1,1.17
+U.S. East (Northern Virginia),us-east-1,1.15
+U.S. East (Ohio),us-east-2,1.13
+U.S. West (Northern California),us-west-1,1.18
+U.S. West (Oregon),us-west-2,1.12
+Israel,il-central-1,1.3

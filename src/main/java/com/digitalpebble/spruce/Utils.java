@@ -117,4 +117,25 @@ public abstract class Utils {
             return usageAmount * 24 * daysInMonth;
         }
     }
+
+    /**
+     * Loads a CSV resource and returns a list of String arrays.
+     * Skips lines starting with # or empty lines.
+     */
+    public static List<String[]> loadCSV(String resourceFileName) {
+        List<String[]> entries = new ArrayList<>();
+        try {
+            List<String> lines = loadLinesResources(resourceFileName);
+            for (String line : lines) {
+                line = line.trim();
+                if (line.isEmpty() || line.startsWith("#")) continue;
+
+                String[] parts = line.split(",");
+                entries.add(parts);
+            }
+        } catch (IOException e) {
+            System.err.println("Error loading resource " + resourceFileName + ": " + e.getMessage());
+        }
+        return entries;
+    }
 }
