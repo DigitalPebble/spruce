@@ -1,7 +1,10 @@
+// SPDX-License-Identifier: Apache-2.0
+
 package com.digitalpebble.spruce.modules;
 
 import com.digitalpebble.spruce.Column;
 import com.digitalpebble.spruce.EnrichmentModule;
+import com.digitalpebble.spruce.SpruceColumn;
 import com.digitalpebble.spruce.Utils;
 import org.apache.spark.sql.Row;
 
@@ -11,7 +14,6 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import static com.digitalpebble.spruce.SpruceColumn.ENERGY_USED;
-import static com.digitalpebble.spruce.SpruceColumn.PUE;
 import static com.digitalpebble.spruce.SpruceColumn.REGION;
 
 /**
@@ -46,7 +48,6 @@ public class PUE implements EnrichmentModule {
                     double value = Double.parseDouble(parts[2].trim());
 
                     // Only treat as regex if it contains regex metacharacters
-                    // Updated based on review: mainly handling patterns like "us-.+"
                     if (key.contains(".") || key.contains("+") || key.contains("*")) {
                         regexMatches.put(Pattern.compile(key), value);
                     } else {
@@ -79,7 +80,7 @@ public class PUE implements EnrichmentModule {
 
     @Override
     public Column[] columnsAdded() {
-        return new Column[]{PUE};
+        return new Column[]{SpruceColumn.PUE};
     }
 
     @Override
@@ -98,7 +99,7 @@ public class PUE implements EnrichmentModule {
 
         double pueToApply = getPueForRegion(region);
 
-        return EnrichmentModule.withUpdatedValue(row, PUE, pueToApply);
+        return EnrichmentModule.withUpdatedValue(row, SpruceColumn.PUE, pueToApply);
     }
 
     private double getPueForRegion(String region) {
@@ -117,12 +118,5 @@ public class PUE implements EnrichmentModule {
         }
 
         return defaultPueValue;
-    }
-
-    /**
-     * Helper method to extract PUE value from enriched row.
-     */
-    public static double getDouble(Row row) {
-        return PUE.getDouble(row);
     }
 }
