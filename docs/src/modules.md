@@ -34,13 +34,6 @@ See [methodology](https://www.cloudcarbonfootprint.org/docs/methodology/#graphic
 
 Populates the column `operational_energy_kwh`.
 
-### ccf.PUE
-
-Applies a fixed ratio for [Power Usage_Effectiveness](https://en.wikipedia.org/wiki/Power_usage_effectiveness) to row for which energy usage has been estimated, following the approach used by the [Cloud Carbon Footprint](https://www.cloudcarbonfootprint.org/) project.
-See [CCF methodology](https://www.cloudcarbonfootprint.org/docs/methodology/#pue) for more details.
-
-Populates the column `power_usage_effectiveness`.
-
 ## Boavizta
 
 The following modules make use of the [BoaviztAPI](https://doc.api.boavizta.org).
@@ -80,6 +73,13 @@ This module does not do any enrichment as such but provides access to data from 
 Extracts the region information from the input and stores it in a standard location.
 
 Populates the column `region`.
+
+## PUE
+
+Uses the 2024 data published by AWS for [Power Usage_Effectiveness](https://sustainability.aboutamazon.com/aws-wue-pue.csv) to rows for which energy usage has been estimated.
+This provides a more accurate and up to date approach than the flat rate approach in the [CCF methodology](https://www.cloudcarbonfootprint.org/docs/methodology/#pue).
+
+Populates the column `power_usage_effectiveness`.
 
 ## Fargate
 

@@ -6,6 +6,8 @@ To build the documentation, install _mdbook_ and run
 
 This generates the HTML code in the directory _book_.
 
+To test the documentation, run `mdbook serve`
+
 The content will be organised following the 
 documentation system :
 
