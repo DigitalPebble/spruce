@@ -2,6 +2,8 @@
 
 SPRUCE uses third-party resources and models to estimate the environmental impact of cloud services. It enriches cost usage reports (CUR) with additional columns, allowing users to do GreenOps and build dashboards and reports.
 
+![SPRUCE workflow](images/workflow.png)
+
 Unlike the information provided by CSPs (Cloud Service Providers), SPRUCE gives total transparency on how the estimates are built.
 
 The overall approach is as follows:
