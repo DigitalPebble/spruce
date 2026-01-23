@@ -26,7 +26,7 @@ jobs:
         arch: [amd64, arm64]
         include:
           - arch: amd64
-            runner: carbonrunner-4vcpu-ubuntu-latest
+            runner: ubuntu-latest
           - arch: arm64
             runner: ubuntu-24.04-arm
 
