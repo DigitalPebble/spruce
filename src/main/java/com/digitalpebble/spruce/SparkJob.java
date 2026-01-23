@@ -22,10 +22,12 @@ public class SparkJob {
         options.addOption("c", "config", true, "config file");
         options.addRequiredOption("i", "input", true, "input path");
         options.addRequiredOption("o", "output", true, "output path");
+        options.addOption("p", "provider", true, "provider");
 
         String configPath = null;
         String inputPath = null;
         String outputPath = null;
+        Provider provider = null;
 
         try {
             CommandLineParser parser = new DefaultParser();
@@ -33,6 +35,14 @@ public class SparkJob {
             configPath = cmd.getOptionValue("c");
             inputPath = cmd.getOptionValue("i");
             outputPath = cmd.getOptionValue("o");
+            String providerStr = cmd.getOptionValue("p", "AWS");
+            try {
+                provider = Provider.valueOf(providerStr.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                LOG.error("Invalid provider: '{}'", providerStr);
+                System.exit(3);
+            }
+
         } catch (ParseException e) {
             HelpFormatter formatter = new HelpFormatter();
             formatter.printHelp("SparkJob", options);
@@ -46,8 +56,13 @@ public class SparkJob {
 
         spark.conf().set("mapreduce.fileoutputcommitter.marksuccessfuljobs", "false");
 
-        // Read the input Parquet file(s)
-        Dataset<Row> dataframe = spark.read().parquet(inputPath);
+        // Read the input: Parquet for AWS, CSV for AZURE
+        Dataset<Row> dataframe;
+        if (provider == Provider.AZURE) {
+            dataframe = spark.read().option("header", "true").option("inferSchema", "true").csv(inputPath);
+        } else {
+            dataframe = spark.read().parquet(inputPath);
+        }
 
         // define and configure modules via configuration
         Config config = null;
@@ -57,7 +72,7 @@ public class SparkJob {
                 config = Config.fromJsonFile(Paths.get(configPath));
             } else {
                 // load default config
-                config = Config.loadDefault();
+                config = Config.loadDefault(provider);
             }
         } catch (IOException e) {
             LOG.error(e.getMessage());
@@ -95,7 +110,11 @@ public class SparkJob {
             writer = writer.partitionBy("BILLING_PERIOD");
         }
 
-        writer.parquet(outputPath);
+        if (provider == Provider.AZURE) {
+            writer.csv(outputPath);
+        } else {
+            writer.parquet(outputPath);
+        }
 
         spark.stop();
     }

@@ -121,10 +121,17 @@ public class ConfigTest {
 
     @Test
         void testLoadDefaultConfig() throws Exception {
-            // Assumes default-config.json is present in test resources and valid
             Config conf = Config.loadDefault();
             assertNotNull(conf);
             assertNotNull(conf.getModules());
             assertFalse(conf.getModules().isEmpty());
         }
+
+    @Test
+    void testLoadDefaultConfigAWS() throws Exception {
+        Config conf = Config.loadDefault(Provider.AWS);
+        assertNotNull(conf);
+        assertNotNull(conf.getModules());
+        assertFalse(conf.getModules().isEmpty());
+    }
 }

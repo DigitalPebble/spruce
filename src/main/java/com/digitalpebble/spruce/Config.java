@@ -34,10 +34,14 @@ public class Config implements Serializable {
         return enrichmentModules;
     }
 
-    public static Config loadDefault() throws java.io.IOException  {
+    public static Config loadDefault() throws IOException {
+        return loadDefault(Provider.AWS);
+    }
+
+    public static Config loadDefault(Provider provider) throws java.io.IOException  {
         ObjectMapper objectMapper = new ObjectMapper();
 
-        final String resourceFileName = "default-config.json";
+        final String resourceFileName = "default-config-"+provider.name().toLowerCase()+".json";
         try (InputStream inputStream = Config.class
                 .getClassLoader()
                 .getResourceAsStream(resourceFileName)) {
