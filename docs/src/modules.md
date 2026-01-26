@@ -22,8 +22,7 @@ Populates the column `operational_energy_kwh`.
 
 ### ccf.Networking
 
-Provides an estimate of energy used for networking in and out of data centres. Applies a flat coefficient per Gb, following the approach used by the [Cloud Carbon Footprint](https://www.cloudcarbonfootprint.org/) project.
-See [methodology](https://www.cloudcarbonfootprint.org/docs/methodology#storage) for more details.
+Provides an estimate of energy used for networking in and out of data centres. Applies a flat coefficient of _0.001 kWh/Gb_ by default, see [methodology](https://www.cloudcarbonfootprint.org/docs/methodology#networking) for more details. The coefficient can be changed via configuration as shown in [Configure the modules](howto/config_modules.md).
 
 Populates the column `operational_energy_kwh`.
 
