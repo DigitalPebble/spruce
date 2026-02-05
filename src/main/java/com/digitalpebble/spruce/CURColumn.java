@@ -24,6 +24,12 @@ public class CURColumn extends Column {
     public static Column PRODUCT_TO_REGION_CODE = new CURColumn("product_to_region_code", StringType);
     public static Column PRODUCT_SERVICE_CODE = new CURColumn("product_servicecode", StringType);
     public static Column USAGE_AMOUNT = new CURColumn("line_item_usage_amount", DoubleType);
+    public static Column LINE_ITEM_USAGE_START_DATE = new CURColumn("line_item_usagestartdate", StringType);
+    public static Column LINE_ITEM_USAGE_ACCOUNT_ID = new CURColumn("line_item_usageaccountid", StringType);
+    public static Column LINE_ITEM_AVAILABILITY_ZONE = new CURColumn("line_item_availabilityzone", StringType);
+    public static Column LINE_ITEM_UNBLENDED_COST = new CURColumn("line_item_unblendedcost", DoubleType);
+    public static Column LINE_ITEM_RESOURCE_ID = new CURColumn("line_item_resourceid", StringType);
+    public static Column PRODUCT_REGION = new CURColumn("product_region", StringType);
 
     CURColumn(String l, DataType t) {
         super(l, t);
