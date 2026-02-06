@@ -19,18 +19,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Unit tests for the {@link EnrichmentPipeline}.
- * Verifies the integration between Spark schema definitions and the enrichment logic.
  */
 public class EnrichmentPipelineTest {
 
     /**
-     * Verifies that the pipeline correctly filters which rows to enrich based on the Line Item Type.
+     * Verifies the selective enrichment logic based on Line Item Type.
      * <p>
-     * Only 'Usage' items should trigger the enrichment modules (populating Spruce columns).
-     * Other types (Tax, Fee) should be passed through with Spruce columns remaining null.
+     * Ensures that only 'Usage' items trigger the enrichment process.
+     * Non-usage items must bypass enrichment, leaving Spruce-specific columns null.
      *
-     * @param lineItemType     The input line_item_type (e.g., "Usage", "Tax")
-     * @param expectEnrichment True if the pipeline is expected to populate extra columns, false otherwise
+     * @param lineItemType     The input line item type to test (e.g., "Usage", "Tax")
+     * @param expectEnrichment Whether the pipeline is expected to populate enrichment columns
      */
     @ParameterizedTest
     @CsvSource({
@@ -42,16 +41,9 @@ public class EnrichmentPipelineTest {
         Config config = new Config();
         EnrichmentPipeline pipeline = new EnrichmentPipeline(config);
 
-        // Define input schema using CURColumn constants to ensure consistency with production code
+        // Minimal schema: use ONLY existing constants in CURColumn.
         StructType schema = new StructType()
-                .add(CURColumn.LINE_ITEM_USAGE_START_DATE.getLabel(), CURColumn.LINE_ITEM_USAGE_START_DATE.getType(), true)
-                .add(CURColumn.LINE_ITEM_USAGE_ACCOUNT_ID.getLabel(), CURColumn.LINE_ITEM_USAGE_ACCOUNT_ID.getType(), true)
-                .add(CURColumn.PRODUCT_REGION.getLabel(), CURColumn.PRODUCT_REGION.getType(), true)
-                .add(CURColumn.LINE_ITEM_AVAILABILITY_ZONE.getLabel(), CURColumn.LINE_ITEM_AVAILABILITY_ZONE.getType(), true)
-                .add(CURColumn.LINE_ITEM_USAGE_TYPE.getLabel(), CURColumn.LINE_ITEM_USAGE_TYPE.getType(), true)
-                .add(CURColumn.LINE_ITEM_UNBLENDED_COST.getLabel(), CURColumn.LINE_ITEM_UNBLENDED_COST.getType(), true)
-                .add(CURColumn.LINE_ITEM_RESOURCE_ID.getLabel(), CURColumn.LINE_ITEM_RESOURCE_ID.getType(), true)
-                .add(CURColumn.PRODUCT_INSTANCE_TYPE.getLabel(), CURColumn.PRODUCT_INSTANCE_TYPE.getType(), true)
+                .add(CURColumn.PRODUCT_REGION_CODE.getLabel(), CURColumn.PRODUCT_REGION_CODE.getType(), true)
                 .add(CURColumn.LINE_ITEM_TYPE.getLabel(), CURColumn.LINE_ITEM_TYPE.getType(), true);
 
         for (EnrichmentModule module : config.getModules()) {
@@ -60,29 +52,20 @@ public class EnrichmentPipelineTest {
             }
         }
 
-        // WARNING: The array order MUST strictly match the schema definition order above.
-        // Any change to the StructType requires an update here.
         Object[] values = new Object[schema.length()];
-        values[0] = "2024-01-01T00:00:00Z";       // usage_start_date
-        values[1] = "123456789012";               // usage_account_id
-        values[2] = "us-east-1";                  // product_region
-        values[3] = "us-east-1a";                 // availability_zone
-        values[4] = "BoxUsage:t2.micro";          // usage_type
-        values[5] = 0.10d;                        // unblended_cost
-        values[6] = "i-0123456789abcdef0";        // resource_id
-        values[7] = "t2.micro";                   // instance_type
-        values[8] = lineItemType;                 // line_item_type (Dynamic Parameter)
+        values[0] = "us-east-1";          // Matches CURColumn.PRODUCT_REGION_CODE
+        values[1] = lineItemType;         // The dynamic parameter
 
         Row inputRow = new GenericRowWithSchema(values, schema);
         List<Row> inputList = Collections.singletonList(inputRow);
 
         Iterator<Row> results = pipeline.call(inputList.iterator());
 
-        assertTrue(results.hasNext(), "Pipeline should always return a row (map operation, not filter)");
+        assertTrue(results.hasNext(), "Pipeline should always return a row");
         Row processedRow = results.next();
 
         assertNotNull(processedRow);
-        assertEquals("us-east-1", processedRow.getAs(CURColumn.PRODUCT_REGION.getLabel()));
+        assertEquals("us-east-1", processedRow.getAs(CURColumn.PRODUCT_REGION_CODE.getLabel()));
 
         // Verify enrichment logic
         for (EnrichmentModule module : config.getModules()) {
