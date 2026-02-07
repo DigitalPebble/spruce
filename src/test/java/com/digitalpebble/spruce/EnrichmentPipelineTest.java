@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import static com.digitalpebble.spruce.CURColumn.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -41,10 +42,16 @@ public class EnrichmentPipelineTest {
         Config config = new Config();
         EnrichmentPipeline pipeline = new EnrichmentPipeline(config);
 
+        // TODO: Validate that modules are loaded (Option 1 - Mocking).
+        // Currently, new Config() returns an empty list in unit tests.
+        // We will implement a Mock Config in a separate PR to handle this without
+        // requiring the full production schema.
+        // assertFalse(config.getModules().isEmpty(), "Config should have at least one enrichment module");
+
         // Minimal schema: use ONLY existing constants in CURColumn.
         StructType schema = new StructType()
-                .add(CURColumn.PRODUCT_REGION_CODE.getLabel(), CURColumn.PRODUCT_REGION_CODE.getType(), true)
-                .add(CURColumn.LINE_ITEM_TYPE.getLabel(), CURColumn.LINE_ITEM_TYPE.getType(), true);
+                .add(PRODUCT_REGION_CODE.getLabel(), PRODUCT_REGION_CODE.getType(), true)
+                .add(LINE_ITEM_TYPE.getLabel(), LINE_ITEM_TYPE.getType(), true);
 
         for (EnrichmentModule module : config.getModules()) {
             for (Column c : module.columnsAdded()) {
@@ -53,8 +60,8 @@ public class EnrichmentPipelineTest {
         }
 
         Object[] values = new Object[schema.length()];
-        values[0] = "us-east-1";          // Matches CURColumn.PRODUCT_REGION_CODE
-        values[1] = lineItemType;         // The dynamic parameter
+        values[schema.fieldIndex(PRODUCT_REGION_CODE.getLabel())] = "us-east-1";
+        values[schema.fieldIndex(LINE_ITEM_TYPE.getLabel())] = lineItemType;
 
         Row inputRow = new GenericRowWithSchema(values, schema);
         List<Row> inputList = Collections.singletonList(inputRow);
@@ -65,7 +72,7 @@ public class EnrichmentPipelineTest {
         Row processedRow = results.next();
 
         assertNotNull(processedRow);
-        assertEquals("us-east-1", processedRow.getAs(CURColumn.PRODUCT_REGION_CODE.getLabel()));
+        assertEquals("us-east-1", PRODUCT_REGION_CODE.getString(processedRow));
 
         // Verify enrichment logic
         for (EnrichmentModule module : config.getModules()) {
