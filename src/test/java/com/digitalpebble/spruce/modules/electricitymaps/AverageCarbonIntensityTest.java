@@ -19,4 +19,13 @@ class AverageCarbonIntensityTest {
         Double result = aci.getAverageIntensity(Provider.AWS, regionId);
         assertEquals(400.33, result);
     }
+
+    @Test
+    void testUnknownRegion() {
+        AverageCarbonIntensity aci = new AverageCarbonIntensity();
+        aci.init(Map.of());
+        String regionId = "us-blablabla-1";
+        Double result = aci.getAverageIntensity(Provider.AWS, regionId);
+        assertNull(result);
+    }
 }

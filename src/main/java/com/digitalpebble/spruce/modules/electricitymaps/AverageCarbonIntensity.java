@@ -2,17 +2,21 @@
 
 package com.digitalpebble.spruce.modules.electricitymaps;
 
-import com.digitalpebble.spruce.*;
-
-import static com.digitalpebble.spruce.SpruceColumn.*;
-
+import com.digitalpebble.spruce.Column;
+import com.digitalpebble.spruce.EnrichmentModule;
+import com.digitalpebble.spruce.Provider;
+import com.digitalpebble.spruce.Utils;
 import com.digitalpebble.spruce.modules.realtimecloud.RegionMappings;
 import org.apache.spark.sql.Row;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.digitalpebble.spruce.SpruceColumn.*;
 
 /**
  * Populate the CARBON_INTENSITY field using ElecticityMaps' 2024 datasets
@@ -20,9 +24,10 @@ import java.util.Map;
  **/
 public class AverageCarbonIntensity implements EnrichmentModule {
 
-    private final Map<String, Double> average_intensities = new HashMap<>();
+    private static final Logger log = LoggerFactory.getLogger(AverageCarbonIntensity.class);
 
     private final static String DEFAULT_RESOURCE_LOCATION = "electricitymaps/averages_2024.csv";
+    private final Map<String, Double> average_intensities = new HashMap<>();
 
     public void init(Map<String, Object> params) {
         // load the averages for each EM IDs
@@ -53,11 +58,16 @@ public class AverageCarbonIntensity implements EnrichmentModule {
     }
 
     /**
-      Get the average intensity for the given region ID
-      in gCO2perKWH
+     * Get the average intensity for the given region ID
+     * in gCO2perKWH
+     * or null if the region does not exist
      */
     protected Double getAverageIntensity(Provider provider, String regionId) {
         String emRegionId = RegionMappings.getEMRegion(provider, regionId);
+        if (emRegionId == null) {
+            log.info("Region unknown {} for {}", regionId, provider);
+            return null;
+        }
         return average_intensities.get(emRegionId);
     }
 
@@ -79,16 +89,11 @@ public class AverageCarbonIntensity implements EnrichmentModule {
         }
 
         // get intensity for the location
-        try {
-            final double coeff = getAverageIntensity(Provider.AWS, locationCode);
-            if (coeff == 0.0d) {
-                // if the coefficient is 0 it means that the region is not supported
-                return row;
-            }
-            return EnrichmentModule.withUpdatedValue(row, CARBON_INTENSITY, coeff);
-        } catch (Exception exception) {
-            // if the region is not supported, we cannot compute the carbon intensity
+        Double coeff = getAverageIntensity(Provider.AWS, locationCode);
+        if (coeff == null) {
+            // if the coefficient is 0 it means that the region is not supported
             return row;
         }
+        return EnrichmentModule.withUpdatedValue(row, CARBON_INTENSITY, coeff);
     }
 }
