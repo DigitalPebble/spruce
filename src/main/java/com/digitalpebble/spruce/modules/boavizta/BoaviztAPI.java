@@ -12,9 +12,9 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.digitalpebble.spruce.CURColumn.*;
 import static com.digitalpebble.spruce.SpruceColumn.*;
@@ -70,7 +70,7 @@ public class BoaviztAPI implements EnrichmentModule {
         }
 
         if (unknownInstanceTypes == null) {
-            unknownInstanceTypes = new HashSet<>();
+            unknownInstanceTypes = ConcurrentHashMap.newKeySet();
         }
 
         // TODO handle non-default CPU loads
