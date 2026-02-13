@@ -32,7 +32,7 @@ public class BoaviztAPI implements EnrichmentModule {
     // to save a trip to the API
     private static Cache<String, @Nullable Impacts> cache;
 
-    private static final Set<String> unknownInstanceTypes = ConcurrentHashMap.newKeySet();
+    private static Set<String> unknownInstanceTypes;
 
     private String address = "http://localhost:5000";
 
@@ -67,6 +67,10 @@ public class BoaviztAPI implements EnrichmentModule {
 
         if (client == null) {
             client = new BoaviztAPIClient(address);
+        }
+
+        if (unknownInstanceTypes == null) {
+            unknownInstanceTypes = ConcurrentHashMap.newKeySet();
         }
 
         // TODO handle non-default CPU loads

@@ -26,11 +26,14 @@ public class BoaviztAPIstatic implements EnrichmentModule {
 
     private static Map<String, Impacts> impactsMap;
 
-    private static final Set<String> unknownInstanceTypes = ConcurrentHashMap.newKeySet();
+    private static Set<String> unknownInstanceTypes;
 
     @Override
     public void init(Map<String, Object> params) {
 
+        if (unknownInstanceTypes == null) {
+            unknownInstanceTypes = ConcurrentHashMap.newKeySet();
+        }
 
         if (impactsMap == null) {
             impactsMap = new HashMap<>();
