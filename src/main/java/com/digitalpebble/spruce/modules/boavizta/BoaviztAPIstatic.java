@@ -9,6 +9,7 @@ import org.apache.spark.sql.Row;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.digitalpebble.spruce.CURColumn.*;
 import static com.digitalpebble.spruce.SpruceColumn.*;
@@ -25,14 +26,11 @@ public class BoaviztAPIstatic implements EnrichmentModule {
 
     private static Map<String, Impacts> impactsMap;
 
-    private static Set<String> unknownInstanceTypes;
+    private static final Set<String> unknownInstanceTypes = ConcurrentHashMap.newKeySet();
 
     @Override
     public void init(Map<String, Object> params) {
 
-        if (unknownInstanceTypes == null) {
-            unknownInstanceTypes = new HashSet<>();
-        }
 
         if (impactsMap == null) {
             impactsMap = new HashMap<>();
