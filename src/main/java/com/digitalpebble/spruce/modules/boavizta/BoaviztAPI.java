@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.digitalpebble.spruce.CURColumn.*;
 import static com.digitalpebble.spruce.SpruceColumn.*;
@@ -32,7 +33,7 @@ public class BoaviztAPI implements EnrichmentModule {
     // to save a trip to the API
     private static Cache<String, @Nullable Impacts> cache;
 
-    private static Set<String> unknownInstanceTypes;
+    private static final Set<String> unknownInstanceTypes = ConcurrentHashMap.newKeySet();
 
     private String address = "http://localhost:5000";
 
@@ -67,10 +68,6 @@ public class BoaviztAPI implements EnrichmentModule {
 
         if (client == null) {
             client = new BoaviztAPIClient(address);
-        }
-
-        if (unknownInstanceTypes == null) {
-            unknownInstanceTypes = new HashSet<>();
         }
 
         // TODO handle non-default CPU loads
