@@ -4,20 +4,14 @@ package com.digitalpebble.spruce.modules;
 
 import com.digitalpebble.spruce.Column;
 import com.digitalpebble.spruce.EnrichmentModule;
-import com.digitalpebble.spruce.modules.ccf.Storage;
 import org.apache.spark.sql.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 
 import static com.digitalpebble.spruce.CURColumn.*;
-import static com.digitalpebble.spruce.CURColumn.PRICING_UNIT;
-import static com.digitalpebble.spruce.CURColumn.PRODUCT_SERVICE_CODE;
 import static com.digitalpebble.spruce.SpruceColumn.*;
-import static com.digitalpebble.spruce.Utils.loadJSONResources;
 
 /**
  *  Estimates the energy usage for CPU and memory of serverless services
@@ -74,48 +68,49 @@ public class Serverless implements EnrichmentModule {
     }
 
     @Override
-    public Row process(Row row) {
-        String usage_type = LINE_ITEM_USAGE_TYPE.getString(row);
+    public void enrich(Row inputRow, Map<Column, Object> enrichedValues) {
+        String usage_type = LINE_ITEM_USAGE_TYPE.getString(inputRow);
         if (usage_type == null) {
-            return row;
+            return;
         }
 
-        String operation = LINE_ITEM_OPERATION.getString(row);
+        String operation = LINE_ITEM_OPERATION.getString(inputRow);
         if ("FargateTask".equals(operation)) {
             // memory
             if (usage_type.endsWith("-GB-Hours")) {
-                double amount_gb = USAGE_AMOUNT.getDouble(row);
+                double amount_gb = USAGE_AMOUNT.getDouble(inputRow);
                 double energy = amount_gb * memory_coefficient_kwh;
-                return EnrichmentModule.withUpdatedValue(row, ENERGY_USED, energy);
+                enrichedValues.put(ENERGY_USED, energy);
+                return;
             }
 
             // cpu
             if (usage_type.endsWith("-vCPU-Hours:perCPU")) {
-                double amount_vcpu = USAGE_AMOUNT.getDouble(row);
+                double amount_vcpu = USAGE_AMOUNT.getDouble(inputRow);
                 boolean isARM = usage_type.contains("-ARM-");
                 double coefficient = isARM ? arm_cpu_coefficient_kwh : x86_cpu_coefficient_kwh;
                 double energy = amount_vcpu * coefficient;
-                return EnrichmentModule.withUpdatedValue(row, ENERGY_USED, energy);
+                enrichedValues.put(ENERGY_USED, energy);
+                return;
             }
         }
         else if (usage_type.contains("EMR-SERVERLESS")) {
             if (usage_type.endsWith("MemoryGBHours")) {
-                double amount_gb = USAGE_AMOUNT.getDouble(row);
+                double amount_gb = USAGE_AMOUNT.getDouble(inputRow);
                 double energy = amount_gb * memory_coefficient_kwh;
-                return EnrichmentModule.withUpdatedValue(row, ENERGY_USED, energy);
+                enrichedValues.put(ENERGY_USED, energy);
+                return;
             }
 
             // cpu
             if (usage_type.endsWith("-vCPUHours")) {
-                double amount_vcpu = USAGE_AMOUNT.getDouble(row);
+                double amount_vcpu = USAGE_AMOUNT.getDouble(inputRow);
                 boolean isARM = usage_type.contains("-ARM-");
                 double coefficient = isARM ? arm_cpu_coefficient_kwh : x86_cpu_coefficient_kwh;
                 double energy = amount_vcpu * coefficient;
-                return EnrichmentModule.withUpdatedValue(row, ENERGY_USED, energy);
+                enrichedValues.put(ENERGY_USED, energy);
+                return;
             }
         }
-
-
-        return row;
     }
 }

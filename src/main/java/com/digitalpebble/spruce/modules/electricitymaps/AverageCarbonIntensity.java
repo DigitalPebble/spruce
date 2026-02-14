@@ -77,23 +77,23 @@ public class AverageCarbonIntensity implements EnrichmentModule {
     }
 
     @Override
-    public Row process(Row row) {
-        if (ENERGY_USED.isNullAt(row)) {
-            return row;
+    public void enrich(Row inputRow, Map<Column, Object> enrichedValues) {
+        if (!enrichedValues.containsKey(ENERGY_USED)) {
+            return;
         }
 
-        String locationCode = REGION.getString(row);
+        String locationCode = (String) enrichedValues.get(REGION);
         //  no location found - skip
         if (locationCode == null) {
-            return row;
+            return;
         }
 
         // get intensity for the location
         Double coeff = getAverageIntensity(Provider.AWS, locationCode);
         if (coeff == null) {
             // if the coefficient is 0 it means that the region is not supported
-            return row;
+            return;
         }
-        return EnrichmentModule.withUpdatedValue(row, CARBON_INTENSITY, coeff);
+        enrichedValues.put(CARBON_INTENSITY, coeff);
     }
 }

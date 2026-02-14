@@ -3,7 +3,6 @@
 package com.digitalpebble.spruce;
 
 import org.apache.spark.sql.Row;
-import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -11,7 +10,10 @@ import java.util.Map;
 /**
  * A module adds new columns to a Dataset and populates them based on its content.
  * The columns can represent energy or water consumption, carbon intensity, carbon emissions etc...
- * The bulk of the work is done in the map function.
+ *
+ * <p>Modules read CUR (input) columns from the original {@link Row} and read/write
+ * Spruce (enrichment) columns via a shared {@code Map<Column, Object>}.
+ * The pipeline materialises one final Row at the end, avoiding per-module row copies.
  **/
 
 public interface EnrichmentModule extends Serializable {
@@ -25,53 +27,12 @@ public interface EnrichmentModule extends Serializable {
     /** Returns the columns added by this module **/
     Column[] columnsAdded();
 
-    Row process(Row row);
-
-    static Row withUpdatedValue(Row row, Column column, Object newValue) {
-        Object[] values = new Object[row.size()];
-        for (int i = 0; i < row.size(); i++) {
-            values[i] = row.get(i);
-        }
-        int index = column.resolveIndex(row);
-        values[index] = newValue;
-        return new GenericRowWithSchema(values, row.schema());
-    }
-
-    static Row withUpdatedValue(Row row, Column column, Double newValue, boolean add) {
-        Object[] values = new Object[row.size()];
-        for (int i = 0; i < row.size(); i++) {
-            values[i] = row.get(i);
-        }
-        int index = column.resolveIndex(row);
-        Object existing = values[index];
-        if (add && existing instanceof Double) {
-            values[index] = newValue + (Double)  existing;
-        } else {
-            values[index] = newValue;
-        }
-        return new GenericRowWithSchema(values, row.schema());
-    }
-
-    static Row withUpdatedValues(Row row, Map<Column, Object> updates) {
-        Object[] values = new Object[row.size()];
-        for (int i = 0; i < row.size(); i++) {
-            values[i] = row.get(i);
-        }
-
-        for (Map.Entry<Column, Object> entry : updates.entrySet()) {
-            Column column = entry.getKey();
-            Object newValue = entry.getValue();
-
-            int index;
-            try {
-                index = column.resolveIndex(row);
-            } catch (IllegalArgumentException e) {
-                throw new RuntimeException("Field not found in row: " + column.getLabel(), e);
-            }
-
-            values[index] = newValue;
-        }
-
-        return new GenericRowWithSchema(values, row.schema());
-    }
+    /**
+     * Enrich the given row by reading input columns from {@code inputRow} and
+     * reading/writing enrichment columns via {@code enrichedValues}.
+     *
+     * @param inputRow        the immutable original row from the dataset
+     * @param enrichedValues  shared map accumulating enrichment values across all modules
+     */
+    void enrich(Row inputRow, Map<Column, Object> enrichedValues);
 }
