@@ -6,6 +6,8 @@ import com.digitalpebble.spruce.Column;
 import com.digitalpebble.spruce.EnrichmentModule;
 import org.apache.spark.sql.Row;
 
+import java.util.Map;
+
 import static com.digitalpebble.spruce.CURColumn.*;
 import static com.digitalpebble.spruce.SpruceColumn.*;
 
@@ -27,16 +29,16 @@ public class RegionExtraction implements EnrichmentModule {
     }
 
     @Override
-    public Row process(Row row) {
+    public void enrich(Row inputRow, Map<Column, Object> enrichedValues) {
         // get the location
         // in most cases you have a product_region_code but can be product_to_region_code or product_from_region_code
         // when the traffic is between two regions or to/from the outside
         for (Column c : location_columns) {
-            String locationCode = c.getString(row);
+            String locationCode = c.getString(inputRow);
             if (locationCode != null) {
-                return EnrichmentModule.withUpdatedValue(row, REGION, locationCode);
+                enrichedValues.put(REGION, locationCode);
+                return;
             }
         }
-        return row;
     }
 }

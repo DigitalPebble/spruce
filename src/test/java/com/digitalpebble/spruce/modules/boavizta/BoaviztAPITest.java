@@ -85,10 +85,11 @@ public class BoaviztAPITest {
         void testProcessWithNullValues(String instanceType, String serviceCode, String operation, String productCode) {
             Object[] values = new Object[]{instanceType, serviceCode, operation, productCode, null};
             Row row = new GenericRowWithSchema(values, schema);
-            Row enriched = api.process(row);
+            Map<Column, Object> enriched = new HashMap<>();
+            api.enrich(row, enriched);
 
-            // Should return the original row unchanged
-            assertEquals(row, enriched);
+            // Should not add any enrichment
+            assertTrue(enriched.isEmpty());
         }
 
         static Stream<Arguments> nullValueTestCases() {
@@ -106,24 +107,18 @@ public class BoaviztAPITest {
         void testProcessWithEmptyValues(String instanceType, String serviceCode, String operation, String productCode) {
             Object[] values = new Object[]{instanceType, serviceCode, operation, productCode, null};
             Row row = new GenericRowWithSchema(values, schema);
+            Map<Column, Object> enriched = new HashMap<>();
 
-            // Test cases 1 and 2 (null and empty instance types) should throw IllegalArgumentException
-            // Test cases 3 and 4 (empty strings for all fields) should return unchanged rows
-            // because BoaviztAPI.process() has early returns before calling BoaviztAPIClient.getEnergyEstimates()
-            if (instanceType == null || (instanceType != null && instanceType.trim().isEmpty())) {
-                // These should throw IllegalArgumentException if they reach the API call
+            if (instanceType == null || instanceType.trim().isEmpty()) {
                 try {
-                    Row enriched = api.process(row);
-                    // If no exception was thrown, the row should be unchanged
-                    assertEquals(row, enriched, "Should return unchanged row for null/empty instance types that don't reach API call");
+                    api.enrich(row, enriched);
+                    assertTrue(enriched.isEmpty(), "Should not enrich for null/empty instance types");
                 } catch (IllegalArgumentException e) {
-                    // This is also valid - the validation caught it
                     assertTrue(e.getMessage().contains("Instance type cannot be null, empty, or whitespace only"));
                 }
             } else {
-                // Other test cases should return unchanged rows
-                Row enriched = api.process(row);
-                assertEquals(row, enriched, "Should return unchanged row for other empty value cases");
+                api.enrich(row, enriched);
+                assertTrue(enriched.isEmpty(), "Should not enrich for other empty value cases");
             }
         }
 
@@ -141,10 +136,11 @@ public class BoaviztAPITest {
         void testProcessWithUnsupportedValues(String instanceType, String serviceCode, String operation, String productCode) {
             Object[] values = new Object[]{instanceType, serviceCode, operation, productCode, null};
             Row row = new GenericRowWithSchema(values, schema);
-            Row enriched = api.process(row);
+            Map<Column, Object> enriched = new HashMap<>();
+            api.enrich(row, enriched);
 
-            // Should return the original row unchanged for unsupported services/operations
-            assertEquals(row, enriched);
+            // Should not add any enrichment for unsupported services/operations
+            assertTrue(enriched.isEmpty());
         }
 
         static Stream<Arguments> unsupportedValueTestCases() {
@@ -161,10 +157,11 @@ public class BoaviztAPITest {
         void testProcessWithEdgeCases(String instanceType, String serviceCode, String operation, String productCode) {
             Object[] values = new Object[]{instanceType, serviceCode, operation, productCode, null};
             Row row = new GenericRowWithSchema(values, schema);
-            Row enriched = api.process(row);
+            Map<Column, Object> enriched = new HashMap<>();
+            api.enrich(row, enriched);
 
-            // Should return the original row unchanged for edge cases
-            assertEquals(row, enriched);
+            // Should not add any enrichment for edge cases
+            assertTrue(enriched.isEmpty());
         }
 
         static Stream<Arguments> edgeCaseTestCases() {
@@ -198,10 +195,12 @@ public class BoaviztAPITest {
             mockWebServer.shutdown();
         }
 
-        private Row enrich(String productInstanceType, String productServiceCode,String lineItemOperation, String lineItemProductCode, double usageAmount){
+        private Map<Column, Object> callEnrich(String productInstanceType, String productServiceCode, String lineItemOperation, String lineItemProductCode, double usageAmount){
             Object[] values = new Object[]{productInstanceType, productServiceCode, lineItemOperation, lineItemProductCode, usageAmount, null, null, null};
             Row row = new GenericRowWithSchema(values, schema);
-            return api.process(row);
+            Map<Column, Object> enriched = new HashMap<>();
+            api.enrich(row, enriched);
+            return enriched;
         }
 
         @Test
@@ -213,11 +212,10 @@ public class BoaviztAPITest {
                     .setResponseCode(200)
                     .addHeader("Content-Type", "application/json"));
 
-            Row enriched = enrich("t3.micro", "AmazonEC2", "RunInstances", "AmazonEC2", 10);
+            Map<Column, Object> enriched = callEnrich("t3.micro", "AmazonEC2", "RunInstances", "AmazonEC2", 10);
 
-            // The row should be processed and enriched with energy data
-            assertNotNull(enriched);
-            // Verify that the row was enriched (you can add more specific assertions here)
+            // The map should contain enrichment data
+            assertFalse(enriched.isEmpty());
         }
 
         @Test
@@ -229,10 +227,10 @@ public class BoaviztAPITest {
                     .setResponseCode(200)
                     .addHeader("Content-Type", "application/json"));
 
-            Row enriched = enrich("t3.micro.search", "AmazonES", "ESDomain", "AmazonES", 1.0);
+            Map<Column, Object> enriched = callEnrich("t3.micro.search", "AmazonES", "ESDomain", "AmazonES", 1.0);
 
-            // The row should be processed and enriched with energy data
-            assertNotNull(enriched);
+            // The map should contain enrichment data
+            assertFalse(enriched.isEmpty());
         }
 
         @Test
@@ -244,10 +242,10 @@ public class BoaviztAPITest {
                     .setResponseCode(200)
                     .addHeader("Content-Type", "application/json"));
 
-            Row enriched = enrich("db.t3.micro", "AmazonRDS", "CreateDBInstance", "AmazonRDS", 1.0);
+            Map<Column, Object> enriched = callEnrich("db.t3.micro", "AmazonRDS", "CreateDBInstance", "AmazonRDS", 1.0);
 
-            // The row should be processed and enriched with energy data
-            assertNotNull(enriched);
+            // The map should contain enrichment data
+            assertFalse(enriched.isEmpty());
         }
 
         @ParameterizedTest
@@ -260,10 +258,10 @@ public class BoaviztAPITest {
                     .setResponseCode(200)
                     .addHeader("Content-Type", "application/json"));
 
-            Row enriched = enrich("t3.micro", "AmazonEC2", operation, "AmazonEC2", 1.0);
+            Map<Column, Object> enriched = callEnrich("t3.micro", "AmazonEC2", operation, "AmazonEC2", 1.0);
 
-            // The row should be processed and enriched with energy data
-            assertNotNull(enriched);
+            // The map should contain enrichment data
+            assertFalse(enriched.isEmpty());
         }
 
         static Stream<Arguments> validEC2OperationTestCases() {
@@ -284,10 +282,10 @@ public class BoaviztAPITest {
                     .setResponseCode(200)
                     .addHeader("Content-Type", "application/json"));
 
-            Row enriched = enrich("db.t3.micro", "AmazonRDS", operation, "AmazonRDS", 1.0);
+            Map<Column, Object> enriched = callEnrich("db.t3.micro", "AmazonRDS", operation, "AmazonRDS", 1.0);
 
-            // The row should be processed and enriched with energy data
-            assertNotNull(enriched);
+            // The map should contain enrichment data
+            assertFalse(enriched.isEmpty());
         }
 
         static Stream<Arguments> validRDSOperationTestCases() {
@@ -308,10 +306,10 @@ public class BoaviztAPITest {
                     .setResponseCode(200)
                     .addHeader("Content-Type", "application/json"));
 
-            Row enriched = enrich(instanceType, "AmazonEC2", "RunInstances", "AmazonEC2", 1.0);
+            Map<Column, Object> enriched = callEnrich(instanceType, "AmazonEC2", "RunInstances", "AmazonEC2", 1.0);
 
-            // The row should be processed and enriched with energy data
-            assertNotNull(enriched);
+            // The map should contain enrichment data
+            assertFalse(enriched.isEmpty());
         }
 
         static Stream<Arguments> complexInstanceTypeTestCases() {

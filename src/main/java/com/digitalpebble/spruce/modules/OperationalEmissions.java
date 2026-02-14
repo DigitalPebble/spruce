@@ -6,6 +6,8 @@ import com.digitalpebble.spruce.Column;
 import com.digitalpebble.spruce.EnrichmentModule;
 import org.apache.spark.sql.Row;
 
+import java.util.Map;
+
 import static com.digitalpebble.spruce.SpruceColumn.*;
 
 /**
@@ -25,22 +27,21 @@ public class OperationalEmissions implements EnrichmentModule {
     }
 
     @Override
-    public Row process(Row row) {
-        if (ENERGY_USED.isNullAt(row)) {
-            return row;
-        }
+    public void enrich(Row inputRow, Map<Column, Object> enrichedValues) {
+        Object energyObj = enrichedValues.get(ENERGY_USED);
+        if (energyObj == null) return;
 
-        if (CARBON_INTENSITY.isNullAt(row)) {
-            return row;
-        }
+        Object ciObj = enrichedValues.get(CARBON_INTENSITY);
+        if (ciObj == null) return;
 
-        final double energyUsed = ENERGY_USED.getDouble(row);
+        final double energyUsed = (Double) energyObj;
 
         // take into account the PUE if present
-        final double pue = PUE.isNullAt(row) ? 1.0 : PUE.getDouble(row);
-        final double carbon_intensity = CARBON_INTENSITY.getDouble(row);
+        Object pueObj = enrichedValues.get(PUE);
+        final double pue = pueObj != null ? (Double) pueObj : 1.0;
+        final double carbon_intensity = (Double) ciObj;
         final double emissions = energyUsed * carbon_intensity * pue;
 
-        return EnrichmentModule.withUpdatedValue(row, OPERATIONAL_EMISSIONS, emissions);
+        enrichedValues.put(OPERATIONAL_EMISSIONS, emissions);
     }
 }

@@ -2,14 +2,19 @@
 
 package com.digitalpebble.spruce.modules;
 
+import com.digitalpebble.spruce.Column;
 import com.digitalpebble.spruce.Utils;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema;
 import org.apache.spark.sql.types.StructType;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static com.digitalpebble.spruce.SpruceColumn.ENERGY_USED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 class ServerlessTest {
 
@@ -19,62 +24,69 @@ class ServerlessTest {
     @Test
     void processEmptyRow() {
         Row row = generateRow(null, null, null);
-        Row enriched = serverless.process(row);
-        assertEquals(row, enriched);
+        Map<Column, Object> enriched = new HashMap<>();
+        serverless.enrich(row, enriched);
+        assertFalse(enriched.containsKey(ENERGY_USED));
     }
 
     @Test
     void processFargateMemory() {
         double quantity = 10d;
         Row row = generateRow("FargateTask", quantity, "xx-Fargate-GB-Hours");
-        Row enriched = serverless.process(row);
+        Map<Column, Object> enriched = new HashMap<>();
+        serverless.enrich(row, enriched);
         double expected = serverless.memory_coefficient_kwh * quantity;
-        assertEquals(expected, ENERGY_USED.getDouble(enriched));
+        assertEquals(expected, enriched.get(ENERGY_USED));
     }
 
     @Test
     void processFargatevCPU() {
         double quantity = 4d;
         Row row = generateRow("FargateTask", quantity, "xx-Fargate-vCPU-Hours:perCPU");
-        Row enriched = serverless.process(row);
+        Map<Column, Object> enriched = new HashMap<>();
+        serverless.enrich(row, enriched);
         double expected = serverless.x86_cpu_coefficient_kwh * quantity;
-        assertEquals(expected, ENERGY_USED.getDouble(enriched));
+        assertEquals(expected, enriched.get(ENERGY_USED));
     }
 
     @Test
     void processFargatevCPUARM() {
         double quantity = 4d;
         Row row = generateRow("FargateTask", quantity, "xx-Fargate-ARM-vCPU-Hours:perCPU");
-        Row enriched = serverless.process(row);
+        Map<Column, Object> enriched = new HashMap<>();
+        serverless.enrich(row, enriched);
         double expected = serverless.arm_cpu_coefficient_kwh * quantity;
-        assertEquals(expected, ENERGY_USED.getDouble(enriched));
+        assertEquals(expected, enriched.get(ENERGY_USED));
     }
 
     @Test
     void processEMRvCPUARM() {
         double quantity = 4d;
         Row row = generateRow("Worker", quantity, "xxx-EMR-SERVERLESS-ARM-vCPUHours");
-        Row enriched = serverless.process(row);
+        Map<Column, Object> enriched = new HashMap<>();
+        serverless.enrich(row, enriched);
         double expected = serverless.arm_cpu_coefficient_kwh * quantity;
-        assertEquals(expected, ENERGY_USED.getDouble(enriched));
+        assertEquals(expected, enriched.get(ENERGY_USED));
     }
 
     @Test
     void processEMRvCPU() {
         double quantity = 4d;
         Row row = generateRow("Worker", quantity, "xx-EMR-SERVERLESS-vCPUHours");
-        Row enriched = serverless.process(row);
+        Map<Column, Object> enriched = new HashMap<>();
+        serverless.enrich(row, enriched);
         double expected = serverless.x86_cpu_coefficient_kwh * quantity;
-        assertEquals(expected, ENERGY_USED.getDouble(enriched));
+        assertEquals(expected, enriched.get(ENERGY_USED));
     }
 
     @Test
     void processEMRMemory() {
         double quantity = 10d;
         Row row = generateRow("Worker", quantity, "EUN1-EMR-SERVERLESS-ARM-MemoryGBHours");
-        Row enriched = serverless.process(row);
+        Map<Column, Object> enriched = new HashMap<>();
+        serverless.enrich(row, enriched);
         double expected = serverless.memory_coefficient_kwh * quantity;
-        assertEquals(expected, ENERGY_USED.getDouble(enriched));
+        assertEquals(expected, enriched.get(ENERGY_USED));
     }
 
     private Row generateRow(String LINE_ITEM_OPERATION, Object USAGE_AMOUNT, String LINE_ITEM_USAGE_TYPE){

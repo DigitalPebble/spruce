@@ -84,22 +84,18 @@ public class PUE implements EnrichmentModule {
     }
 
     @Override
-    public Row process(Row row) {
-        if (ENERGY_USED.isNullAt(row)) {
-            return row;
-        }
+    public void enrich(Row inputRow, Map<Column, Object> enrichedValues) {
+        Object energyObj = enrichedValues.get(ENERGY_USED);
+        if (energyObj == null) return;
 
-        double energyUsed = ENERGY_USED.getDouble(row);
-        if (energyUsed <= 0) return row;
+        double energyUsed = (Double) energyObj;
+        if (energyUsed <= 0) return;
 
-        String region = null;
-        if (!REGION.isNullAt(row)) {
-            region = REGION.getString(row);
-        }
+        String region = (String) enrichedValues.get(REGION);
 
         double pueToApply = getPueForRegion(region);
 
-        return EnrichmentModule.withUpdatedValue(row, SpruceColumn.PUE, pueToApply);
+        enrichedValues.put(SpruceColumn.PUE, pueToApply);
     }
 
     private double getPueForRegion(String region) {
