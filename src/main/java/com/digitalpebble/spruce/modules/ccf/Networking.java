@@ -53,7 +53,7 @@ public class Networking implements EnrichmentModule {
             return row;
         }
         //  apply only to rows corresponding to networking in or out of a region
-        int index = row.fieldIndex(PRODUCT.getLabel());
+        int index = PRODUCT.resolveIndex(row);
         Map<Object, Object> productMap = row.getJavaMap(index);
         String transfer_type = (String) productMap.getOrDefault("transfer_type", "");
 

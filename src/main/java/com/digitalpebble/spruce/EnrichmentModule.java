@@ -32,7 +32,7 @@ public interface EnrichmentModule extends Serializable {
         for (int i = 0; i < row.size(); i++) {
             values[i] = row.get(i);
         }
-        int index = row.fieldIndex(column.getLabel());
+        int index = column.resolveIndex(row);
         values[index] = newValue;
         return new GenericRowWithSchema(values, row.schema());
     }
@@ -42,7 +42,7 @@ public interface EnrichmentModule extends Serializable {
         for (int i = 0; i < row.size(); i++) {
             values[i] = row.get(i);
         }
-        int index = row.fieldIndex(column.getLabel());
+        int index = column.resolveIndex(row);
         Object existing = values[index];
         if (add && existing instanceof Double) {
             values[index] = newValue + (Double)  existing;
@@ -59,14 +59,14 @@ public interface EnrichmentModule extends Serializable {
         }
 
         for (Map.Entry<Column, Object> entry : updates.entrySet()) {
-            String field = entry.getKey().getLabel();
+            Column column = entry.getKey();
             Object newValue = entry.getValue();
 
             int index;
             try {
-                index = row.fieldIndex(field);
+                index = column.resolveIndex(row);
             } catch (IllegalArgumentException e) {
-                throw new RuntimeException("Field not found in row: " + field, e);
+                throw new RuntimeException("Field not found in row: " + column.getLabel(), e);
             }
 
             values[index] = newValue;
