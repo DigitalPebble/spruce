@@ -85,13 +85,12 @@ public class PUE implements EnrichmentModule {
 
     @Override
     public void enrich(Row inputRow, Map<Column, Object> enrichedValues) {
-        Object energyObj = enrichedValues.get(ENERGY_USED);
-        if (energyObj == null) return;
+        Double energyUsed = ENERGY_USED.getDouble(enrichedValues);
+        if (energyUsed == null) return;
 
-        double energyUsed = (Double) energyObj;
         if (energyUsed <= 0) return;
 
-        String region = (String) enrichedValues.get(REGION);
+        String region = REGION.getString(enrichedValues);
 
         double pueToApply = getPueForRegion(region);
 

@@ -82,7 +82,7 @@ public class AverageCarbonIntensity implements EnrichmentModule {
             return;
         }
 
-        String locationCode = (String) enrichedValues.get(REGION);
+        String locationCode = REGION.getString(enrichedValues);
         //  no location found - skip
         if (locationCode == null) {
             return;

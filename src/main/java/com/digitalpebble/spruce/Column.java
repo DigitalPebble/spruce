@@ -2,7 +2,6 @@
 
 package com.digitalpebble.spruce;
 
-import org.apache.spark.SparkIllegalArgumentException;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.types.DataType;
 import org.apache.spark.sql.types.StructType;
@@ -54,44 +53,6 @@ public abstract class Column {
         cachedSchema = schema;
         cachedIndex = index;
         return index;
-    }
-
-    /**
-     * Utility method to get the value for the column in the row
-     **/
-    public double getDouble(Row r) {
-        return r.getDouble(resolveIndex(r));
-    }
-
-
-    /**
-     * Utility method to get the value for the column in the row or null if it does not exist.
-     * Returns null if the field is not defined in the schema and optional is set to true,
-     * propagates an exception otherwise.
-     **/
-    public String getString(Row r, boolean optional) {
-        try {
-            return r.getString(resolveIndex(r));
-        } catch (SparkIllegalArgumentException e) {
-            if (optional) {
-                return null;
-            }
-            throw e;
-        }
-    }
-
-    /**
-     * Utility method to get the value for the column in the row or null if it does not exist
-     **/
-    public String getString(Row r) {
-        return getString(r, false);
-    }
-
-    /**
-     * Utility method to get check that a value is non null
-     **/
-    public boolean isNullAt(Row r) {
-        return r.isNullAt(resolveIndex(r));
     }
 }
 

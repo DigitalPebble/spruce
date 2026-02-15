@@ -105,7 +105,7 @@ public class Accelerators implements EnrichmentModule {
         energy_used = (amount * energy_used * quantity / 1000);
 
         // add it to an existing value or create it
-        Double existing = (Double) enrichedValues.get(ENERGY_USED);
+        Double existing = ENERGY_USED.getDouble(enrichedValues);
         if (existing != null) {
             energy_used += existing;
         }

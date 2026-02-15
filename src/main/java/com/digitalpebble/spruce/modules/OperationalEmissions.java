@@ -28,18 +28,15 @@ public class OperationalEmissions implements EnrichmentModule {
 
     @Override
     public void enrich(Row inputRow, Map<Column, Object> enrichedValues) {
-        Object energyObj = enrichedValues.get(ENERGY_USED);
-        if (energyObj == null) return;
+        Double energyUsed = ENERGY_USED.getDouble(enrichedValues);
+        if (energyUsed == null) return;
 
-        Object ciObj = enrichedValues.get(CARBON_INTENSITY);
-        if (ciObj == null) return;
-
-        final double energyUsed = (Double) energyObj;
+        Double carbon_intensity = CARBON_INTENSITY.getDouble(enrichedValues);
+        if (carbon_intensity == null) return;
 
         // take into account the PUE if present
-        Object pueObj = enrichedValues.get(PUE);
-        final double pue = pueObj != null ? (Double) pueObj : 1.0;
-        final double carbon_intensity = (Double) ciObj;
+        Double pueVal = PUE.getDouble(enrichedValues);
+        final double pue = pueVal != null ? pueVal : 1.0;
         final double emissions = energyUsed * carbon_intensity * pue;
 
         enrichedValues.put(OPERATIONAL_EMISSIONS, emissions);
