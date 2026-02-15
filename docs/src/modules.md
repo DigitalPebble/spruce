@@ -16,6 +16,7 @@ The following modules implement the heuristics from the [Cloud Carbon Footprint]
 ### ccf.Storage
 
 Provides an estimate of energy used for storage by applying a flat coefficient per Gb, following the approach used by the [Cloud Carbon Footprint](https://www.cloudcarbonfootprint.org/) project.
+Service-specific replication factors are applied.
 See [methodology](https://www.cloudcarbonfootprint.org/docs/methodology#storage) for more details.
 
 Populates the column `operational_energy_kwh`.
@@ -41,7 +42,7 @@ The following modules make use of the [BoaviztAPI](https://doc.api.boavizta.org)
 
 Provides an estimate of [final energy](https://www.eea.europa.eu/en/analysis/indicators/primary-and-final-energy-consumption) used for computation (EC2, OpenSearch, RDS) as well as the related embodied emissions using the [BoaviztAPI](https://doc.api.boavizta.org/).
 
-Populates the columns `operational_energy_kwh`, `embodied_emissions_co2eq_g` and `embodied_adp_gsbeq`. 
+Populates the columns `operational_energy_kwh`, `embodied_emissions_co2eq_g` and `embodied_adp_sbeq_g`. 
 
 From https://doc.api.boavizta.org/Explanations/impacts/ 
 
@@ -80,9 +81,9 @@ This provides a more accurate and up to date approach than the flat rate approac
 
 Populates the column `power_usage_effectiveness`.
 
-## Fargate
+## Serverless
 
-Provides an estimate of energy for the memory and vCPU usage of Fargate.
+Provides an estimate of energy for the memory and vCPU usage of serverless services like Fargate or EMR.
 The default coefficients are taken from the [Tailpipe methodology](https://tailpipe.ai/methodology/serverless-explained/).
 
 Populates the column `operational_energy_kwh`.
