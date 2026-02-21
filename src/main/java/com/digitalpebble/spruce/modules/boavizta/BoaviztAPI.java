@@ -11,10 +11,9 @@ import org.apache.spark.sql.Row;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.digitalpebble.spruce.CURColumn.*;
 import static com.digitalpebble.spruce.SpruceColumn.*;
@@ -57,7 +56,7 @@ public class BoaviztAPI implements EnrichmentModule {
     }
 
     @Override
-    public Row process(Row row) {
+    public void enrich(Row row, Map<Column, Object> enrichedValues) {
 
         if (cache == null) {
             cache = Caffeine.newBuilder()
@@ -70,14 +69,14 @@ public class BoaviztAPI implements EnrichmentModule {
         }
 
         if (unknownInstanceTypes == null) {
-            unknownInstanceTypes = new HashSet<>();
+            unknownInstanceTypes = ConcurrentHashMap.newKeySet();
         }
 
         // TODO handle non-default CPU loads
 
         String instanceType = PRODUCT_INSTANCE_TYPE.getString(row);
         if (instanceType == null) {
-            return row;
+            return;
         }
 
         final String service_code = PRODUCT_SERVICE_CODE.getString(row);
@@ -85,7 +84,7 @@ public class BoaviztAPI implements EnrichmentModule {
         final String product_code = LINE_ITEM_PRODUCT_CODE.getString(row);
 
         if (operation == null || product_code == null) {
-            return row;
+            return;
         }
 
         // conditions for EC2 instances
@@ -106,12 +105,12 @@ public class BoaviztAPI implements EnrichmentModule {
                 instanceType = instanceType.substring(3);
             }
         } else {
-            return row;
+            return;
         }
 
         // don't look for instance types that are known to be unknown
         if (unknownInstanceTypes.contains(instanceType)) {
-            return row;
+            return;
         }
 
         Impacts impacts = cache.getIfPresent(instanceType);
@@ -123,19 +122,17 @@ public class BoaviztAPI implements EnrichmentModule {
             } catch (InstanceTypeUknown e1) {
                 LOG.info("Unknown instance type {}", instanceType);
                 unknownInstanceTypes.add(instanceType);
-                return row;
+                return;
             } catch (IOException e) {
                 LOG.error("Exception caught when retrieving estimates for {}", instanceType, e);
-                return row;
+                return;
             }
         }
 
         double amount = USAGE_AMOUNT.getDouble(row);
 
-        Map<Column, Object> kv = new HashMap<>();
-        kv.put(ENERGY_USED, impacts.getFinalEnergyKWh() * amount);
-        kv.put(EMBODIED_EMISSIONS, impacts.getEmbeddedEmissionsGramsCO2eq() * amount);
-        kv.put(EMBODIED_ADP, impacts.getAbioticDepletionPotentialGramsSbeq() * amount);
-        return EnrichmentModule.withUpdatedValues(row, kv);
+        enrichedValues.put(ENERGY_USED, impacts.getFinalEnergyKWh() * amount);
+        enrichedValues.put(EMBODIED_EMISSIONS, impacts.getEmbeddedEmissionsGramsCO2eq() * amount);
+        enrichedValues.put(EMBODIED_ADP, impacts.getAbioticDepletionPotentialGramsSbeq() * amount);
     }
 }

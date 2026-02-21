@@ -2,11 +2,15 @@
 
 package com.digitalpebble.spruce.modules;
 
+import com.digitalpebble.spruce.Column;
 import com.digitalpebble.spruce.Utils;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema;
 import org.apache.spark.sql.types.StructType;
 import org.junit.jupiter.api.Test;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.digitalpebble.spruce.SpruceColumn.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -20,31 +24,34 @@ public class OperationalEmissionsTest {
 
     @Test
     void processNoValues() {
-        Object[] values = new Object[] {null, null, null};
+        Object[] values = new Object[] {null, null, null, null};
         Row row = new GenericRowWithSchema(values, schema);
-        Row enriched = module.process(row);
-        // missing values comes back as it was
-        assertEquals(row, enriched);
+        Map<Column, Object> enriched = new HashMap<>();
+        module.enrich(row, enriched);
+        // missing values - map should not contain OPERATIONAL_EMISSIONS
+        assertFalse(enriched.containsKey(OPERATIONAL_EMISSIONS));
     }
 
     @Test
     void processNoPUE() {
-        Object[] values = new Object[] {10d, 321.04d, null, null};
-        Row row = new GenericRowWithSchema(values, schema);
-        Row enriched = module.process(row);
+        Row row = new GenericRowWithSchema(new Object[]{null, null, null, null}, schema);
+        Map<Column, Object> enriched = new HashMap<>();
+        enriched.put(ENERGY_USED, 10d);
+        enriched.put(CARBON_INTENSITY, 321.04d);
+        module.enrich(row, enriched);
         double expected = 10 * 321.04;
-        double result = OPERATIONAL_EMISSIONS.getDouble(enriched);
-        assertEquals(expected, result);
+        assertEquals(expected, (Double) enriched.get(OPERATIONAL_EMISSIONS));
     }
 
     @Test
     void processWithPUE() {
-        Object[] values = new Object[] {10d, 321.04d, 1.15, null};
-        Row row = new GenericRowWithSchema(values, schema);
-        Row enriched = module.process(row);
+        Row row = new GenericRowWithSchema(new Object[]{null, null, null, null}, schema);
+        Map<Column, Object> enriched = new HashMap<>();
+        enriched.put(ENERGY_USED, 10d);
+        enriched.put(CARBON_INTENSITY, 321.04d);
+        enriched.put(PUE, 1.15);
+        module.enrich(row, enriched);
         double expected = 10 * 321.04 * 1.15;
-        double result = OPERATIONAL_EMISSIONS.getDouble(enriched);
-        assertEquals(expected, result);
+        assertEquals(expected, (Double) enriched.get(OPERATIONAL_EMISSIONS));
     }
-
 }

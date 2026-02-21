@@ -37,8 +37,7 @@ public class ConfigTest {
         }
 
         @Override
-        public Row process(Row row) {
-            return row;
+        public void enrich(Row row, Map<Column, Object> enrichedValues) {
         }
     }
 

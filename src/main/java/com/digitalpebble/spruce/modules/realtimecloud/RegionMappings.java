@@ -46,18 +46,14 @@ public class RegionMappings {
      *
      * @param p      The cloud provider (e.g., AWS, GOOGLE, AZURE).
      * @param region The region name (e.g., "us-east-1").
-     * @return The corresponding ElectricityMaps region ID.
-     * @throws RuntimeException if the region is not supported.
+     * @return The corresponding ElectricityMaps region ID or null if the region or provider is not supported.
      */
     public static String getEMRegion(Provider p, String region) {
-
         java.util.Map<String, String> regionMap = mappings.get(p);
-
-        String regionKey = regionMap.get(region);
-        if (regionKey == null) {
-            throw new RuntimeException("Unsupported region for provider " + p + ": " + region);
+        if (regionMap == null) {
+            return null;
         }
-        return regionKey;
+        return regionMap.get(region);
     }
 
 }

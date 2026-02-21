@@ -19,11 +19,6 @@ class RegionMappingsTest {
 
     @Test
     void testGetEMRegion_UnsupportedRegion() {
-        Exception exception = assertThrows(RuntimeException.class, () ->
-                RegionMappings.getEMRegion(Provider.AWS, "non-existent-region"));
-        assertTrue(exception.getMessage().contains("Unsupported region"));
+        assertNull(RegionMappings.getEMRegion(Provider.AWS, "non-existent-region"));
     }
-
-
-
 }

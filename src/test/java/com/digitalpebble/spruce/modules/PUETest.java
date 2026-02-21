@@ -2,6 +2,7 @@
 
 package com.digitalpebble.spruce.modules;
 
+import com.digitalpebble.spruce.Column;
 import com.digitalpebble.spruce.SpruceColumn;
 import com.digitalpebble.spruce.Utils;
 import org.apache.spark.sql.Row;
@@ -15,7 +16,9 @@ import org.junit.jupiter.params.provider.CsvSource;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.digitalpebble.spruce.SpruceColumn.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 class PUETest {
 
@@ -31,10 +34,10 @@ class PUETest {
 
     @Test
     void processNoValues() {
-        Object[] values = new Object[] {null, null, null};
-        Row row = new GenericRowWithSchema(values, schema);
-        Row enriched = pue.process(row);
-        assertEquals(row, enriched);
+        Row row = new GenericRowWithSchema(new Object[]{null, null, null}, schema);
+        Map<Column, Object> enriched = new HashMap<>();
+        pue.enrich(row, enriched);
+        assertFalse(enriched.containsKey(SpruceColumn.PUE));
     }
 
     @Test
@@ -44,11 +47,13 @@ class PUETest {
         config.put("default", 2.5);
         customPue.init(config);
 
-        Object[] values = new Object[] {10d, "Mars-Region", null};
-        Row row = new GenericRowWithSchema(values, schema);
-        Row enriched = customPue.process(row);
+        Row row = new GenericRowWithSchema(new Object[]{null, null, null}, schema);
+        Map<Column, Object> enriched = new HashMap<>();
+        enriched.put(ENERGY_USED, 10d);
+        enriched.put(REGION, "Mars-Region");
+        customPue.enrich(row, enriched);
 
-        assertEquals(2.5, SpruceColumn.PUE.getDouble(enriched), 0.001);
+        assertEquals(2.5, (Double) enriched.get(SpruceColumn.PUE), 0.001);
     }
 
     @ParameterizedTest
@@ -61,10 +66,14 @@ class PUETest {
         "100, eu-central-2, 1.11"         // Regex match (eu-.+)
     })
     void processRegionPUEValues(double energyUsed, String region, double expectedPUE) {
-        Object[] values = new Object[] {energyUsed, region, null};
-        Row row = new GenericRowWithSchema(values, schema);
-        Row enriched = pue.process(row);
+        Row row = new GenericRowWithSchema(new Object[]{null, null, null}, schema);
+        Map<Column, Object> enriched = new HashMap<>();
+        enriched.put(ENERGY_USED, energyUsed);
+        if (region != null) {
+            enriched.put(REGION, region);
+        }
+        pue.enrich(row, enriched);
 
-        assertEquals(expectedPUE, SpruceColumn.PUE.getDouble(enriched), 0.001, "Failed for region: " + region);
+        assertEquals(expectedPUE, (Double) enriched.get(SpruceColumn.PUE), 0.001, "Failed for region: " + region);
     }
 }

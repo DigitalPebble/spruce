@@ -8,62 +8,94 @@ import org.apache.spark.sql.types.DataType;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.digitalpebble.spruce.SpruceColumn.ENERGY_USED;
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Tests that modules correctly write to and read from the enrichedValues map.
+ */
 class EnrichmentModuleTest {
 
-    private Row baseRow;
-
-    @BeforeEach
-    void setUp() {
-        StructField[] fields = new StructField[]{
-                DataTypes.createStructField("id", DataTypes.IntegerType, false),
-                DataTypes.createStructField(ENERGY_USED.getLabel(), DataTypes.DoubleType, true),
-                DataTypes.createStructField("note", DataTypes.StringType, true)
+    @Test
+    void enrichWritesToMap() {
+        // A minimal module that writes a value
+        EnrichmentModule module = new EnrichmentModule() {
+            @Override
+            public Column[] columnsNeeded() { return new Column[0]; }
+            @Override
+            public Column[] columnsAdded() { return new Column[]{ENERGY_USED}; }
+            @Override
+            public void enrich(Row row, Map<Column, Object> enrichedValues) {
+                enrichedValues.put(ENERGY_USED, 42.0);
+            }
         };
-        StructType schema = new StructType(fields);
-        baseRow = new GenericRowWithSchema(new Object[]{1, 10.0, "initial"}, schema);
+
+        StructType schema = Utils.getSchema(module);
+        Row row = new GenericRowWithSchema(new Object[]{null}, schema);
+        Map<Column, Object> enriched = new HashMap<>();
+        module.enrich(row, enriched);
+
+        assertEquals(42.0, enriched.get(ENERGY_USED));
     }
 
     @Test
-    void withUpdatedValue() {
-        // replace value
-        Row replaced = EnrichmentModule.withUpdatedValue(baseRow, ENERGY_USED, 5.0, false);
-        assertEquals(5.0, replaced.getDouble(replaced.fieldIndex(ENERGY_USED.getLabel())), 0.0001);
+    void enrichAddsToExistingValue() {
+        // Simulates the Accelerators add-to-existing pattern
+        EnrichmentModule module = new EnrichmentModule() {
+            @Override
+            public Column[] columnsNeeded() { return new Column[0]; }
+            @Override
+            public Column[] columnsAdded() { return new Column[]{ENERGY_USED}; }
+            @Override
+            public void enrich(Row row, Map<Column, Object> enrichedValues) {
+                Double existing = (Double) enrichedValues.get(ENERGY_USED);
+                double newVal = 2.5;
+                enrichedValues.put(ENERGY_USED, (existing != null ? existing : 0.0) + newVal);
+            }
+        };
 
-        // add to existing value
-        Row added = EnrichmentModule.withUpdatedValue(baseRow, ENERGY_USED, 2.5, true);
-        assertEquals(12.5, added.getDouble(added.fieldIndex(ENERGY_USED.getLabel())), 0.0001);
+        StructType schema = Utils.getSchema(module);
+        Row row = new GenericRowWithSchema(new Object[]{null}, schema);
+
+        Map<Column, Object> enriched = new HashMap<>();
+        enriched.put(ENERGY_USED, 10.0);
+        module.enrich(row, enriched);
+
+        assertEquals(12.5, enriched.get(ENERGY_USED));
     }
 
     @Test
-    void testWithUpdatedValue() {
-        // using the simple setter that infers replacement (non-Double add overload)
-        Row updated = EnrichmentModule.withUpdatedValue(baseRow, ENERGY_USED, 42.0);
-        assertEquals(42.0, updated.getDouble(updated.fieldIndex(ENERGY_USED.getLabel())), 0.0001);
-
-        // update non-numeric field (should simply set new value)
+    void enrichReadsFromMap() {
+        // Simulates a downstream module reading a value set by an earlier module
         Column noteCol = new ProxyColumn("note", DataTypes.StringType);
 
-        Row noteUpdated = EnrichmentModule.withUpdatedValue(baseRow, noteCol, "updated");
-        assertEquals("updated", noteUpdated.getString(noteUpdated.fieldIndex("note")));
-    }
+        EnrichmentModule module = new EnrichmentModule() {
+            @Override
+            public Column[] columnsNeeded() { return new Column[]{ENERGY_USED}; }
+            @Override
+            public Column[] columnsAdded() { return new Column[]{noteCol}; }
+            @Override
+            public void enrich(Row row, Map<Column, Object> enrichedValues) {
+                Object val = enrichedValues.get(ENERGY_USED);
+                if (val != null) {
+                    enrichedValues.put(noteCol, "energy=" + val);
+                }
+            }
+        };
 
-    @Test
-    void withUpdatedValues() {
-        java.util.Map<Column, Object> updates = new java.util.HashMap<>();
-        updates.put(ENERGY_USED, 7.5);
-        updates.put(new ProxyColumn("note", DataTypes.StringType), "changed");
+        StructType schema = Utils.getSchema(module);
+        Row row = new GenericRowWithSchema(new Object[]{null, null}, schema);
 
-        Row updated = EnrichmentModule.withUpdatedValues(baseRow, updates);
+        Map<Column, Object> enriched = new HashMap<>();
+        enriched.put(ENERGY_USED, 7.5);
+        module.enrich(row, enriched);
 
-        assertEquals(1, updated.getInt(updated.fieldIndex("id")));
-        assertEquals(7.5, updated.getDouble(updated.fieldIndex(ENERGY_USED.getLabel())), 0.0001);
-        assertEquals("changed", updated.getString(updated.fieldIndex("note")));
+        assertEquals("energy=7.5", enriched.get(noteCol));
     }
 
     static class ProxyColumn extends Column {

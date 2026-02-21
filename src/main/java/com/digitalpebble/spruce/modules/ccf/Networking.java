@@ -47,18 +47,18 @@ public class Networking implements EnrichmentModule {
     }
 
     @Override
-    public Row process(Row row) {
+    public void enrich(Row row, Map<Column, Object> enrichedValues) {
         String service_code = PRODUCT_SERVICE_CODE.getString(row);
         if (service_code == null || !service_code.equals("AWSDataTransfer")) {
-            return row;
+            return;
         }
         //  apply only to rows corresponding to networking in or out of a region
-        int index = row.fieldIndex(PRODUCT.getLabel());
+        int index = PRODUCT.resolveIndex(row);
         Map<Object, Object> productMap = row.getJavaMap(index);
         String transfer_type = (String) productMap.getOrDefault("transfer_type", "");
 
         if (!transfer_type.startsWith("InterRegion")) {
-            return row;
+            return;
         }
 
         // TODO consider extending to AWS Outbound and Inbound
@@ -67,6 +67,6 @@ public class Networking implements EnrichmentModule {
         double amount_gb = USAGE_AMOUNT.getDouble(row);
         double energy_gb = amount_gb * network_coefficient;
 
-        return EnrichmentModule.withUpdatedValue(row, ENERGY_USED, energy_gb);
+        enrichedValues.put(ENERGY_USED, energy_gb);
     }
 }

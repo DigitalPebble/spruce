@@ -4,9 +4,12 @@ package com.digitalpebble.spruce;
 
 import org.apache.spark.api.java.function.MapPartitionsFunction;
 import org.apache.spark.sql.Row;
+import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import static com.digitalpebble.spruce.CURColumn.LINE_ITEM_TYPE;
 
@@ -41,10 +44,21 @@ public class EnrichmentPipeline implements MapPartitionsFunction<Row, Row> {
                 // usage filter - only need to enrich entries that correspond to a usage (no tax, discount or fee)
                 boolean usage = usageFilter(row);
                 if (!usage) return row;
+
+                Map<Column, Object> enriched = new HashMap<>();
                 for (EnrichmentModule module : enrichmentModules) {
-                    row = module.process(row);
+                    module.enrich(row, enriched);
                 }
-                return row;
+
+                // Materialise the final row — single copy instead of one per module
+                Object[] values = new Object[row.size()];
+                for (int i = 0; i < row.size(); i++) {
+                    values[i] = row.get(i);
+                }
+                for (Map.Entry<Column, Object> entry : enriched.entrySet()) {
+                    values[entry.getKey().resolveIndex(row)] = entry.getValue();
+                }
+                return new GenericRowWithSchema(values, row.schema());
             }
         };
     }

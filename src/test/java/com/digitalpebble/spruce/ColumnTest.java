@@ -13,7 +13,7 @@ public class ColumnTest {
 
     @Test
     public void testGetLabelAndType() {
-        TestColumn col = new TestColumn("field1", DataTypes.StringType);
+        CURColumn col = new CURColumn("field1", DataTypes.StringType);
         assertEquals("field1", col.getLabel());
         assertEquals(DataTypes.StringType, col.getType());
     }
@@ -26,7 +26,7 @@ public class ColumnTest {
         // non-null value
         Row r1 = new GenericRowWithSchema(new Object[]{"hello"}, schema);
 
-        TestColumn col = new TestColumn(name, DataTypes.StringType);
+        CURColumn col = new CURColumn(name, DataTypes.StringType);
         assertFalse(col.isNullAt(r1));
         assertEquals("hello", col.getString(r1));
 
@@ -36,7 +36,7 @@ public class ColumnTest {
         assertNull(col.getString(r2));
 
         // ask for a field not in the schema but allow it
-        TestColumn col2 = new TestColumn("unknown", DataTypes.StringType);
+        CURColumn col2 = new CURColumn("unknown", DataTypes.StringType);
         assertNull(col2.getString(r2, true));
 
         boolean exception = false;
@@ -55,7 +55,7 @@ public class ColumnTest {
 
         // non-null double
         Row r1 = new GenericRowWithSchema(new Object[]{3.14159}, schema);
-        TestColumn col = new TestColumn(name, DataTypes.DoubleType);
+        CURColumn col = new CURColumn(name, DataTypes.DoubleType);
         assertFalse(col.isNullAt(r1));
         assertEquals(3.14159, col.getDouble(r1), 1e-9);
 
@@ -63,12 +63,4 @@ public class ColumnTest {
         Row r2 = new GenericRowWithSchema(new Object[]{null}, schema);
         assertTrue(col.isNullAt(r2));
     }
-
-    // minimal concrete implementation for testing
-    static class TestColumn extends Column {
-        TestColumn(String l, DataType t) {
-            super(l, t);
-        }
-    }
 }
-

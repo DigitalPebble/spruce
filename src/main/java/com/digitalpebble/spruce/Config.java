@@ -62,12 +62,14 @@ public class Config implements Serializable {
      */
     public static Config fromJsonFile(java.nio.file.Path path) throws java.io.IOException {
         com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-        Map<String, Object> startNode = mapper.readValue(
-                java.nio.file.Files.newBufferedReader(path),
-                new TypeReference<Map<String, Object>>() {
-                }
-        );
-        return process(startNode);
+        try (var reader = java.nio.file.Files.newBufferedReader(path)) {
+            Map<String, Object> startNode = mapper.readValue(
+                    reader,
+                    new TypeReference<Map<String, Object>>() {
+                    }
+            );
+            return process(startNode);
+        }
     }
 
     private static Config process(Map<String, Object> startNode){

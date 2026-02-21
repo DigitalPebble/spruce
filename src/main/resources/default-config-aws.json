@@ -35,7 +35,7 @@
     },
     {
       "className": "com.digitalpebble.spruce.modules.PUE",
-      "params": {
+      "config": {
         "default": 1.15
       }
     },

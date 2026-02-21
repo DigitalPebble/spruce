@@ -52,19 +52,19 @@ public class Accelerators implements EnrichmentModule {
     }
 
     @Override
-    public Row process(Row row) {
+    public void enrich(Row row, Map<Column, Object> enrichedValues) {
         // limit to EC2 instances
 
         String instanceType = PRODUCT_INSTANCE_TYPE.getString(row);
         if (instanceType == null) {
-            return row;
+            return;
         }
 
         final String operation = LINE_ITEM_OPERATION.getString(row);
         final String product_code = LINE_ITEM_PRODUCT_CODE.getString(row);
 
         if (operation == null || product_code == null) {
-            return row;
+            return;
         }
 
         // conditions for EC2 instances
@@ -72,7 +72,7 @@ public class Accelerators implements EnrichmentModule {
             LOG.debug("EC2 instance {}", instanceType);
         }
         else {
-            return row;
+            return;
         }
 
         // check that they have a GPU
@@ -85,7 +85,7 @@ public class Accelerators implements EnrichmentModule {
             if ("GPU instance".equals(fam)) {
                 LOG.debug("Lacking info for instance type with GPU {}", instanceType);
             }
-            return row;
+            return;
         }
 
         String gpu = instanceTypeInfo.get("type").toString();
@@ -105,6 +105,10 @@ public class Accelerators implements EnrichmentModule {
         energy_used = (amount * energy_used * quantity / 1000);
 
         // add it to an existing value or create it
-        return EnrichmentModule.withUpdatedValue(row, ENERGY_USED, energy_used, true);
+        Double existing = ENERGY_USED.getDouble(enrichedValues);
+        if (existing != null) {
+            energy_used += existing;
+        }
+        enrichedValues.put(ENERGY_USED, energy_used);
     }
 }
