@@ -77,22 +77,22 @@ public class Storage implements EnrichmentModule {
     }
 
     @Override
-    public Row process(Row row) {
+    public void enrich(Row row, Map<Column, Object> enrichedValues) {
         final String operation = LINE_ITEM_OPERATION.getString(row);
         if (operation == null) {
-            return row;
+            return;
         }
 
         // implement the logic from CCF
         // first check that the unit corresponds to storage
         final String unit = PRICING_UNIT.getString(row);
         if (unit == null || !units.contains(unit)) {
-            return row;
+            return;
         }
 
         final String usage_type = LINE_ITEM_USAGE_TYPE.getString(row);
         if (usage_type == null) {
-            return row;
+            return;
         }
 
         final String serviceCode = PRODUCT_SERVICE_CODE.getString(row);
@@ -101,7 +101,8 @@ public class Storage implements EnrichmentModule {
         // loop on the values from the resources
         for (String ssd : ssd_usage_types) {
             if (usage_type.endsWith(ssd)) {
-                return enrich(row, false, replication);
+                computeEnergy(row, enrichedValues, false, replication);
+                return;
             }
         }
 
@@ -110,14 +111,16 @@ public class Storage implements EnrichmentModule {
         if (serviceCode != null && !usage_type.contains("Backup")) {
             for (String service : ssd_services) {
                 if (serviceCode.endsWith(service)) {
-                    return enrich(row, false, replication);
+                    computeEnergy(row, enrichedValues, false, replication);
+                    return;
                 }
             }
         }
 
         for (String hdd : hdd_usage_types) {
             if (usage_type.endsWith(hdd)) {
-                return enrich(row, true, replication);
+                computeEnergy(row, enrichedValues, true, replication);
+                return;
             }
         }
 
@@ -126,13 +129,10 @@ public class Storage implements EnrichmentModule {
         if ("Storage".equals(product_product_family)) {
             log.debug("Storage type not found for {} {}", operation, usage_type);
         }
-
-        // not been found
-        return row;
     }
 
 
-    private Row enrich(Row row, boolean isHDD, int replication) {
+    private void computeEnergy(Row row, Map<Column, Object> enrichedValues, boolean isHDD, int replication) {
         double coefficient = isHDD ? hdd_gb_coefficient : ssd_gb_coefficient;
         double amount = USAGE_AMOUNT.getDouble(row);
         String unit = PRICING_UNIT.getString(row);
@@ -143,7 +143,7 @@ public class Storage implements EnrichmentModule {
         }
         //  to kwh
         double energy_kwh = amount /1000 * coefficient * replication;
-        return EnrichmentModule.withUpdatedValue(row, ENERGY_USED, energy_kwh);
+        enrichedValues.put(ENERGY_USED, energy_kwh);
     }
 
     /**

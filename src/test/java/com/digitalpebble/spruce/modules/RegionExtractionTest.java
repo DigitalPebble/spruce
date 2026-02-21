@@ -2,11 +2,15 @@
 
 package com.digitalpebble.spruce.modules;
 
+import com.digitalpebble.spruce.Column;
 import com.digitalpebble.spruce.Utils;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema;
 import org.apache.spark.sql.types.StructType;
 import org.junit.jupiter.api.Test;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.digitalpebble.spruce.SpruceColumn.REGION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -23,32 +27,36 @@ public class RegionExtractionTest{
     @Test
     void processEmpty() {
         Row row = generateRow(null, null, null);
-        Row enriched = region.process(row);
-        assertNull(REGION.getString(enriched));
+        Map<Column, Object> enriched = new HashMap<>();
+        region.enrich(row, enriched);
+        assertNull(enriched.get(REGION));
     }
 
     @Test
     void process() {
         String reg = "us-east-1";
         Row row = generateRow(reg, null, null);
-        Row enriched = region.process(row);
-        assertEquals(reg, REGION.getString(enriched));
+        Map<Column, Object> enriched = new HashMap<>();
+        region.enrich(row, enriched);
+        assertEquals(reg, enriched.get(REGION));
     }
 
     @Test
     void process2() {
         String reg = "us-east-1";
         Row row = generateRow(reg, "ignore_me", null);
-        Row enriched = region.process(row);
-        assertEquals(reg, REGION.getString(enriched));
+        Map<Column, Object> enriched = new HashMap<>();
+        region.enrich(row, enriched);
+        assertEquals(reg, enriched.get(REGION));
     }
 
     @Test
     void process3() {
         String reg = "us-east-1";
         Row row = generateRow(null, reg, null);
-        Row enriched = region.process(row);
-        assertEquals(reg, REGION.getString(enriched));
+        Map<Column, Object> enriched = new HashMap<>();
+        region.enrich(row, enriched);
+        assertEquals(reg, enriched.get(REGION));
     }
 
     private Row generateRow(String PRODUCT_REGION_CODE, String PRODUCT_FROM_REGION_CODE, String PRODUCT_TO_REGION_CODE){

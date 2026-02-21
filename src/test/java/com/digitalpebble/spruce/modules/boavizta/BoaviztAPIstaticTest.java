@@ -17,6 +17,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -61,10 +62,11 @@ public class BoaviztAPIstaticTest {
         void testProcessWithNullValues(String instanceType, String serviceCode, String operation, String productCode) {
             Object[] values = new Object[]{instanceType, serviceCode, operation, productCode, null, null, null};
             Row row = new GenericRowWithSchema(values, schema);
-            Row enriched = module.process(row);
+            Map<Column, Object> enriched = new HashMap<>();
+            module.enrich(row, enriched);
 
-            // Should return the original row unchanged
-            assertEquals(row, enriched);
+            // Should not add any enrichment
+            assertTrue(enriched.isEmpty());
         }
 
         static Stream<Arguments> nullValueTestCases() {
@@ -82,24 +84,18 @@ public class BoaviztAPIstaticTest {
         void testProcessWithEmptyValues(String instanceType, String serviceCode, String operation, String productCode) {
             Object[] values = new Object[]{instanceType, serviceCode, operation, productCode, null, null, null};
             Row row = new GenericRowWithSchema(values, schema);
+            Map<Column, Object> enriched = new HashMap<>();
 
-            // Test cases 1 and 2 (null and empty instance types) should throw IllegalArgumentException
-            // Test cases 3 and 4 (empty strings for all fields) should return unchanged rows
-            // because BoaviztAPI.process() has early returns before calling BoaviztAPIClient.getEnergyEstimates()
             if (instanceType == null || instanceType.trim().isEmpty()) {
-                // These should throw IllegalArgumentException if they reach the API call
                 try {
-                    Row enriched = module.process(row);
-                    // If no exception was thrown, the row should be unchanged
-                    assertEquals(row, enriched, "Should return unchanged row for null/empty instance types that don't reach API call");
+                    module.enrich(row, enriched);
+                    assertTrue(enriched.isEmpty(), "Should not enrich for null/empty instance types");
                 } catch (IllegalArgumentException e) {
-                    // This is also valid - the validation caught it
                     assertTrue(e.getMessage().contains("Instance type cannot be null, empty, or whitespace only"));
                 }
             } else {
-                // Other test cases should return unchanged rows
-                Row enriched = module.process(row);
-                assertEquals(row, enriched, "Should return unchanged row for other empty value cases");
+                module.enrich(row, enriched);
+                assertTrue(enriched.isEmpty(), "Should not enrich for other empty value cases");
             }
         }
 
@@ -117,10 +113,11 @@ public class BoaviztAPIstaticTest {
         void testProcessWithUnsupportedValues(String instanceType, String serviceCode, String operation, String productCode) {
             Object[] values = new Object[]{instanceType, serviceCode, operation, productCode, null, null, null};
             Row row = new GenericRowWithSchema(values, schema);
-            Row enriched = module.process(row);
+            Map<Column, Object> enriched = new HashMap<>();
+            module.enrich(row, enriched);
 
-            // Should return the original row unchanged for unsupported services/operations
-            assertEquals(row, enriched);
+            // Should not add any enrichment for unsupported services/operations
+            assertTrue(enriched.isEmpty());
         }
 
         static Stream<Arguments> unsupportedValueTestCases() {
@@ -136,10 +133,11 @@ public class BoaviztAPIstaticTest {
         void testProcessWithEdgeCases(String instanceType, String serviceCode, String operation, String productCode) {
             Object[] values = new Object[]{instanceType, serviceCode, operation, productCode, null, null, null};
             Row row = new GenericRowWithSchema(values, schema);
-            Row enriched = module.process(row);
+            Map<Column, Object> enriched = new HashMap<>();
+            module.enrich(row, enriched);
 
-            // Should return the original row unchanged for edge cases
-            assertEquals(row, enriched);
+            // Should not add any enrichment for edge cases
+            assertTrue(enriched.isEmpty());
         }
 
         static Stream<Arguments> edgeCaseTestCases() {

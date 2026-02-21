@@ -73,11 +73,11 @@ public class BoaviztAPIstatic implements EnrichmentModule {
     }
 
     @Override
-    public Row process(Row row) {
+    public void enrich(Row row, Map<Column, Object> enrichedValues) {
 
         String instanceType = PRODUCT_INSTANCE_TYPE.getString(row);
         if (instanceType == null) {
-            return row;
+            return;
         }
 
         final String service_code = PRODUCT_SERVICE_CODE.getString(row);
@@ -85,7 +85,7 @@ public class BoaviztAPIstatic implements EnrichmentModule {
         final String product_code = LINE_ITEM_PRODUCT_CODE.getString(row);
 
         if (operation == null || product_code == null) {
-            return row;
+            return;
         }
 
         // conditions for EC2 instances
@@ -106,12 +106,12 @@ public class BoaviztAPIstatic implements EnrichmentModule {
                 instanceType = instanceType.substring(3);
             }
         } else {
-            return row;
+            return;
         }
 
         // don't look for instance types that are known to be unknown
         if (unknownInstanceTypes.contains(instanceType)) {
-            return row;
+            return;
         }
 
         final Impacts impacts = impactsMap.get(instanceType);
@@ -119,15 +119,13 @@ public class BoaviztAPIstatic implements EnrichmentModule {
         if (impacts == null) {
             LOG.info("Unknown instance type {}", instanceType);
             unknownInstanceTypes.add(instanceType);
-            return row;
+            return;
         }
 
         double amount = USAGE_AMOUNT.getDouble(row);
 
-        Map<Column, Object> kv = new HashMap<>();
-        kv.put(ENERGY_USED, impacts.getFinalEnergyKWh() * amount);
-        kv.put(EMBODIED_EMISSIONS, impacts.getEmbeddedEmissionsGramsCO2eq() * amount);
-        kv.put(EMBODIED_ADP, impacts.getAbioticDepletionPotentialGramsSbeq() * amount);
-        return EnrichmentModule.withUpdatedValues(row, kv);
+        enrichedValues.put(ENERGY_USED, impacts.getFinalEnergyKWh() * amount);
+        enrichedValues.put(EMBODIED_EMISSIONS, impacts.getEmbeddedEmissionsGramsCO2eq() * amount);
+        enrichedValues.put(EMBODIED_ADP, impacts.getAbioticDepletionPotentialGramsSbeq() * amount);
     }
 }

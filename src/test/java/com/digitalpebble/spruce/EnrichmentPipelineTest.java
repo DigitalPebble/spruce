@@ -63,8 +63,8 @@ public class EnrichmentPipelineTest {
         values[schema.fieldIndex(PRODUCT_REGION_CODE.getLabel())] = "us-east-1";
         values[schema.fieldIndex(LINE_ITEM_TYPE.getLabel())] = lineItemType;
 
-        Row inputRow = new GenericRowWithSchema(values, schema);
-        List<Row> inputList = Collections.singletonList(inputRow);
+        Row row = new GenericRowWithSchema(values, schema);
+        List<Row> inputList = Collections.singletonList(row);
 
         Iterator<Row> results = pipeline.call(inputList.iterator());
 

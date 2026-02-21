@@ -33,7 +33,7 @@ public class ConstantLoad implements EnrichmentModule {
     }
 
     @Override
-    public Row process(Row row) {
-        return EnrichmentModule.withUpdatedValue(row, CPU_LOAD, load_value);
+    public void enrich(Row row, Map<Column, Object> enrichedValues) {
+        enrichedValues.put(CPU_LOAD, load_value);
     }
 }
