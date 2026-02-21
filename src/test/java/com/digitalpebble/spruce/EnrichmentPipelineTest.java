@@ -45,8 +45,8 @@ public class EnrichmentPipelineTest {
         }
 
         @Override
-        public Row process(Row row) {
-            return EnrichmentModule.withUpdatedValue(row, DUMMY_ENRICHED, 42.0);
+        public void enrich(Row row, Map<Column, Object> enrichedValues) {
+            enrichedValues.put(DUMMY_ENRICHED, 42.0);
         }
     }
 
