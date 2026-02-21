@@ -1,6 +1,10 @@
 # Enrichment modules
 
-SPRUCE generates the estimates above by chaining **EnrichmentModules**, each of them relying on columns found in the usage reports or produced by preceding modules.
+SPRUCE generates the estimates above by chaining **EnrichmentModules**.
+An `EnrichmentModule` is the unit of extension in SPRUCE. Each module reads columns from
+the CUR input row and/or from values set by earlier modules, then writes its results into a
+shared map. The pipeline materialises one output row per CUR row at the end, avoiding
+per-module row copies.
 
 For instance, the [AverageCarbonIntensity.java](https://github.com/DigitalPebble/spruce/blob/main/src/main/java/com/digitalpebble/spruce/modules/electricitymaps/AverageCarbonIntensity.java) module applies average carbon intensity factors to energy estimates based on the region in order to generate _operational emissions_.
 
