@@ -30,12 +30,12 @@ public class RegionExtraction implements EnrichmentModule {
     }
 
     @Override
-    public void enrich(Row inputRow, Map<Column, Object> enrichedValues) {
+    public void enrich(Row row, Map<Column, Object> enrichedValues) {
         // get the location
         // in most cases you have a product_region_code but can be product_to_region_code or product_from_region_code
         // when the traffic is between two regions or to/from the outside
         for (CURColumn c : location_columns) {
-            String locationCode = c.getString(inputRow);
+            String locationCode = c.getString(row);
             if (locationCode != null) {
                 enrichedValues.put(REGION, locationCode);
                 return;

@@ -30,7 +30,7 @@ class EnrichmentModuleTest {
             @Override
             public Column[] columnsAdded() { return new Column[]{ENERGY_USED}; }
             @Override
-            public void enrich(Row inputRow, Map<Column, Object> enrichedValues) {
+            public void enrich(Row row, Map<Column, Object> enrichedValues) {
                 enrichedValues.put(ENERGY_USED, 42.0);
             }
         };
@@ -52,7 +52,7 @@ class EnrichmentModuleTest {
             @Override
             public Column[] columnsAdded() { return new Column[]{ENERGY_USED}; }
             @Override
-            public void enrich(Row inputRow, Map<Column, Object> enrichedValues) {
+            public void enrich(Row row, Map<Column, Object> enrichedValues) {
                 Double existing = (Double) enrichedValues.get(ENERGY_USED);
                 double newVal = 2.5;
                 enrichedValues.put(ENERGY_USED, (existing != null ? existing : 0.0) + newVal);
@@ -80,7 +80,7 @@ class EnrichmentModuleTest {
             @Override
             public Column[] columnsAdded() { return new Column[]{noteCol}; }
             @Override
-            public void enrich(Row inputRow, Map<Column, Object> enrichedValues) {
+            public void enrich(Row row, Map<Column, Object> enrichedValues) {
                 Object val = enrichedValues.get(ENERGY_USED);
                 if (val != null) {
                     enrichedValues.put(noteCol, "energy=" + val);

@@ -28,11 +28,11 @@ public interface EnrichmentModule extends Serializable {
     Column[] columnsAdded();
 
     /**
-     * Enrich the given row by reading input columns from {@code inputRow} and
+     * Enrich the given row by reading input columns from {@code row} and
      * reading/writing enrichment columns via {@code enrichedValues}.
      *
-     * @param inputRow        the immutable original row from the dataset
+     * @param row        the immutable original row from the dataset
      * @param enrichedValues  shared map accumulating enrichment values across all modules
      */
-    void enrich(Row inputRow, Map<Column, Object> enrichedValues);
+    void enrich(Row row, Map<Column, Object> enrichedValues);
 }

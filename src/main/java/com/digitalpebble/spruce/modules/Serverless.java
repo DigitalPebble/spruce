@@ -68,17 +68,17 @@ public class Serverless implements EnrichmentModule {
     }
 
     @Override
-    public void enrich(Row inputRow, Map<Column, Object> enrichedValues) {
-        String usage_type = LINE_ITEM_USAGE_TYPE.getString(inputRow);
+    public void enrich(Row row, Map<Column, Object> enrichedValues) {
+        String usage_type = LINE_ITEM_USAGE_TYPE.getString(row);
         if (usage_type == null) {
             return;
         }
 
-        String operation = LINE_ITEM_OPERATION.getString(inputRow);
+        String operation = LINE_ITEM_OPERATION.getString(row);
         if ("FargateTask".equals(operation)) {
             // memory
             if (usage_type.endsWith("-GB-Hours")) {
-                double amount_gb = USAGE_AMOUNT.getDouble(inputRow);
+                double amount_gb = USAGE_AMOUNT.getDouble(row);
                 double energy = amount_gb * memory_coefficient_kwh;
                 enrichedValues.put(ENERGY_USED, energy);
                 return;
@@ -86,7 +86,7 @@ public class Serverless implements EnrichmentModule {
 
             // cpu
             if (usage_type.endsWith("-vCPU-Hours:perCPU")) {
-                double amount_vcpu = USAGE_AMOUNT.getDouble(inputRow);
+                double amount_vcpu = USAGE_AMOUNT.getDouble(row);
                 boolean isARM = usage_type.contains("-ARM-");
                 double coefficient = isARM ? arm_cpu_coefficient_kwh : x86_cpu_coefficient_kwh;
                 double energy = amount_vcpu * coefficient;
@@ -96,7 +96,7 @@ public class Serverless implements EnrichmentModule {
         }
         else if (usage_type.contains("EMR-SERVERLESS")) {
             if (usage_type.endsWith("MemoryGBHours")) {
-                double amount_gb = USAGE_AMOUNT.getDouble(inputRow);
+                double amount_gb = USAGE_AMOUNT.getDouble(row);
                 double energy = amount_gb * memory_coefficient_kwh;
                 enrichedValues.put(ENERGY_USED, energy);
                 return;
@@ -104,7 +104,7 @@ public class Serverless implements EnrichmentModule {
 
             // cpu
             if (usage_type.endsWith("-vCPUHours")) {
-                double amount_vcpu = USAGE_AMOUNT.getDouble(inputRow);
+                double amount_vcpu = USAGE_AMOUNT.getDouble(row);
                 boolean isARM = usage_type.contains("-ARM-");
                 double coefficient = isARM ? arm_cpu_coefficient_kwh : x86_cpu_coefficient_kwh;
                 double energy = amount_vcpu * coefficient;

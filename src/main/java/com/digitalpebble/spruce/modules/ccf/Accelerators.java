@@ -52,16 +52,16 @@ public class Accelerators implements EnrichmentModule {
     }
 
     @Override
-    public void enrich(Row inputRow, Map<Column, Object> enrichedValues) {
+    public void enrich(Row row, Map<Column, Object> enrichedValues) {
         // limit to EC2 instances
 
-        String instanceType = PRODUCT_INSTANCE_TYPE.getString(inputRow);
+        String instanceType = PRODUCT_INSTANCE_TYPE.getString(row);
         if (instanceType == null) {
             return;
         }
 
-        final String operation = LINE_ITEM_OPERATION.getString(inputRow);
-        final String product_code = LINE_ITEM_PRODUCT_CODE.getString(inputRow);
+        final String operation = LINE_ITEM_OPERATION.getString(row);
+        final String product_code = LINE_ITEM_PRODUCT_CODE.getString(row);
 
         if (operation == null || product_code == null) {
             return;
@@ -81,7 +81,7 @@ public class Accelerators implements EnrichmentModule {
         if (instanceTypeInfo == null) {
             // check product instance family
             // if GPU then log if we have no info about it
-            String fam = PRODUCT_INSTANCE_FAMILY.getString(inputRow, true);
+            String fam = PRODUCT_INSTANCE_FAMILY.getString(row, true);
             if ("GPU instance".equals(fam)) {
                 LOG.debug("Lacking info for instance type with GPU {}", instanceType);
             }
@@ -99,7 +99,7 @@ public class Accelerators implements EnrichmentModule {
         // minWatts + (gpu_utilisation_percent / 100) * (maxWatts - minWatts)
         double energy_used = minWatts + ((double) gpu_utilisation_percent / 100) * (maxWatts - minWatts);
 
-        double amount = USAGE_AMOUNT.getDouble(inputRow);
+        double amount = USAGE_AMOUNT.getDouble(row);
 
         // watts to kw
         energy_used = (amount * energy_used * quantity / 1000);

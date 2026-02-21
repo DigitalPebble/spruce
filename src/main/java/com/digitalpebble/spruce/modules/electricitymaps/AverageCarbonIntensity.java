@@ -77,7 +77,7 @@ public class AverageCarbonIntensity implements EnrichmentModule {
     }
 
     @Override
-    public void enrich(Row inputRow, Map<Column, Object> enrichedValues) {
+    public void enrich(Row row, Map<Column, Object> enrichedValues) {
         if (!enrichedValues.containsKey(ENERGY_USED)) {
             return;
         }

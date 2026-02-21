@@ -73,16 +73,16 @@ public class BoaviztAPIstatic implements EnrichmentModule {
     }
 
     @Override
-    public void enrich(Row inputRow, Map<Column, Object> enrichedValues) {
+    public void enrich(Row row, Map<Column, Object> enrichedValues) {
 
-        String instanceType = PRODUCT_INSTANCE_TYPE.getString(inputRow);
+        String instanceType = PRODUCT_INSTANCE_TYPE.getString(row);
         if (instanceType == null) {
             return;
         }
 
-        final String service_code = PRODUCT_SERVICE_CODE.getString(inputRow);
-        final String operation = LINE_ITEM_OPERATION.getString(inputRow);
-        final String product_code = LINE_ITEM_PRODUCT_CODE.getString(inputRow);
+        final String service_code = PRODUCT_SERVICE_CODE.getString(row);
+        final String operation = LINE_ITEM_OPERATION.getString(row);
+        final String product_code = LINE_ITEM_PRODUCT_CODE.getString(row);
 
         if (operation == null || product_code == null) {
             return;
@@ -122,7 +122,7 @@ public class BoaviztAPIstatic implements EnrichmentModule {
             return;
         }
 
-        double amount = USAGE_AMOUNT.getDouble(inputRow);
+        double amount = USAGE_AMOUNT.getDouble(row);
 
         enrichedValues.put(ENERGY_USED, impacts.getFinalEnergyKWh() * amount);
         enrichedValues.put(EMBODIED_EMISSIONS, impacts.getEmbeddedEmissionsGramsCO2eq() * amount);
