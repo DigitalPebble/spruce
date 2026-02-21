@@ -6,6 +6,8 @@ import com.digitalpebble.spruce.Column;
 import com.digitalpebble.spruce.EnrichmentModule;
 import org.apache.spark.sql.Row;
 
+import java.util.Map;
+
 import static com.digitalpebble.spruce.AzureColumn.RESOURCE_LOCATION;
 import static com.digitalpebble.spruce.CURColumn.*;
 import static com.digitalpebble.spruce.SpruceColumn.REGION;
@@ -26,11 +28,10 @@ public class RegionExtraction implements EnrichmentModule {
     }
 
     @Override
-    public Row process(Row row) {
+    public void enrich(Row row, Map<Column, Object> enrichedValues) {
         String locationCode = RESOURCE_LOCATION.getString(row);
         if (locationCode != null) {
-            return EnrichmentModule.withUpdatedValue(row, REGION, locationCode);
+            enrichedValues.put(REGION, locationCode);
         }
-        return row;
     }
 }

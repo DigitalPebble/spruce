@@ -48,21 +48,21 @@ public class Networking implements EnrichmentModule {
     }
 
     @Override
-    public Row process(Row row) {
+    public void enrich(Row row, Map<Column, Object> enrichedValues) {
         String meterCategory = METER_CATEGORY.getString(row);
         if (!"Bandwidth".equals(meterCategory)) {
-            return row;
+            return;
         }
 
         String transfer_type = METER_SUBCATEGORY.getString(row);
         if (!"InterRegion".equals(transfer_type)) {
-            return row;
+            return;
         }
 
         // get the amount of data transferred
         double amount_gb = QUANTITY.getDouble(row);
         double energy_gb = amount_gb * network_coefficient;
 
-        return EnrichmentModule.withUpdatedValue(row, ENERGY_USED, energy_gb);
+        enrichedValues.put(ENERGY_USED, energy_gb);
     }
 }
