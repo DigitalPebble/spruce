@@ -6,3 +6,4 @@ title = "SPRUCE"
 
 [output.html]
 additional-css = ["custom.css"]
+git-repository-url = "https://github.com/DigitalPebble/spruce"
