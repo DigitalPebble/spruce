@@ -12,9 +12,13 @@ import static com.digitalpebble.spruce.SpruceColumn.*;
 
 /**
  * Populate the field OPERATIONAL_EMISSIONS
- * for rows where energy usage has been estimated, taking into account the PUE if present.
+ * for rows where energy usage has been estimated, taking into account the PUE,
+ * power supply efficiency, and power transmission losses.
  **/
 public class OperationalEmissions implements EnrichmentModule {
+
+    private double powerSupplyEfficiency = 1.04;
+    private double powerTransmissionLosses = 1.08;
 
     @Override
     public Column[] columnsNeeded() {
@@ -37,8 +41,27 @@ public class OperationalEmissions implements EnrichmentModule {
         // take into account the PUE if present
         Double pueVal = PUE.getDouble(enrichedValues);
         final double pue = pueVal != null ? pueVal : 1.0;
-        final double emissions = energyUsed * carbon_intensity * pue;
+
+        final double totalOverhead = pue * powerSupplyEfficiency * powerTransmissionLosses;
+
+        final double emissions = energyUsed * carbon_intensity * totalOverhead;
 
         enrichedValues.put(OPERATIONAL_EMISSIONS, emissions);
+    }
+
+    public double getPowerSupplyEfficiency() {
+        return powerSupplyEfficiency;
+    }
+
+    public void setPowerSupplyEfficiency(double powerSupplyEfficiency) {
+        this.powerSupplyEfficiency = powerSupplyEfficiency;
+    }
+
+    public double getPowerTransmissionLosses() {
+        return powerTransmissionLosses;
+    }
+
+    public void setPowerTransmissionLosses(double powerTransmissionLosses) {
+        this.powerTransmissionLosses = powerTransmissionLosses;
     }
 }
