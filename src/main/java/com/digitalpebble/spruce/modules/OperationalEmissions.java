@@ -21,6 +21,20 @@ public class OperationalEmissions implements EnrichmentModule {
     private double powerTransmissionLosses = 1.08;
 
     @Override
+    public void init(Map<String, Object> params) {
+        if (params != null) {
+            Number pse = (Number) params.get("powerSupplyEfficiency");
+            if (pse != null) {
+                powerSupplyEfficiency = pse.doubleValue();
+            }
+            Number ptl = (Number) params.get("powerTransmissionLosses");
+            if (ptl != null) {
+                powerTransmissionLosses = ptl.doubleValue();
+            }
+        }
+    }
+
+    @Override
     public Column[] columnsNeeded() {
         return new Column[]{ENERGY_USED, CARBON_INTENSITY, PUE};
     }
@@ -47,21 +61,5 @@ public class OperationalEmissions implements EnrichmentModule {
         final double emissions = energyUsed * carbon_intensity * totalOverhead;
 
         enrichedValues.put(OPERATIONAL_EMISSIONS, emissions);
-    }
-
-    public double getPowerSupplyEfficiency() {
-        return powerSupplyEfficiency;
-    }
-
-    public void setPowerSupplyEfficiency(double powerSupplyEfficiency) {
-        this.powerSupplyEfficiency = powerSupplyEfficiency;
-    }
-
-    public double getPowerTransmissionLosses() {
-        return powerTransmissionLosses;
-    }
-
-    public void setPowerTransmissionLosses(double powerTransmissionLosses) {
-        this.powerTransmissionLosses = powerTransmissionLosses;
     }
 }
