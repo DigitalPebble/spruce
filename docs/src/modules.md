@@ -94,10 +94,14 @@ Populates the column `operational_energy_kwh`.
 
 ## OperationalEmissions
 
-Computes operational emissions based on the energy usage, average carbon intensity factors and `power_usage_effectiveness` estimated by the preceding modules, based on the `region`.
+Computes operational emissions based on the energy usage, average carbon intensity factors and `power_usage_effectiveness` estimated by the preceding modules, based on the `region`. It also accounts for two additional overheads:
+* **Power Supply Efficiency**: The power lost between the data center mains electricity and the server (default `1.04`).
+* **Power Transmission Losses**: The power lost between the power station and the data center mains electricity (default `1.08`).
+
+These two values can be overridden via configuration (`powerSupplyEfficiency` and `powerTransmissionLosses`).
 
 Populates the columns `operational_emissions_co2eq_g`.
 
-`operational_emissions_co2eq_g` is equal to `operational_energy_kwh` * `carbon_intensity` * `power_usage_effectiveness`.
+`operational_emissions_co2eq_g` is equal to `operational_energy_kwh` * `carbon_intensity` * `power_usage_effectiveness` * `powerSupplyEfficiency` * `powerTransmissionLosses`.
 
 
