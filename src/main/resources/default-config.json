@@ -43,7 +43,11 @@
       "className": "com.digitalpebble.spruce.modules.electricitymaps.AverageCarbonIntensity"
     },
     {
-      "className": "com.digitalpebble.spruce.modules.OperationalEmissions"
+      "className": "com.digitalpebble.spruce.modules.OperationalEmissions",
+      "config": {
+        "powerSupplyEfficiency": 1.04,
+        "powerTransmissionLosses": 1.08
+      }
     }
   ]
 }
