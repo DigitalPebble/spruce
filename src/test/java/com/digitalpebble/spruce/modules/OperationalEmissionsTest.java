@@ -39,8 +39,8 @@ public class OperationalEmissionsTest {
         enriched.put(ENERGY_USED, 10d);
         enriched.put(CARBON_INTENSITY, 321.04d);
         module.enrich(row, enriched);
-        double expected = 10 * 321.04;
-        assertEquals(expected, (Double) enriched.get(OPERATIONAL_EMISSIONS));
+        double expected = 10 * 321.04 * 1.04 * 1.08;
+        assertEquals(expected, (Double) enriched.get(OPERATIONAL_EMISSIONS), 0.0001);
     }
 
     @Test
@@ -51,7 +51,7 @@ public class OperationalEmissionsTest {
         enriched.put(CARBON_INTENSITY, 321.04d);
         enriched.put(PUE, 1.15);
         module.enrich(row, enriched);
-        double expected = 10 * 321.04 * 1.15;
-        assertEquals(expected, (Double) enriched.get(OPERATIONAL_EMISSIONS));
+        double expected = 10 * 321.04 * 1.15 * 1.04 * 1.08;
+        assertEquals(expected, (Double) enriched.get(OPERATIONAL_EMISSIONS), 0.0001);
     }
 }
