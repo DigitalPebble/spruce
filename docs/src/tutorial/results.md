@@ -1,6 +1,65 @@
 # Explore the results
 
-Using [DuckDB](https://duckdb.org/) locally (or [Athena](https://docs.aws.amazon.com/athena/latest/ug/what-is.html) if the output was [written to S3](../howto/s3.md)):
+## Automated report
+
+The easiest way to explore SPRUCE output is `report.py`, a Python script that reads enriched Parquet files, runs all the analyses described on this page automatically, and writes a formatted report — no SQL required.
+
+### Installation
+
+```bash
+pip install -r requirements-report.txt   # duckdb (+ markdown, weasyprint for html/pdf)
+```
+
+### Usage
+
+```bash
+# Markdown to stdout
+python report.py -i output/
+
+# Write to a file — format is inferred from the suffix
+python report.py -i output/ -o report.md
+python report.py -i output/ -o report.html
+python report.py -i output/ -o report.pdf
+
+# Read directly from S3 (uses ambient AWS credentials)
+python report.py -i s3://my-bucket/spruced/ -o report.html
+```
+
+| Flag | Default | Description |
+|---|---|---|
+| `-i / --input` | required | Local directory, glob, or S3 URI |
+| `-o / --output` | stdout | Output file; format inferred from suffix (`.md`, `.html`, `.pdf`) |
+| `--top-tags` | 10 | Maximum number of resource tags offered for interactive breakdown |
+
+### What it produces
+
+The report covers the following sections, drawn from the queries documented below:
+
+| Section | What it shows |
+|---|---|
+| Summary by Billing Period | Energy (kWh), operational CO₂ (kg), embodied CO₂ (kg), ADP per month |
+| Top Emitters by Service | Top 20 product/service/operation combinations by operational CO₂ |
+| Top Instance Types | Top 20 instance families by operational + embodied CO₂ |
+| Coverage | % of unblended costs that have emissions data; top 20 uncovered services by cost |
+| Regional Analysis | CO₂, energy, carbon intensity, PUE, and gCO₂/$ per AWS region |
+| Tag Breakdown | Interactive: emissions split by any resource tag present in the data |
+| Recommendations | Automatically generated from coverage gaps, regional carbon intensity, instance families, and billing trends |
+
+After the fixed sections, the script scans `resource_tags` and presents an interactive menu of the most consistently used tag keys, ordered by the percentage of line items that carry a non-empty value. Select a tag to see the emissions breakdown by tag value; press Enter when done. If no tags are found, the report states this clearly.
+
+Recommendations are generated automatically from the data:
+
+| Signal | Condition | Message |
+|---|---|---|
+| Coverage gap | < 80 % of costs covered | Lists top uncovered services by cost |
+| Carbon intensity | Region > 300 gCO₂/kWh with a lower-intensity alternative present | Suggests migration |
+| Instance family | Top emitter is an x86 family with a Graviton equivalent | Names the Graviton replacement |
+| Emissions trend | ≥ 2 billing periods, last > first × 1.10 | Flags the percentage increase |
+
+## Manual queries
+
+As an alternative to the script above, you can also write equivalent SQL queries using [DuckDB](https://duckdb.org/) locally
+ (or [Athena](https://docs.aws.amazon.com/athena/latest/ug/what-is.html) if the output was [written to S3](../howto/s3.md)):
 
 ## Breakdown by billing period
 
