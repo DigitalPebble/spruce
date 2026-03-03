@@ -32,7 +32,7 @@ import static com.digitalpebble.spruce.SpruceColumn.REGION;
 public class PUE implements EnrichmentModule {
 
     private double defaultPueValue = 1.15;
-    private static final String CSV_RESOURCE_PATH = "aws-pue.csv";
+    private static final String CSV_RESOURCE_PATH = "aws-pue-wue.csv";
 
     private final Map<String, Double> exactMatches = new HashMap<>();
     private final Map<Pattern, Double> regexMatches = new HashMap<>();
