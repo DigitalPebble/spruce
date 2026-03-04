@@ -1,0 +1,62 @@
+{
+  "anthropic.claude-v2": {
+    "energy_kwh_per_1k_input_tokens": 0.00015,
+    "energy_kwh_per_1k_output_tokens": 0.00080,
+    "embodied_co2e_g_per_1k_tokens": 0.005
+  },
+  "anthropic.claude-v2:1": {
+    "energy_kwh_per_1k_input_tokens": 0.00015,
+    "energy_kwh_per_1k_output_tokens": 0.00080,
+    "embodied_co2e_g_per_1k_tokens": 0.005
+  },
+  "anthropic.claude-3-haiku-20240307-v1:0": {
+    "energy_kwh_per_1k_input_tokens": 0.00005,
+    "energy_kwh_per_1k_output_tokens": 0.00025,
+    "embodied_co2e_g_per_1k_tokens": 0.002
+  },
+  "anthropic.claude-3-sonnet-20240229-v1:0": {
+    "energy_kwh_per_1k_input_tokens": 0.00012,
+    "energy_kwh_per_1k_output_tokens": 0.00060,
+    "embodied_co2e_g_per_1k_tokens": 0.004
+  },
+  "anthropic.claude-3-opus-20240229-v1:0": {
+    "energy_kwh_per_1k_input_tokens": 0.00030,
+    "energy_kwh_per_1k_output_tokens": 0.00150,
+    "embodied_co2e_g_per_1k_tokens": 0.010
+  },
+  "amazon.titan-text-express-v1": {
+    "energy_kwh_per_1k_input_tokens": 0.00008,
+    "energy_kwh_per_1k_output_tokens": 0.00040,
+    "embodied_co2e_g_per_1k_tokens": 0.003
+  },
+  "meta.llama3-8b-instruct-v1:0": {
+    "energy_kwh_per_1k_input_tokens": 0.00004,
+    "energy_kwh_per_1k_output_tokens": 0.00020,
+    "embodied_co2e_g_per_1k_tokens": 0.001
+  },
+  "meta.llama3-70b-instruct-v1:0": {
+    "energy_kwh_per_1k_input_tokens": 0.00025,
+    "energy_kwh_per_1k_output_tokens": 0.00120,
+    "embodied_co2e_g_per_1k_tokens": 0.008
+  },
+  "mistral.mistral-7b-instruct-v0:2": {
+    "energy_kwh_per_1k_input_tokens": 0.00004,
+    "energy_kwh_per_1k_output_tokens": 0.00020,
+    "embodied_co2e_g_per_1k_tokens": 0.001
+  },
+  "mistral.mixtral-8x7b-instruct-v0:1": {
+    "energy_kwh_per_1k_input_tokens": 0.00010,
+    "energy_kwh_per_1k_output_tokens": 0.00050,
+    "embodied_co2e_g_per_1k_tokens": 0.004
+  },
+  "cohere.command-r-v1:0": {
+    "energy_kwh_per_1k_input_tokens": 0.00012,
+    "energy_kwh_per_1k_output_tokens": 0.00060,
+    "embodied_co2e_g_per_1k_tokens": 0.004
+  },
+  "ai21.j2-ultra-v1": {
+    "energy_kwh_per_1k_input_tokens": 0.00020,
+    "energy_kwh_per_1k_output_tokens": 0.00100,
+    "embodied_co2e_g_per_1k_tokens": 0.006
+  }
+}
