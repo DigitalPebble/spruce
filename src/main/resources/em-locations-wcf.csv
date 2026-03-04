@@ -1,4 +1,6 @@
-zone_id,water_consumption_factor(l/kWh)
+# https://www.wri.org/data/dataset-guidance-calculating-water-use-embedded-purchased-electricity
+# Licensed under Creative Commons
+# zone_id,water_consumption_factor(l/kWh)
 AE,
 AT,5.72
 AU-NSW,4.73
