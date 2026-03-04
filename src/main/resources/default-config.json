@@ -40,6 +40,9 @@
       }
     },
     {
+      "className": "com.digitalpebble.spruce.modules.Water"
+    },
+    {
       "className": "com.digitalpebble.spruce.modules.electricitymaps.AverageCarbonIntensity"
     },
     {
