@@ -21,6 +21,7 @@ public class SpruceColumn extends Column {
     public static SpruceColumn PUE = new SpruceColumn("power_usage_effectiveness", DoubleType);
     public static SpruceColumn WATER_COOLING = new SpruceColumn("water_cooling_l", DoubleType);
     public static SpruceColumn WATER_ENERGY = new SpruceColumn("water_electricity_production_l", DoubleType);
+    public static SpruceColumn WATER_STRESS = new SpruceColumn("water_consumption_stress_area_l", DoubleType);
     public static SpruceColumn REGION = new SpruceColumn("region", StringType);
 
     private SpruceColumn(String l, DataType t) {

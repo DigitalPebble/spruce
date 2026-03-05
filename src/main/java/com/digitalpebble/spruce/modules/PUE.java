@@ -44,8 +44,10 @@ public class PUE implements EnrichmentModule {
         for (String[] parts : rows) {
             if (parts.length >= 3) {
                 String key = parts[1].trim();
+                String pueStr = parts[2].trim();
+                if (pueStr.isEmpty()) continue;
                 try {
-                    double value = Double.parseDouble(parts[2].trim());
+                    double value = Double.parseDouble(pueStr);
 
                     // Only treat as regex if it contains regex metacharacters
                     if (key.contains(".") || key.contains("+") || key.contains("*")) {
