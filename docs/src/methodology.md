@@ -21,6 +21,10 @@ The main columns added by SPRUCE are:
 
 The total emissions for a service are `operational_emissions_co2eq_g` + `embodied_emissions_co2eq_g`.
 
+SPRUCE also estimates water consumption:
+* `water_cooling_l`: volume of water in litres used for data centre cooling.
+* `water_electricity_production_l`: volume of water in litres consumed during electricity generation.
+
 
 
 

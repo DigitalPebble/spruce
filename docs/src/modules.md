@@ -85,6 +85,16 @@ This provides a more accurate and up to date approach than the flat rate approac
 
 Populates the column `power_usage_effectiveness`.
 
+## Water
+
+Estimates water consumption associated with cloud usage, producing two columns:
+
+* **`water_cooling_l`** – the volume of water (in litres) used for **data centre cooling**. Computed as `operational_energy_kwh` × `power_usage_effectiveness` × WUE, where WUE (Water Usage Effectiveness) is the ratio of litres of water consumed for cooling per kWh of IT energy. The per-region WUE values come from the [2024 data published by AWS](https://sustainability.aboutamazon.com/aws-wue-pue.csv).
+
+* **`water_electricity_production_l`** – the volume of water (in litres) consumed during **electricity generation** to power the data centre. Computed as `operational_energy_kwh` × `power_usage_effectiveness` × WCF, where WCF (Water Consumption Factor) represents the litres of water consumed per kWh of electricity generated. The WCF values per electricity grid zone are sourced from the [WRI methodology for calculating water use embedded in purchased electricity](https://www.wri.org/data/dataset-guidance-calculating-water-use-embedded-purchased-electricity). The mapping from AWS region to electricity grid zone uses the [GSF Realtime cloud project](https://github.com/Green-Software-Foundation/real-time-cloud).
+
+Populates the columns `water_cooling_l` and `water_electricity_production_l`.
+
 ## Serverless
 
 Provides an estimate of energy for the memory and vCPU usage of serverless services like Fargate or EMR.

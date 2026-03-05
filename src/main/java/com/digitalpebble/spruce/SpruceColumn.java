@@ -20,7 +20,7 @@ public class SpruceColumn extends Column {
     public static SpruceColumn CPU_LOAD = new SpruceColumn("cpu_load_percentage", DoubleType);
     public static SpruceColumn PUE = new SpruceColumn("power_usage_effectiveness", DoubleType);
     public static SpruceColumn WATER_COOLING = new SpruceColumn("water_cooling_l", DoubleType);
-    public static SpruceColumn WATER_ENERGY = new SpruceColumn("water_energy_l", DoubleType);
+    public static SpruceColumn WATER_ENERGY = new SpruceColumn("water_electricity_production_l", DoubleType);
     public static SpruceColumn REGION = new SpruceColumn("region", StringType);
 
     private SpruceColumn(String l, DataType t) {
