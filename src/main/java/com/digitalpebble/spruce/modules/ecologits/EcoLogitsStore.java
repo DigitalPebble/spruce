@@ -41,7 +41,7 @@ public class EcoLogitsStore implements Serializable {
                 double inputEnergy = ((Number) values.get("energy_kwh_per_1k_input_tokens")).doubleValue();
                 double outputEnergy = ((Number) values.get("energy_kwh_per_1k_output_tokens")).doubleValue();
                 double embodied = ((Number) values.get("embodied_co2e_g_per_1k_tokens")).doubleValue();
-                // modelsMap.put(entry.getKey(), new ModelImpacts(inputEnergy, outputEnergy, embodied));
+                modelsMap.put(entry.getKey(), new ModelImpacts(inputEnergy, outputEnergy, embodied));
             }
             LOG.info("Loaded {} LLM model coefficients from {}", modelsMap.size(), DEFAULT_RESOURCE);
         } catch (IOException e) {
@@ -65,6 +65,26 @@ public class EcoLogitsStore implements Serializable {
      * billing unit for cloud inference services like AWS Bedrock.
      */
     public static class ModelImpacts {
-        // TODO: Check out the BoaviztAPIClient class for inspiration
+        private final double energyKwhPer1kInputTokens;
+        private final double energyKwhPer1kOutputTokens;
+        private final double embodiedCo2eGPer1kTokens;
+
+        public ModelImpacts(double energyKwhPer1kInputTokens, double energyKwhPer1kOutputTokens, double embodiedCo2eGPer1kTokens) {
+            this.energyKwhPer1kInputTokens = energyKwhPer1kInputTokens;
+            this.energyKwhPer1kOutputTokens = energyKwhPer1kOutputTokens;
+            this.embodiedCo2eGPer1kTokens = embodiedCo2eGPer1kTokens;
+        }
+
+        public double getEnergyKwhPer1kInputTokens() {
+            return energyKwhPer1kInputTokens;
+        }
+
+        public double getEnergyKwhPer1kOutputTokens() {
+            return energyKwhPer1kOutputTokens;
+        }
+
+        public double getEmbodiedCo2eGPer1kTokens() {
+            return embodiedCo2eGPer1kTokens;
+        }
     }
 }
