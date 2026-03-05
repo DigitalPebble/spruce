@@ -9,6 +9,7 @@ import org.apache.spark.sql.Row;
 import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema;
 import org.apache.spark.sql.types.StructType;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -191,5 +192,91 @@ class WaterTest {
         water.enrich(row, enriched);
 
         assertFalse(enriched.containsKey(WATER_STRESS));
+    }
+
+    @Nested
+    class WaterStatsTest {
+
+        // --- WCF tests ---
+
+        @Test
+        void wcfForKnownZone() {
+            assertEquals(5.72, Water.WaterStats.getWCF("AT"), 0.01);
+        }
+
+        @Test
+        void wcfNullForZoneWithoutValue() {
+            assertNull(Water.WaterStats.getWCF("AE"));
+        }
+
+        @Test
+        void wcfNullForUnknownZone() {
+            assertNull(Water.WaterStats.getWCF("UNKNOWN"));
+        }
+
+        // --- Water stress tests (country-level zones) ---
+
+        @Test
+        void waterStressForCountryZone() {
+            assertEquals(4, Water.WaterStats.getWaterStressCategory("AE"));
+        }
+
+        @Test
+        void waterStressLowForSwitzerland() {
+            assertEquals(0, Water.WaterStats.getWaterStressCategory("CH"));
+        }
+
+        // --- Water stress tests (regional sub-zones) ---
+
+        @Test
+        void waterStressForAustralianState() {
+            // AU-NSW = New South Wales = cat 3
+            assertEquals(3, Water.WaterStats.getWaterStressCategory("AU-NSW"));
+        }
+
+        @Test
+        void waterStressForUSState() {
+            // US-CAL-CISO = California = cat 4
+            assertEquals(4, Water.WaterStats.getWaterStressCategory("US-CAL-CISO"));
+        }
+
+        @Test
+        void waterStressForUSFlorida() {
+            // US-FLA-FPL = Florida = cat 3
+            assertEquals(3, Water.WaterStats.getWaterStressCategory("US-FLA-FPL"));
+        }
+
+        @Test
+        void waterStressForIndianGrid() {
+            // IN-NO = Northern India (NCT of Delhi) = cat 4
+            assertEquals(4, Water.WaterStats.getWaterStressCategory("IN-NO"));
+        }
+
+        @Test
+        void waterStressForJapanTokyo() {
+            // JP-TK = Tokyo = cat 2
+            assertEquals(2, Water.WaterStats.getWaterStressCategory("JP-TK"));
+        }
+
+        // --- Water stress tests (territories) ---
+
+        @Test
+        void waterStressForHongKong() {
+            // HK -> China = cat 2
+            assertEquals(2, Water.WaterStats.getWaterStressCategory("HK"));
+        }
+
+        // --- No data / unknown ---
+
+        @Test
+        void waterStressNullForNoDataZone() {
+            // SG has no water stress data in Aqueduct (-9999)
+            assertNull(Water.WaterStats.getWaterStressCategory("SG"));
+        }
+
+        @Test
+        void waterStressNullForUnknownZone() {
+            assertNull(Water.WaterStats.getWaterStressCategory("UNKNOWN"));
+        }
     }
 }

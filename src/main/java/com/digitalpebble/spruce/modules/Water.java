@@ -134,4 +134,61 @@ public class Water implements EnrichmentModule {
 
         return null;
     }
+
+    /**
+     * Provides water statistics per Electricity Maps zone ID.
+     * <ul>
+     *   <li>Water Consumption Factor (WCF) in l/kWh — loaded from {@code em-locations-wcf.csv}</li>
+     *   <li>Water Stress Category (0–4) — loaded from {@code em-water-stress.csv},
+     *       derived from Aqueduct 4.0 baseline water stress</li>
+     * </ul>
+     */
+    static class WaterStats {
+
+        private static final String WCF_CSV = "em-locations-wcf.csv";
+        private static final String WATER_STRESS_CSV = "em-water-stress.csv";
+
+        private static final Map<String, Double> wcfByZone = new HashMap<>();
+        private static final Map<String, Integer> waterStressByZone = new HashMap<>();
+
+        static {
+            // Load WCF values
+            List<String[]> wcfRows = Utils.loadCSV(WCF_CSV);
+            for (String[] parts : wcfRows) {
+                if (parts.length >= 2) {
+                    String zoneId = parts[0].trim();
+                    String wcfStr = parts[1].trim();
+                    if (!wcfStr.isEmpty()) {
+                        try {
+                            wcfByZone.put(zoneId, Double.parseDouble(wcfStr));
+                        } catch (NumberFormatException ignored) {
+                        }
+                    }
+                }
+            }
+
+            // Load water stress categories
+            List<String[]> stressRows = Utils.loadCSV(WATER_STRESS_CSV);
+            for (String[] parts : stressRows) {
+                if (parts.length >= 2) {
+                    String zoneId = parts[0].trim();
+                    String catStr = parts[1].trim();
+                    if (!catStr.isEmpty()) {
+                        try {
+                            waterStressByZone.put(zoneId, Integer.parseInt(catStr));
+                        } catch (NumberFormatException ignored) {
+                        }
+                    }
+                }
+            }
+        }
+
+        static Double getWCF(String zoneId) {
+            return wcfByZone.get(zoneId);
+        }
+
+        static Integer getWaterStressCategory(String zoneId) {
+            return waterStressByZone.get(zoneId);
+        }
+    }
 }
