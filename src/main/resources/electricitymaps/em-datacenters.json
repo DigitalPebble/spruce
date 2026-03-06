@@ -1679,6 +1679,19 @@
   {
     "provider": "aws",
     "lonlat": [
+      -77.4291,
+      39.0067
+    ],
+    "displayName": "GovCloud (US-East)",
+    "region": "us-gov-east-1",
+    "zoneKey": "US-MIDA-PJM",
+    "status": "operational",
+    "source": "https://docs.aws.amazon.com/govcloud-us/latest/UserGuide/govcloud-us-east.html",
+    "operationalSince": "2018"
+  },
+  {
+    "provider": "aws",
+    "lonlat": [
       -83.1406,
       40.1025
     ],
@@ -1788,9 +1801,22 @@
     ],
     "displayName": "Oregon",
     "region": "us-west-2",
-    "zoneKey": "US-NW-PACW",
+    "zoneKey": "US-NW-BPAT",
     "status": "operational",
     "source": "https://docs.aws.amazon.com/global-infrastructure/latest/regions/aws-regions.html",
+    "operationalSince": "2011"
+  },
+  {
+    "provider": "aws",
+    "lonlat": [
+      -119.7006,
+      45.8399
+    ],
+    "displayName": "GovCloud (US-West)",
+    "region": "us-gov-west-1",
+    "zoneKey": "US-NW-BPAT",
+    "status": "operational",
+    "source": "https://docs.aws.amazon.com/govcloud-us/latest/UserGuide/govcloud-us-west.html",
     "operationalSince": "2011"
   },
   {

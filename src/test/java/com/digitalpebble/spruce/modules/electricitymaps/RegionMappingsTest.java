@@ -30,7 +30,8 @@ class RegionMappingsTest {
     }
 
     @Test
-    void unknownProviderReturnsNull() {
-        assertNull(RegionMappings.getEMRegion(Provider.GOOGLE, "us-east-1"));
+    void regionDoesNotResolveUnderWrongProvider() {
+        // asia-east1 is a valid GCP region but should not resolve under AWS
+        assertNull(RegionMappings.getEMRegion(Provider.AWS, "asia-east1"));
     }
 }

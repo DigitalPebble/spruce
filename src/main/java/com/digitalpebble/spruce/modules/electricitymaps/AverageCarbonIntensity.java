@@ -64,10 +64,14 @@ public class AverageCarbonIntensity implements EnrichmentModule {
     protected Double getAverageIntensity(Provider provider, String regionId) {
         String emRegionId = RegionMappings.getEMRegion(provider, regionId);
         if (emRegionId == null) {
-            log.info("Region unknown {} for {}", regionId, provider);
+            log.info("No EM zone mapping for region {} ({})", regionId, provider);
             return null;
         }
-        return average_intensities.get(emRegionId);
+        Double intensity = average_intensities.get(emRegionId);
+        if (intensity == null) {
+            log.info("No carbon intensity value for EM zone {} (region {} / {})", emRegionId, regionId, provider);
+        }
+        return intensity;
     }
 
     @Override
@@ -90,7 +94,6 @@ public class AverageCarbonIntensity implements EnrichmentModule {
         // get intensity for the location
         Double coeff = getAverageIntensity(Provider.AWS, locationCode);
         if (coeff == null) {
-            // if the coefficient is 0 it means that the region is not supported
             return;
         }
         enrichedValues.put(CARBON_INTENSITY, coeff);
