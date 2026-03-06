@@ -17,9 +17,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * Loads a static JSON file (extracted from EcoLogits data) that maps model IDs to
  * energy-per-1K-token and embodied-emissions-per-1K-token values.
  */
-public class EcoLogitsStore implements Serializable {
+public class EcoLogits implements Serializable {
 
-    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(EcoLogitsStore.class);
+    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(EcoLogits.class);
 
     private static final String DEFAULT_RESOURCE = "ecologits/bedrock.json";
 
