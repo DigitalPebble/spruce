@@ -35,6 +35,20 @@ public abstract class Utils {
         }
     }
 
+    public static List<Map<String, Object>> loadJSONArrayResources(String resourceFileName) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        try (InputStream inputStream = Utils.class.getClassLoader().getResourceAsStream(resourceFileName)) {
+
+            if (inputStream == null) {
+                throw new IOException("Resource file not found: " + resourceFileName);
+            }
+
+            return objectMapper.readValue(inputStream, new TypeReference<List<Map<String, Object>>>() {
+            });
+        }
+    }
+
     public static List<String> loadLinesResources(String resourceFileName) throws IOException {
         // Use the class loader to get the resource as an InputStream
         try (InputStream inputStream = Utils.class.getClassLoader().getResourceAsStream(resourceFileName)) {

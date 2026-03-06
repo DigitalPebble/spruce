@@ -70,7 +70,7 @@ def q_top_emitters(con):
             round(sum(operational_energy_kwh), 2)                AS energy_kwh,
             round(sum(embodied_emissions_co2eq_g) / 1000, 2)    AS co2_embodied_kg
         FROM cur
-        WHERE operational_emissions_co2eq_g > 1
+        WHERE operational_emissions_co2eq_g is not null
         GROUP BY 1, 2, 3
         ORDER BY co2_usage_kg DESC, co2_embodied_kg DESC, energy_kwh DESC, line_item_operation
         LIMIT 20
@@ -142,7 +142,7 @@ def q_regional(con):
                 avg(carbon_intensity)               AS avg_ci,
                 avg(power_usage_effectiveness)      AS pue
             FROM cur
-            WHERE operational_emissions_co2eq_g > 1
+            WHERE operational_emissions_co2eq_g is not null
             GROUP BY 1
         )
         SELECT
