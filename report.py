@@ -52,7 +52,7 @@ def q_billing_summary(con):
             round(sum(operational_energy_kwh), 2)              AS energy_kwh,
             round(sum(operational_emissions_co2eq_g) / 1000, 2) AS operational_kg,
             round(sum(embodied_emissions_co2eq_g) / 1000, 2)    AS embodied_kg,
-            round(sum(embodied_adp_sbeq_g), 2)                  AS adp_g
+            round(coalesce(sum(water_cooling_l), 0) + coalesce(sum(water_electricity_production_l), 0), 2) AS water_usage_l
         FROM cur
         GROUP BY BILLING_PERIOD
         ORDER BY BILLING_PERIOD
@@ -68,7 +68,8 @@ def q_top_emitters(con):
             line_item_operation,
             round(sum(operational_emissions_co2eq_g) / 1000, 2) AS co2_usage_kg,
             round(sum(operational_energy_kwh), 2)                AS energy_kwh,
-            round(sum(embodied_emissions_co2eq_g) / 1000, 2)    AS co2_embodied_kg
+            round(sum(embodied_emissions_co2eq_g) / 1000, 2)    AS co2_embodied_kg,
+            round(coalesce(sum(water_cooling_l), 0) + coalesce(sum(water_electricity_production_l), 0), 2) AS water_usage_l
         FROM cur
         WHERE operational_emissions_co2eq_g is not null
         GROUP BY 1, 2, 3
@@ -83,7 +84,8 @@ def q_top_instance_types(con):
         SELECT
             product_instance_type,
             round(sum(operational_emissions_co2eq_g) / 1000, 2) AS co2_usage_kg,
-            round(sum(embodied_emissions_co2eq_g) / 1000, 2)    AS co2_embodied_kg
+            round(sum(embodied_emissions_co2eq_g) / 1000, 2)    AS co2_embodied_kg,
+            round(coalesce(sum(water_cooling_l), 0) + coalesce(sum(water_electricity_production_l), 0), 2) AS water_usage_l
         FROM cur
         WHERE len(product_instance_type) > 0
         GROUP BY product_instance_type
@@ -140,7 +142,9 @@ def q_regional(con):
                 sum(operational_energy_kwh)         AS energy_kwh,
                 sum(pricing_public_on_demand_cost)  AS public_cost,
                 avg(carbon_intensity)               AS avg_ci,
-                avg(power_usage_effectiveness)      AS pue
+                avg(power_usage_effectiveness)      AS pue,
+                coalesce(sum(water_cooling_l), 0) + coalesce(sum(water_electricity_production_l), 0) AS water_l,
+                coalesce(sum(water_consumption_stress_area_l), 0) AS water_stress_l
             FROM cur
             WHERE operational_emissions_co2eq_g is not null
             GROUP BY 1
@@ -150,8 +154,10 @@ def q_regional(con):
             round(operational_g / 1000, 2)                      AS co2_usage_kg,
             round(energy_kwh, 2)                                 AS energy_kwh,
             round(avg_ci, 2)                                     AS carbon_intensity,
+            round(water_stress_l, 2)                             AS water_stress_area_l,
             round(pue, 2)                                        AS pue,
-            round((operational_g + embodied_g) / NULLIF(public_cost, 0), 2) AS g_co2_per_dollar
+            round((operational_g + embodied_g) / NULLIF(public_cost, 0), 2) AS g_co2_per_dollar,
+            round(water_l, 2)                                    AS water_usage_l
         FROM agg
         ORDER BY energy_kwh DESC, co2_usage_kg DESC, region DESC
     """
@@ -205,7 +211,8 @@ def q_tag_breakdown(con, key):
             resource_tags['{key}']                                          AS tag_value,
             round(sum(operational_energy_kwh), 2)                           AS energy_kwh,
             round(sum(operational_emissions_co2eq_g) / 1000, 2)            AS operational_kg,
-            round(sum(embodied_emissions_co2eq_g) / 1000, 2)               AS embodied_kg
+            round(sum(embodied_emissions_co2eq_g) / 1000, 2)               AS embodied_kg,
+            round(coalesce(sum(water_cooling_l), 0) + coalesce(sum(water_electricity_production_l), 0), 2) AS water_usage_l
         FROM cur
         GROUP BY 1
         ORDER BY operational_kg DESC
@@ -354,7 +361,7 @@ def main():
                     breakdown = q_tag_breakdown(con, key)
                     tag_sections.append((key, pct, breakdown))
                     sys.stderr.write(f"\n### Tag: {key}  ({pct} % coverage)\n\n")
-                    sys.stderr.write(md_table(breakdown, ["tag_value", "energy_kwh", "operational_kg", "embodied_kg"]))
+                    sys.stderr.write(md_table(breakdown, ["tag_value", "energy_kwh", "operational_kg", "embodied_kg", "water_usage_l"]))
                     sys.stderr.write("\n")
                 else:
                     sys.stderr.write(f"Please enter a number between 1 and {len(remaining)}.\n")
@@ -376,7 +383,7 @@ def main():
     # Billing summary
     parts.append(section(
         "Summary by Billing Period",
-        md_table(billing_rows, ["BILLING_PERIOD", "energy_kwh", "operational_kg", "embodied_kg", "adp_g"])
+        md_table(billing_rows, ["BILLING_PERIOD", "energy_kwh", "operational_kg", "embodied_kg", "water_usage_l"])
     ))
 
     # Top emitters
@@ -384,14 +391,14 @@ def main():
         "Top Emitters by Service",
         md_table(emitter_rows, [
             "product_code", "service_code", "operation",
-            "co2_usage_kg", "energy_kwh", "co2_embodied_kg"
+            "co2_usage_kg", "energy_kwh", "co2_embodied_kg", "water_usage_l"
         ])
     ))
 
     # Instance types
     parts.append(section(
         "Top Instance Types",
-        md_table(instance_rows, ["instance_type", "co2_usage_kg", "co2_embodied_kg"])
+        md_table(instance_rows, ["instance_type", "co2_usage_kg", "co2_embodied_kg", "water_usage_l"])
     ))
 
     # Coverage
@@ -407,7 +414,7 @@ def main():
         "Regional Analysis",
         md_table(regional_rows, [
             "region", "co2_usage_kg", "energy_kwh",
-            "carbon_intensity", "pue", "g_co2_per_dollar"
+            "carbon_intensity", "water_usage_l", "water_stress_area_l", "pue", "g_co2_per_dollar"
         ])
     ))
 
@@ -419,7 +426,7 @@ def main():
             title = f"Tag Breakdown: {key}  _(coverage {cov_pct} %)_"
             parts.append(section(
                 title,
-                md_table(breakdown, ["tag_value", "energy_kwh", "operational_kg", "embodied_kg"])
+                md_table(breakdown, ["tag_value", "energy_kwh", "operational_kg", "embodied_kg", "water_usage_l"])
             ))
 
     # Recommendations
