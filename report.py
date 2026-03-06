@@ -414,7 +414,7 @@ def main():
         "Regional Analysis",
         md_table(regional_rows, [
             "region", "co2_usage_kg", "energy_kwh",
-            "carbon_intensity", "water_stress_area_l", "pue", "g_co2_per_dollar", "water_usage_l"
+            "carbon_intensity", "water_usage_l", "water_stress_area_l", "pue", "g_co2_per_dollar"
         ])
     ))
 

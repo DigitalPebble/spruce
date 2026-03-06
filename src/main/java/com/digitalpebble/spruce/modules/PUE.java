@@ -20,7 +20,7 @@ import static com.digitalpebble.spruce.SpruceColumn.REGION;
  * Enrichment module that applies a Power Usage Effectiveness (PUE) factor.
  * <p>
  * It attempts to determine the PUE based on the region code ({@link com.digitalpebble.spruce.SpruceColumn#REGION})
- * by looking up values in a CSV resource file ({@code aws-pue.csv}).
+ * by looking up values in a CSV resource file ({@code aws-pue-wue.csv}).
  * <p>
  * The lookup logic follows this priority:
  * <ol>
