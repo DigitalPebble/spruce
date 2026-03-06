@@ -1,0 +1,30 @@
+# Geography,RegionID,PUE,WUE
+Europe,eu-.+,1.11,0.04
+Midde East,me-.+,1.3,
+North America,us-.+,1.14,0.13
+North America,mx-.+,1.14,
+Asia Pacific (excl. China),ap-.+,1.27,0.98
+China,cn-.+,1.25,
+Africa (Cape Town),af-south-1,1.24,
+Asia-Pacific (Tokyo),ap-northeast-1,1.27,0.91
+Asia-Pacific (Mumbai),ap-south-1,1.42,
+Asia-Pacific (Hyderabad),ap-south-2,1.46,
+Asia-Pacific (Singapore),ap-southeast-1,1.32,1.68
+Asia-Pacific (Sydney),ap-southeast-2,,0.12
+Asia-Pacific (Jakarta),ap-southeast-3,1.4,2.75
+Asia-Pacific (Melbourne),ap-southeast-4,,0.02
+Canada (Central),ca-central-1,1.19,0.04
+Canada (West),ca-west-1,1.17,0.08
+China (Ningxia),cn-northwest-1,1.25,
+Europe (Frankfurt),eu-central-1,1.35,0.01
+Europe (Stockholm),eu-north-1,1.1,0.02
+Europe (Spain),eu-south-2,1.09,0.24
+Europe (Ireland),eu-west-1,1.11,0.03
+Middle East (UAE),me-central-1,1.27,
+Middle East (Bahrain),me-south-1,1.33,
+South America (Sao Paulo),sa-east-1,1.17,0.23
+U.S. East (Northern Virginia),us-east-1,1.15,0.12
+U.S. East (Ohio),us-east-2,1.13,0.1
+U.S. West (Northern California),us-west-1,1.18,0.51
+U.S. West (Oregon),us-west-2,1.12,0.16
+Israel,il-central-1,1.3,

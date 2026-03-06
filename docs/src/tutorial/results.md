@@ -35,14 +35,14 @@ python report.py -i s3://my-bucket/spruced/ -o report.html
 
 The report covers the following sections, drawn from the queries documented below:
 
-| Section | What it shows |
-|---|---|
-| Summary by Billing Period | Energy (kWh), operational CO₂ (kg), embodied CO₂ (kg), ADP per month |
-| Top Emitters by Service | Top 20 product/service/operation combinations by operational CO₂ |
-| Top Instance Types | Top 20 instance families by operational + embodied CO₂ |
-| Coverage | % of unblended costs that have emissions data; top 20 uncovered services by cost |
-| Regional Analysis | CO₂, energy, carbon intensity, PUE, and gCO₂/$ per AWS region |
-| Tag Breakdown | Interactive: emissions split by any resource tag present in the data |
+| Section | What it shows                                                                                                |
+|---|--------------------------------------------------------------------------------------------------------------|
+| Summary by Billing Period | Energy (kWh), operational CO₂ (kg), embodied CO₂ (kg), water usage (l)                                       |
+| Top Emitters by Service | Top 20 product/service/operation combinations by operational CO₂                                             |
+| Top Instance Types | Top 20 instance families by operational + embodied CO₂                                                       |
+| Coverage | % of unblended costs that have emissions data; top 20 uncovered services by cost                             |
+| Regional Analysis | CO₂, energy, carbon intensity, water, PUE, and gCO₂/$ per AWS region                                         |
+| Tag Breakdown | Interactive: emissions split by any resource tag present in the data                                         |
 | Recommendations | Automatically generated from coverage gaps, regional carbon intensity, instance families, and billing trends |
 
 After the fixed sections, the script scans `resource_tags` and presents an interactive menu of the most consistently used tag keys, ordered by the percentage of line items that carry a non-empty value. Select a tag to see the emissions breakdown by tag value; press Enter when done. If no tags are found, the report states this clearly.
@@ -61,7 +61,7 @@ Recommendations are generated automatically from the data:
 As an alternative to the script above, you can also write equivalent SQL queries using [DuckDB](https://duckdb.org/) locally
  (or [Athena](https://docs.aws.amazon.com/athena/latest/ug/what-is.html) if the output was [written to S3](../howto/s3.md)):
 
-## Breakdown by billing period
+### Breakdown by billing period
 
 ```sql
 create table enriched_curs as select * from 'output/**/*.parquet';
@@ -87,7 +87,7 @@ This should give an output similar to
 | 2025-09        | 866.24       | 86.76           | 2017.36          |
 
 
-## Breakdown per product, service and operation
+### Breakdown per product, service and operation
 
 ```sql
 select line_item_product_code, product_servicecode, line_item_operation,
@@ -134,7 +134,7 @@ This should give an output similar to
 | AmazonEFS              | AmazonEFS                  | Storage                        | 0.01         | NULL            | 0.03             |
 
 
-## Cost coverage 
+### Cost coverage 
 
 To measure the proportion of the costs for which emissions were calculated
 
@@ -155,7 +155,7 @@ from (
 The figure will vary depending on the services you use. We have measured up to *77%* coverage for some users. 
 
 
-## Breakdown per region
+### Breakdown per region
 
 ```sql
 with agg as (
@@ -168,7 +168,7 @@ with agg as (
         avg(carbon_intensity) as avg_carbon_intensity,
         avg(power_usage_effectiveness) as pue
     from enriched_curs
-    where operational_emissions_co2eq_g > 1
+    where operational_emissions_co2eq_g is not null
     group by 1
 )
 select
@@ -186,13 +186,14 @@ order by energy_usage_kwh desc, co2_usage_kg desc, region_code desc;
 
 Below is an example of what the results might look like.
 
-| region_code | co2_usage_kg | energy_usage_kwh | carbon_intensity | pue  | g_co2_per_dollar |
+| region_code | co2_usage_kg | energy_usage_kwh | carbon_intensity |  pue | g_co2_per_dollar |
 |-------------|-------------:|-----------------:|-----------------:|-----:|-----------------:|
-| us-east-1   | 6607.83      | 14542.69         | 400.33           | 1.13 | 30.85            |
-| us-east-2   | 1150.96      | 2533.06          | 400.33           | 1.13 | 152.91           |
-| eu-west-2   | 385.54       | 1940.72          | 175.03           | 1.14 | 27.15            |
+| us-east-1   |      9292.05 |         17969.69 |           400.33 | 1.15 |            33.94 |
+| us-east-2   |      1569.79 │          3089.49 |           400.33 | 1.13 |           164.47 |
+| eu-west-2   |       583.54 |          2674.09 |           175.03 | 1.11 |            22.32 |
+| eu-north-1  |         0.35 |           13.95  |           20.42  |  1.1 |            6.84  |
 
-## Breakdown per user tag
+### Breakdown per user tag
 
 [User tags](https://docs.aws.amazon.com/tag-editor/latest/userguide/tagging.html) are how environmental impacts can be allocated to a business unit, team, product, environment etc... It is as fundamental for a GreenOps practice as it is for [FinOps](https://www.finops.org/wg/cloud-cost-allocation/).
 By enriching data at the finest possible level, SPRUCE allows to aggregate the impacts by the tags that are relevant for a given organisation. The syntax to do so for a tag `cost_category_top_level` would be for instance 
