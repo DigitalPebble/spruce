@@ -71,7 +71,7 @@ def q_top_emitters(con):
             round(sum(embodied_emissions_co2eq_g) / 1000, 2)    AS co2_embodied_kg,
             round(coalesce(sum(water_cooling_l), 0) + coalesce(sum(water_electricity_production_l), 0), 2) AS water_usage_l
         FROM cur
-        WHERE operational_emissions_co2eq_g > 1
+        WHERE operational_emissions_co2eq_g is not null
         GROUP BY 1, 2, 3
         ORDER BY co2_usage_kg DESC, co2_embodied_kg DESC, energy_kwh DESC, line_item_operation
         LIMIT 20
@@ -146,7 +146,7 @@ def q_regional(con):
                 coalesce(sum(water_cooling_l), 0) + coalesce(sum(water_electricity_production_l), 0) AS water_l,
                 coalesce(sum(water_consumption_stress_area_l), 0) AS water_stress_l
             FROM cur
-            WHERE operational_emissions_co2eq_g > 1
+            WHERE operational_emissions_co2eq_g is not null
             GROUP BY 1
         )
         SELECT

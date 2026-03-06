@@ -168,7 +168,7 @@ with agg as (
         avg(carbon_intensity) as avg_carbon_intensity,
         avg(power_usage_effectiveness) as pue
     from enriched_curs
-    where operational_emissions_co2eq_g > 1
+    where operational_emissions_co2eq_g is not null
     group by 1
 )
 select
@@ -186,11 +186,12 @@ order by energy_usage_kwh desc, co2_usage_kg desc, region_code desc;
 
 Below is an example of what the results might look like.
 
-| region_code | co2_usage_kg | energy_usage_kwh | carbon_intensity | pue  | g_co2_per_dollar |
+| region_code | co2_usage_kg | energy_usage_kwh | carbon_intensity |  pue | g_co2_per_dollar |
 |-------------|-------------:|-----------------:|-----------------:|-----:|-----------------:|
-| us-east-1   | 6607.83      | 14542.69         | 400.33           | 1.13 | 30.85            |
-| us-east-2   | 1150.96      | 2533.06          | 400.33           | 1.13 | 152.91           |
-| eu-west-2   | 385.54       | 1940.72          | 175.03           | 1.14 | 27.15            |
+| us-east-1   |      9292.05 |         17969.69 |           400.33 | 1.15 |            33.94 |
+| us-east-2   |      1569.79 │          3089.49 |           400.33 | 1.13 |           164.47 |
+| eu-west-2   |       583.54 |          2674.09 |           175.03 | 1.11 |            22.32 |
+| eu-north-1  |         0.35 |           13.95  |           20.42  |  1.1 |            6.84  |
 
 ### Breakdown per user tag
 

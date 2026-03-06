@@ -6,7 +6,7 @@ import com.digitalpebble.spruce.Column;
 import com.digitalpebble.spruce.EnrichmentModule;
 import com.digitalpebble.spruce.Provider;
 import com.digitalpebble.spruce.Utils;
-import com.digitalpebble.spruce.modules.realtimecloud.RegionMappings;
+import com.digitalpebble.spruce.modules.electricitymaps.RegionMappings;
 import org.apache.spark.sql.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
