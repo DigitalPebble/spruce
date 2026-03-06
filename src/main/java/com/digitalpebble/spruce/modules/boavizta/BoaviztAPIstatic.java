@@ -30,35 +30,35 @@ public class BoaviztAPIstatic implements EnrichmentModule {
 
     @Override
     public void init(Map<String, Object> params) {
+        synchronized (BoaviztAPIstatic.class) {
+            if (unknownInstanceTypes == null) {
+                unknownInstanceTypes = ConcurrentHashMap.newKeySet();
+            }
 
-        if (unknownInstanceTypes == null) {
-            unknownInstanceTypes = ConcurrentHashMap.newKeySet();
-        }
-
-        if (impactsMap == null) {
-            impactsMap = new HashMap<>();
-        }
-
-        try {
-            List<String> estimates = Utils.loadLinesResources(DEFAULT_RESOURCE_LOCATION);
-            // estimates consists of comma separated instance type, usage energy, embodied emissions
-            estimates.forEach(line -> {
-                if (line.startsWith("#") || line.trim().isEmpty()) {
-                    return; // Skip comments and empty lines
+            if (impactsMap == null) {
+                impactsMap = new HashMap<>();
+                try {
+                    List<String> estimates = Utils.loadLinesResources(DEFAULT_RESOURCE_LOCATION);
+                    // estimates consists of comma separated instance type, usage energy, embodied emissions
+                    estimates.forEach(line -> {
+                        if (line.startsWith("#") || line.trim().isEmpty()) {
+                            return; // Skip comments and empty lines
+                        }
+                        String[] parts = line.split(",");
+                        if (parts.length == 4) {
+                            String instanceType = parts[0].trim();
+                            double energyUsed = Double.parseDouble(parts[1].trim());
+                            double embodied = Double.parseDouble(parts[2].trim());
+                            double adp = Double.parseDouble(parts[3].trim());
+                            impactsMap.put(instanceType, new Impacts(energyUsed, embodied, adp));
+                        } else {
+                            throw new RuntimeException("Invalid estimates mapping line: " + line);
+                        }
+                    });
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
                 }
-                String[] parts = line.split(",");
-                if (parts.length == 4) {
-                    String instanceType = parts[0].trim();
-                    double energyUsed = Double.parseDouble(parts[1].trim());
-                    double embodied = Double.parseDouble(parts[2].trim());
-                    double adp = Double.parseDouble(parts[3].trim());
-                    impactsMap.put(instanceType, new Impacts(energyUsed, embodied, adp));
-                } else {
-                    throw new RuntimeException("Invalid estimates mapping line: " + line);
-                }
-            });
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            }
         }
     }
 
