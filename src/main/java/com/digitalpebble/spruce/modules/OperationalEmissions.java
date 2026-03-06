@@ -22,15 +22,13 @@ public class OperationalEmissions implements EnrichmentModule {
 
     @Override
     public void init(Map<String, Object> params) {
-        if (params != null) {
-            Number pse = (Number) params.get("powerSupplyEfficiency");
-            if (pse != null) {
-                powerSupplyEfficiency = pse.doubleValue();
-            }
-            Number ptl = (Number) params.get("powerTransmissionLosses");
-            if (ptl != null) {
-                powerTransmissionLosses = ptl.doubleValue();
-            }
+        Number pse = (Number) params.get("powerSupplyEfficiency");
+        if (pse != null) {
+            powerSupplyEfficiency = pse.doubleValue();
+        }
+        Number ptl = (Number) params.get("powerTransmissionLosses");
+        if (ptl != null) {
+            powerTransmissionLosses = ptl.doubleValue();
         }
     }
 
