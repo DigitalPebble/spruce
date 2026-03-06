@@ -61,7 +61,7 @@ public class PUE implements EnrichmentModule {
             }
         }
 
-        if (params != null && params.containsKey("default")) {
+        if (params.containsKey("default")) {
             Object val = params.get("default");
             if (val instanceof Number) {
                 this.defaultPueValue = ((Number) val).doubleValue();
