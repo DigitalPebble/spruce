@@ -1,6 +1,6 @@
 # Enrichment modules
 
-SPRUCE generates the estimates above by chaining **EnrichmentModules**.
+SPRUCE generates its estimates by chaining **EnrichmentModules**.
 An `EnrichmentModule` is the unit of extension in SPRUCE. Each module reads columns from
 the CUR input row and/or from values set by earlier modules, then writes its results into a
 shared map. The pipeline materialises one output row per CUR row at the end, avoiding
@@ -33,7 +33,7 @@ Provides an estimate of energy used for networking in and out of data centres. A
 
 ### ccf.Accelerators
 
-Provides an estimate of energy used accelerators, following the approach used by the [Cloud Carbon Footprint](https://www.cloudcarbonfootprint.org/) project.
+Provides an estimate of energy used by accelerators, following the approach used by the [Cloud Carbon Footprint](https://www.cloudcarbonfootprint.org/) project.
 See [methodology](https://www.cloudcarbonfootprint.org/docs/methodology/#graphic-processing-units-gpus) for more details.
 
 **Output column**:  `operational_energy_kwh`.
@@ -59,12 +59,14 @@ This impact is expressed in grams of antimony equivalent (gSbeq).
 
 Similar to the previous module but does not get the information from an instance of the BoaviztAPI but from a static file generated from it. This makes it simpler to use SPRUCE.
 
+**Output columns**: `operational_energy_kwh`, `embodied_emissions_co2eq_g` and `embodied_adp_sbeq_g`.
+
 ## electricitymaps.AverageCarbonIntensity
 
 Adds average carbon intensity factors generated from [ElectricityMaps](https://www.electricitymaps.com/)' 2024 datasets.
 The [life-cycle](https://portal.electricitymaps.com/developer-hub/api/getting-started#emission-factors) emission factors are used.
 
-**Output columns**: `carbon_intensity`.
+**Output column**: `carbon_intensity`.
 
 ## RegionExtraction
 
@@ -74,7 +76,7 @@ Extracts the region information from the input and stores it in a standard locat
 
 ## PUE
 
-Uses the 2024 data published by AWS for [Power Usage_Effectiveness](https://sustainability.aboutamazon.com/aws-wue-pue.csv) to rows for which energy usage has been estimated.
+Uses the 2024 data published by AWS for [Power Usage Effectiveness](https://sustainability.aboutamazon.com/aws-wue-pue.csv) to rows for which energy usage has been estimated.
 This provides a more accurate and up to date approach than the flat rate approach in the [CCF methodology](https://www.cloudcarbonfootprint.org/docs/methodology/#pue).
 
 **Output column**:  `power_usage_effectiveness`.
@@ -102,8 +104,8 @@ The default coefficients are taken from the [Tailpipe methodology](https://tailp
 ## OperationalEmissions
 
 Computes operational emissions based on the energy usage, average carbon intensity factors and `power_usage_effectiveness` estimated by the preceding modules, based on the `region`. It also accounts for two additional overheads:
-* **Power Supply Efficiency**: The power lost between the data center mains electricity and the server (default `1.04`).
-* **Power Transmission Losses**: The power lost between the power station and the data center mains electricity (default `1.08`).
+* **Power Supply Efficiency**: The power lost between the data centre mains electricity and the server (default `1.04`).
+* **Power Transmission Losses**: The power lost between the power station and the data centre mains electricity (default `1.08`).
 
 These two values can be overridden via configuration (`powerSupplyEfficiency` and `powerTransmissionLosses`).
 

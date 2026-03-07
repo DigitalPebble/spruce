@@ -25,7 +25,7 @@ Optionally, add **Tags** to track the cost and impacts of your GreenOps activiti
 
 Make sure your AWS keys are exported as environment variables
 
-```
+```shell
 eval "$(aws configure export-credentials --profile default --format env)"
 ```
 

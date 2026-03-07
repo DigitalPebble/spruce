@@ -10,7 +10,7 @@ This determines which modules are used and in what order but also configures the
 
 ## Change the configuration
 
-In order to use a different configuration, for instance to replace a module with an other one, or change their configuration (like the network coefficient above), 
+In order to use a different configuration, for instance to replace a module with another one, or change their configuration (like the network coefficient above), 
 you simply need to write a json file with your changes and pass it as an argument to the Spark job with '-c'.
 
 
