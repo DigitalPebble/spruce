@@ -6,7 +6,7 @@ log4j.  You need to provide a configuration file and pass it to Spark, a good st
 
 The next step is to set the log level for specific resources, for instance adding the section below
 
-```
+```properties
 # SPRUCE
 logger.spruce.name = com.digitalpebble.spruce
 logger.spruce.level = DEBUG

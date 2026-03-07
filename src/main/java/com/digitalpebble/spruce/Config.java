@@ -79,7 +79,7 @@ public class Config implements Serializable {
 
         for (Map<String, Object> moduleMap : modulesList) {
             String className = (String) moduleMap.get("className");
-            Map<String, Object> config = (Map<String, Object>) moduleMap.get("config");
+            Map<String, Object> config = (Map<String, Object>) moduleMap.getOrDefault("config", java.util.Collections.emptyMap());
             try {
                 Class<?> clazz = Class.forName(className);
                 if (!com.digitalpebble.spruce.EnrichmentModule.class.isAssignableFrom(clazz)) {

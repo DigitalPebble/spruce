@@ -20,7 +20,7 @@ import static com.digitalpebble.spruce.SpruceColumn.REGION;
  * Enrichment module that applies a Power Usage Effectiveness (PUE) factor.
  * <p>
  * It attempts to determine the PUE based on the region code ({@link com.digitalpebble.spruce.SpruceColumn#REGION})
- * by looking up values in a CSV resource file ({@code aws-pue.csv}).
+ * by looking up values in a CSV resource file ({@code aws-pue-wue.csv}).
  * <p>
  * The lookup logic follows this priority:
  * <ol>
@@ -32,7 +32,7 @@ import static com.digitalpebble.spruce.SpruceColumn.REGION;
 public class PUE implements EnrichmentModule {
 
     private double defaultPueValue = 1.15;
-    private static final String CSV_RESOURCE_PATH = "aws-pue.csv";
+    private static final String CSV_RESOURCE_PATH = "aws-pue-wue.csv";
 
     private final Map<String, Double> exactMatches = new HashMap<>();
     private final Map<Pattern, Double> regexMatches = new HashMap<>();
@@ -44,8 +44,10 @@ public class PUE implements EnrichmentModule {
         for (String[] parts : rows) {
             if (parts.length >= 3) {
                 String key = parts[1].trim();
+                String pueStr = parts[2].trim();
+                if (pueStr.isEmpty()) continue;
                 try {
-                    double value = Double.parseDouble(parts[2].trim());
+                    double value = Double.parseDouble(pueStr);
 
                     // Only treat as regex if it contains regex metacharacters
                     if (key.contains(".") || key.contains("+") || key.contains("*")) {
@@ -59,7 +61,7 @@ public class PUE implements EnrichmentModule {
             }
         }
 
-        if (params != null && params.containsKey("default")) {
+        if (params.containsKey("default")) {
             Object val = params.get("default");
             if (val instanceof Number) {
                 this.defaultPueValue = ((Number) val).doubleValue();

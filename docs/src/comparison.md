@@ -66,7 +66,7 @@ SPRUCE is part of a growing ecosystem of open source tools focused on measuring 
 | **Integration**     | Enriches existing billing data for FinOps alignment              | Standalone tool for environmental assessment          |
 | **Scalability**     | Designed for large-scale historical data processing              | Suitable for periodic resource audits                 |
 | **Output**          | Enriched reports in Parquet/CSV for custom analytics             | Prometheus metrics and Grafana dashboard              |
-| **Accuracy**        | Uses ElecticityMap intensity factors                             | Uses outdated factors from BoaviztAPI                 |
+| **Accuracy**        | Uses ElectricityMaps intensity factors                             | Uses outdated factors from BoaviztAPI                 |
 
 ### When to Choose SPRUCE
 

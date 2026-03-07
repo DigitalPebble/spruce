@@ -8,7 +8,7 @@ See instructions on [Generate Cost and Usage Reports](../howto/generate_cur.md).
 
 For this tutorial, we will assume that you copied the S3 files to your local file system. You can do this with the AWS CLI
 
-```
+```shell
 aws s3 cp s3://{bucket}/{prefix}/{data_export_name}/data/ curs --recursive
 ```
 
@@ -23,7 +23,7 @@ Pull the latest Docker image with
 This retrieves a Docker image containing Apache Spark as well as the SPRUCE jar.
 
 The command below processes the data locally by mounting the directories containing the CURs and output as volumes:
-```
+```shell
 docker run -it -v $(pwd)/curs:/curs -v $(pwd)/output:/output --rm --name spruce --network host \
 ghcr.io/digitalpebble/spruce \
 /opt/spark/bin/spark-submit  \

@@ -6,7 +6,7 @@ The easiest way to do this is by running it on [AWS EMR Serverless](https://docs
 managed, on-demand service that lets you run [Apache Spark®](https://spark.apache.org/) without provisioning or managing clusters. You simply submit your jobs, and EMR Serverless automatically provisions, scales, and shuts down the required resources.
 You pay only for the compute and memory used while your jobs run, making it ideal for episodic, variable, or exploratory data processing workloads.
 
-Since AWS CUR reports are stored on S3, it makes perfect them to enrich them straight from there without having to copy them.
+Since AWS CUR reports are stored on S3, it makes perfect sense to enrich them straight from there without having to copy them.
 
 EMR is also designed to scale, if your CUR reports are large, this is a good way of enriching them.
 
@@ -27,20 +27,25 @@ Have a look at the [user guide](https://docs.aws.amazon.com/emr/latest/EMR-Serve
 
 From the CLI
 
-`aws emr-serverless create-application --type spark --release-label emr-spark-8.0-preview --name spark4-SPRUCE`
+```shell
+aws emr-serverless create-application \
+    --type spark \
+    --release-label emr-spark-8.0-preview \
+    --name spark4-SPRUCE
+```
 
 Note the application ID returned in the output. You can always find it with `aws emr-serverless list-applications`.
 
 Check that the application has been created with 
 
-```
+```shell
 aws emr-serverless get-application \
     --application-id application-id
 ```
 
 Next, you launch a job
 
-```
+```shell
 aws emr-serverless start-job-run \
     --application-id application-id \
     --execution-role-arn job-role-arn \
@@ -49,7 +54,7 @@ aws emr-serverless start-job-run \
         "sparkSubmit": {
           "entryPoint": "s3://spruce-jars/spruce-0.7.jar",
           "entryPointArguments": [
-             "-i", "s3:/INPUT-curs/","-o","s3://spruce-output/"
+             "-i", "s3://INPUT-curs/","-o","s3://spruce-output/"
           ],
           "sparkSubmitParameters": "--conf spark.executor.cores=1 --conf spark.executor.memory=4g --conf spark.driver.cores=1 --conf spark.driver.memory=4g --conf spark.executor.instances=1"
         }
@@ -57,7 +62,7 @@ aws emr-serverless start-job-run \
 ```
 
 where `application-id` is the one you got when creating the application above.
-`entryPoint` is the location of the SPRUCE jar. The _entryPointArguments_ are where you specify the inputs and outputs of SPRUCE, as explained in the [tutorial](../tutorial/with-spark.html).
+`entryPoint` is the location of the SPRUCE jar. The _entryPointArguments_ are where you specify the inputs and outputs of SPRUCE, as explained in the [tutorial](../tutorial/with-spark.md).
 
 Note the _job run ID_ returned in the output.
 
@@ -65,13 +70,13 @@ Note the _job run ID_ returned in the output.
 
 Depending on the size of your CUR reports, the enrichment will take more or less time. You can check that it has completed with 
 
-```
+```shell
 aws emr-serverless get-job-run \
     --application-id application-id \
     --job-run-id job-run-id
 ```
 
-Look at the tutorial, for examples of how to [query](tutorial/results.html) the enriched usage reports.
+Look at the tutorial for examples of how to [query](../tutorial/results.md) the enriched usage reports.
 
 ## Use the AWS Console
 

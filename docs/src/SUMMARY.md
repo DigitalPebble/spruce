@@ -6,7 +6,7 @@
 
 - [Quickstart with Docker 🐳](tutorial/with-docker.md)
 - [Quickstart with Apache Spark ⚡](tutorial/with-spark.md)
-- [Explore the results](tutorial/results.md)
+- [Explore the results 🔎](tutorial/results.md)
 
 # Explanations 📚
 
