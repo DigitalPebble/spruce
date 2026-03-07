@@ -8,6 +8,5 @@ title = "SPRUCE"
 [output.html]
 additional-css = ["custom.css"]
 git-repository-url = "https://github.com/DigitalPebble/spruce"
-git-repository-icon = "fa-github"
 default-theme = "rust"
 edit-url-template = "https://github.com/DigitalPebble/spruce/edit/main/docs/{path}"
