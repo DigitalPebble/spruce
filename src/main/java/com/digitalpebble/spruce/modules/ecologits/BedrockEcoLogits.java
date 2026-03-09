@@ -75,12 +75,14 @@ public class BedrockEcoLogits implements EnrichmentModule {
             productMap = JavaConverters.mapAsJavaMapConverter((scala.collection.Map<String, String>) productObj).asJava();
         } else if (productObj instanceof Map) {
             productMap = (Map<String, String>) productObj;
-        } else  {
+        } else {
             return;
         }
 
-        String modelId = productMap.get("modelId");
-        if(modelId == null || modelId.isEmpty()) return;
+        String modelId = productMap.get("model");
+        if (modelId == null || modelId.isEmpty()) {
+            return;
+        }
 
         EcoLogits.ModelImpacts modelImpacts = impacts.getImpacts(modelId);
         if (modelImpacts == null) {
@@ -96,20 +98,43 @@ public class BedrockEcoLogits implements EnrichmentModule {
         }
 
         double tokenMultiplier = parseTokenMultiplier(PRICING_UNIT.getString(row));
-        double totalTokens= usageAmount * tokenMultiplier;
+        double totalTokens = usageAmount * tokenMultiplier;
 
-        // split into input/output tokens
-        double inputTokens = totalTokens * inputTokenRatio;
-        double outputTokens = totalTokens * (1.0 - inputTokenRatio);
+        // Check Input vs Output based on line_item_usage_type
+        boolean isInput = false;
+        boolean isOutput = false;
 
-        double energyKwh = (inputTokens / 1_000.0) * modelImpacts.getEnergyKwhPer1kInputTokens()
-                + (outputTokens / 1_000.0) * modelImpacts.getEnergyKwhPer1kOutputTokens();
+        int usageTypeIndex = LINE_ITEM_USAGE_TYPE.resolveIndex(row);
+        if (usageTypeIndex >= 0 && !row.isNullAt(usageTypeIndex)) {
+            Object typeObj = row.get(usageTypeIndex);
+            if (typeObj instanceof String) {
+                String usageType = ((String) typeObj).toLowerCase();
+                isInput = usageType.contains("input");
+                isOutput = usageType.contains("output");
+            }
+        }
+
+        double energyKwh = 0.0;
+        if (isInput && !isOutput) {
+            energyKwh = (totalTokens / 1_000.0) * modelImpacts.getEnergyKwhPer1kInputTokens();
+        } else if (isOutput && !isInput) {
+            energyKwh = (totalTokens / 1_000.0) * modelImpacts.getEnergyKwhPer1kOutputTokens();
+        } else {
+            // Fallback if CUR does not specify, or if the string is ambiguous (contains both)
+            double inputTokens = totalTokens * inputTokenRatio;
+            double outputTokens = totalTokens * (1.0 - inputTokenRatio);
+            energyKwh = (inputTokens / 1_000.0) * modelImpacts.getEnergyKwhPer1kInputTokens()
+                    + (outputTokens / 1_000.0) * modelImpacts.getEnergyKwhPer1kOutputTokens();
+        }
 
         // calculate embodied emissions
         double embodiedEmissions = (totalTokens / 1_000.0) * modelImpacts.getEmbodiedCo2eGPer1kTokens();
 
-        enrichedValues.put(ENERGY_USED, energyKwh);
-        enrichedValues.put(EMBODIED_EMISSIONS, embodiedEmissions);
+        double currentEnergy = (Double) enrichedValues.getOrDefault(ENERGY_USED, 0.0);
+        double currentEmbodied = (Double) enrichedValues.getOrDefault(EMBODIED_EMISSIONS, 0.0);
+
+        enrichedValues.put(ENERGY_USED, currentEnergy + energyKwh);
+        enrichedValues.put(EMBODIED_EMISSIONS, currentEmbodied + embodiedEmissions);
 
         LOG.debug("Bedrock model={} tokens={} energy_kwh={} embodied_g={}", modelId, totalTokens, energyKwh, embodiedEmissions);
     }
