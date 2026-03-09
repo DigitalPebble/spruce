@@ -59,6 +59,22 @@ Source: [sciencedirect](https://www.sciencedirect.com/topics/engineering/abiotic
 
 Similar to the previous module but does not get the information from an instance of the BoaviztAPI but from a static file generated from it. This makes it simpler to use SPRUCE.
 
+## EcoLogits
+
+The following modules estimate the energy consumption and embodied emissions of LLM inference using static coefficients derived from the [EcoLogits](https://ecologits.ai/) project.
+
+### ecologits.BedrockEcoLogits
+
+Provides an estimate of energy consumption and embodied emissions for LLM inference on **AWS Bedrock**, based on static per-model coefficients from the EcoLogits project. This follows the same pattern as `boavizta.BoaviztAPIstatic`: a static data file bundled in the JAR is loaded at initialisation time, and the module matches Bedrock CUR rows to per-model coefficients to compute energy usage and embodied emissions.
+
+The module reads the model identifier from the `product` map in the CUR row and normalises the token count from `pricing_unit` (handling real-world values such as `1K tokens` or `1M tokens`). It uses the `line_item_usage_type` field to distinguish between input and output tokens, falling back to a ratio split when the usage type is ambiguous.
+
+Only the base energy (kWh) and embodied emissions (gCO₂eq) are computed here. Final operational emissions are produced by the standard downstream pipeline (`PUE` → `AverageCarbonIntensity` → `OperationalEmissions`), consistent with how other modules integrate into SPRUCE.
+
+> **Note:** The EcoLogits coefficients are derived from research data and should be validated before use in production reporting.
+
+Populates the columns `operational_energy_kwh` and `embodied_emissions_co2eq_g`.
+
 ## electricitymaps.AverageCarbonIntensity
 
 Adds average carbon intensity factors generated from [ElectricityMaps](https://www.electricitymaps.com/)' 2024 datasets.
