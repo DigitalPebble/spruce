@@ -4,7 +4,17 @@
     "energy_kwh_per_1k_output_tokens": 0.00080,
     "embodied_co2e_g_per_1k_tokens": 0.005
   },
+  "Claude 2": {
+    "energy_kwh_per_1k_input_tokens": 0.00015,
+    "energy_kwh_per_1k_output_tokens": 0.00080,
+    "embodied_co2e_g_per_1k_tokens": 0.005
+  },
   "anthropic.claude-v2:1": {
+    "energy_kwh_per_1k_input_tokens": 0.00015,
+    "energy_kwh_per_1k_output_tokens": 0.00080,
+    "embodied_co2e_g_per_1k_tokens": 0.005
+  },
+  "Claude 2.1": {
     "energy_kwh_per_1k_input_tokens": 0.00015,
     "energy_kwh_per_1k_output_tokens": 0.00080,
     "embodied_co2e_g_per_1k_tokens": 0.005
@@ -14,7 +24,17 @@
     "energy_kwh_per_1k_output_tokens": 0.00025,
     "embodied_co2e_g_per_1k_tokens": 0.002
   },
+  "Claude 3 Haiku": {
+    "energy_kwh_per_1k_input_tokens": 0.00005,
+    "energy_kwh_per_1k_output_tokens": 0.00025,
+    "embodied_co2e_g_per_1k_tokens": 0.002
+  },
   "anthropic.claude-3-sonnet-20240229-v1:0": {
+    "energy_kwh_per_1k_input_tokens": 0.00012,
+    "energy_kwh_per_1k_output_tokens": 0.00060,
+    "embodied_co2e_g_per_1k_tokens": 0.004
+  },
+  "Claude 3 Sonnet": {
     "energy_kwh_per_1k_input_tokens": 0.00012,
     "energy_kwh_per_1k_output_tokens": 0.00060,
     "embodied_co2e_g_per_1k_tokens": 0.004
@@ -24,7 +44,17 @@
     "energy_kwh_per_1k_output_tokens": 0.00150,
     "embodied_co2e_g_per_1k_tokens": 0.010
   },
+  "Claude 3 Opus": {
+    "energy_kwh_per_1k_input_tokens": 0.00030,
+    "energy_kwh_per_1k_output_tokens": 0.00150,
+    "embodied_co2e_g_per_1k_tokens": 0.010
+  },
   "amazon.titan-text-express-v1": {
+    "energy_kwh_per_1k_input_tokens": 0.00008,
+    "energy_kwh_per_1k_output_tokens": 0.00040,
+    "embodied_co2e_g_per_1k_tokens": 0.003
+  },
+  "Titan Text G1 - Express": {
     "energy_kwh_per_1k_input_tokens": 0.00008,
     "energy_kwh_per_1k_output_tokens": 0.00040,
     "embodied_co2e_g_per_1k_tokens": 0.003
@@ -34,7 +64,17 @@
     "energy_kwh_per_1k_output_tokens": 0.00020,
     "embodied_co2e_g_per_1k_tokens": 0.001
   },
+  "Llama 3 8B Instruct": {
+    "energy_kwh_per_1k_input_tokens": 0.00004,
+    "energy_kwh_per_1k_output_tokens": 0.00020,
+    "embodied_co2e_g_per_1k_tokens": 0.001
+  },
   "meta.llama3-70b-instruct-v1:0": {
+    "energy_kwh_per_1k_input_tokens": 0.00025,
+    "energy_kwh_per_1k_output_tokens": 0.00120,
+    "embodied_co2e_g_per_1k_tokens": 0.008
+  },
+  "Llama 3 70B Instruct": {
     "energy_kwh_per_1k_input_tokens": 0.00025,
     "energy_kwh_per_1k_output_tokens": 0.00120,
     "embodied_co2e_g_per_1k_tokens": 0.008
@@ -44,7 +84,17 @@
     "energy_kwh_per_1k_output_tokens": 0.00020,
     "embodied_co2e_g_per_1k_tokens": 0.001
   },
+  "Mistral 7B Instruct": {
+    "energy_kwh_per_1k_input_tokens": 0.00004,
+    "energy_kwh_per_1k_output_tokens": 0.00020,
+    "embodied_co2e_g_per_1k_tokens": 0.001
+  },
   "mistral.mixtral-8x7b-instruct-v0:1": {
+    "energy_kwh_per_1k_input_tokens": 0.00010,
+    "energy_kwh_per_1k_output_tokens": 0.00050,
+    "embodied_co2e_g_per_1k_tokens": 0.004
+  },
+  "Mixtral 8x7B Instruct": {
     "energy_kwh_per_1k_input_tokens": 0.00010,
     "energy_kwh_per_1k_output_tokens": 0.00050,
     "embodied_co2e_g_per_1k_tokens": 0.004
@@ -54,7 +104,17 @@
     "energy_kwh_per_1k_output_tokens": 0.00060,
     "embodied_co2e_g_per_1k_tokens": 0.004
   },
+  "Command R": {
+    "energy_kwh_per_1k_input_tokens": 0.00012,
+    "energy_kwh_per_1k_output_tokens": 0.00060,
+    "embodied_co2e_g_per_1k_tokens": 0.004
+  },
   "ai21.j2-ultra-v1": {
+    "energy_kwh_per_1k_input_tokens": 0.00020,
+    "energy_kwh_per_1k_output_tokens": 0.00100,
+    "embodied_co2e_g_per_1k_tokens": 0.006
+  },
+  "Jurassic-2 Ultra": {
     "energy_kwh_per_1k_input_tokens": 0.00020,
     "energy_kwh_per_1k_output_tokens": 0.00100,
     "embodied_co2e_g_per_1k_tokens": 0.006

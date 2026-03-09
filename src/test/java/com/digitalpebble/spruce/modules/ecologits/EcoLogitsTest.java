@@ -101,20 +101,32 @@ public class EcoLogitsTest {
             }
 
             static Stream<String> knownModelIdsProvider() {
-                // All the model IDs present in bedrock.json
+                // All the model IDs and commercial names present in bedrock.json
                 return Stream.of(
                         "anthropic.claude-v2",
+                        "Claude 2",
                         "anthropic.claude-v2:1",
+                        "Claude 2.1",
                         "anthropic.claude-3-haiku-20240307-v1:0",
+                        "Claude 3 Haiku",
                         "anthropic.claude-3-sonnet-20240229-v1:0",
+                        "Claude 3 Sonnet",
                         "anthropic.claude-3-opus-20240229-v1:0",
+                        "Claude 3 Opus",
                         "amazon.titan-text-express-v1",
+                        "Titan Text G1 - Express",
                         "meta.llama3-8b-instruct-v1:0",
+                        "Llama 3 8B Instruct",
                         "meta.llama3-70b-instruct-v1:0",
+                        "Llama 3 70B Instruct",
                         "mistral.mistral-7b-instruct-v0:2",
+                        "Mistral 7B Instruct",
                         "mistral.mixtral-8x7b-instruct-v0:1",
+                        "Mixtral 8x7B Instruct",
                         "cohere.command-r-v1:0",
-                        "ai21.j2-ultra-v1"
+                        "Command R",
+                        "ai21.j2-ultra-v1",
+                        "Jurassic-2 Ultra"
                 );
             }
         }
