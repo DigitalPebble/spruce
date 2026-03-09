@@ -32,8 +32,8 @@ A similar problem happens with the environmental impacts estimated by SPRUCE. Th
 **SPRUCE** has a separate Apache Spark job which: 
 
 * groups all the line_items by hourly time slot and resourceID
-* get the sum of all the impacts for the resources (EC2, volume, network)
-* get the sum of the split usage ratios
+* gets the sum of all the impacts for the resources (EC2, volume, network)
+* gets the sum of the split usage ratios
 * allocates the impacts on the splits based on their usage ratios
 
 <div class="warning">
@@ -44,7 +44,7 @@ The impact columns for the splits have a prefix `split_`, e.g `split_operational
 
 The call is similar to [how you run Spruce](../tutorial/with-spark.md#run-on-apache-spark)
 
-```
+```shell
 spark-submit --class com.digitalpebble.spruce.SplitJob --driver-memory 8g ./target/spruce-*.jar -i ./enriched_curs -o ./enriched_curs_with_splits
 ```
 

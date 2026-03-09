@@ -1,6 +1,6 @@
 # Enrichment modules
 
-SPRUCE generates the estimates above by chaining **EnrichmentModules**.
+SPRUCE generates its estimates by chaining **EnrichmentModules**.
 An `EnrichmentModule` is the unit of extension in SPRUCE. Each module reads columns from
 the CUR input row and/or from values set by earlier modules, then writes its results into a
 shared map. The pipeline materialises one output row per CUR row at the end, avoiding
@@ -23,20 +23,20 @@ Provides an estimate of energy used for storage by applying a flat coefficient p
 Service-specific replication factors are applied.
 See [methodology](https://www.cloudcarbonfootprint.org/docs/methodology#storage) for more details.
 
-Populates the column `operational_energy_kwh`.
+**Output column**:  `operational_energy_kwh`.
 
 ### ccf.Networking
 
 Provides an estimate of energy used for networking in and out of data centres. Applies a flat coefficient of _0.001 kWh/Gb_ by default, see [methodology](https://www.cloudcarbonfootprint.org/docs/methodology#networking) for more details. The coefficient can be changed via configuration as shown in [Configure the modules](howto/config_modules.md).
 
-Populates the column `operational_energy_kwh`.
+**Output column**:  `operational_energy_kwh`.
 
 ### ccf.Accelerators
 
-Provides an estimate of energy used accelerators, following the approach used by the [Cloud Carbon Footprint](https://www.cloudcarbonfootprint.org/) project.
+Provides an estimate of energy used by accelerators, following the approach used by the [Cloud Carbon Footprint](https://www.cloudcarbonfootprint.org/) project.
 See [methodology](https://www.cloudcarbonfootprint.org/docs/methodology/#graphic-processing-units-gpus) for more details.
 
-Populates the column `operational_energy_kwh`.
+**Output column**:  `operational_energy_kwh`.
 
 ## Boavizta
 
@@ -46,18 +46,20 @@ The following modules make use of the [BoaviztAPI](https://doc.api.boavizta.org)
 
 Provides an estimate of [final energy](https://www.eea.europa.eu/en/analysis/indicators/primary-and-final-energy-consumption) used for computation (EC2, OpenSearch, RDS) as well as the related embodied emissions using the [BoaviztAPI](https://doc.api.boavizta.org/).
 
-Populates the columns `operational_energy_kwh`, `embodied_emissions_co2eq_g` and `embodied_adp_sbeq_g`. 
+**Output columns**: `operational_energy_kwh`, `embodied_emissions_co2eq_g` and `embodied_adp_sbeq_g`. 
 
 From https://doc.api.boavizta.org/Explanations/impacts/ 
 
 **Abiotic Depletion Potential (ADP)** is an environmental impact indicator. This category corresponds to mineral and resources used and is, in this sense, mainly influenced by the rate of resources extracted. The effect of this consumption on their depletion is estimated according to their availability stock at a global scale. This impact category is divided into two components: a material component and a fossil fuels component (we use a version of ADP which include both).
 This impact is expressed in grams of antimony equivalent (gSbeq).
 
-Source: [sciencedirect](https://www.sciencedirect.com/topics/engineering/abiotic-depletion-potential)
+**Source**: [sciencedirect](https://www.sciencedirect.com/topics/engineering/abiotic-depletion-potential)
 
 ### boavizta.BoaviztAPIstatic
 
 Similar to the previous module but does not get the information from an instance of the BoaviztAPI but from a static file generated from it. This makes it simpler to use SPRUCE.
+
+**Output columns**: `operational_energy_kwh`, `embodied_emissions_co2eq_g` and `embodied_adp_sbeq_g`.
 
 ## EcoLogits
 
@@ -80,20 +82,20 @@ Populates the columns `operational_energy_kwh` and `embodied_emissions_co2eq_g`.
 Adds average carbon intensity factors generated from [ElectricityMaps](https://www.electricitymaps.com/)' 2024 datasets.
 The [life-cycle](https://portal.electricitymaps.com/developer-hub/api/getting-started#emission-factors) emission factors are used.
 
-Populates the columns `carbon_intensity`.
+**Output column**: `carbon_intensity`.
 
 ## RegionExtraction
 
 Extracts the region information from the input and stores it in a standard location.
 
-Populates the column `region`.
+**Output column**:  `region`.
 
 ## PUE
 
-Uses the 2024 data published by AWS for [Power Usage_Effectiveness](https://sustainability.aboutamazon.com/aws-wue-pue.csv) to rows for which energy usage has been estimated.
+Uses the 2024 data published by AWS for [Power Usage Effectiveness](https://sustainability.aboutamazon.com/aws-wue-pue.csv) to rows for which energy usage has been estimated.
 This provides a more accurate and up to date approach than the flat rate approach in the [CCF methodology](https://www.cloudcarbonfootprint.org/docs/methodology/#pue).
 
-Populates the column `power_usage_effectiveness`.
+**Output column**:  `power_usage_effectiveness`.
 
 ## Water
 
@@ -101,32 +103,32 @@ Estimates water consumption associated with cloud usage, producing three columns
 
 * **`water_cooling_l`** – the volume of water (in litres) used for **data centre cooling**. Computed as `operational_energy_kwh` × `power_usage_effectiveness` × WUE, where WUE (Water Usage Effectiveness) is the ratio of litres of water consumed for cooling per kWh of IT energy. The per-region WUE values come from the [2024 data published by AWS](https://sustainability.aboutamazon.com/aws-wue-pue.csv).
 
-* **`water_electricity_production_l`** – the volume of water (in litres) consumed during **electricity generation** to power the data centre. Computed as `operational_energy_kwh` × `power_usage_effectiveness` × WCF, where WCF (Water Consumption Factor) represents the litres of water consumed per kWh of electricity generated. The WCF values per electricity grid zone are sourced from the [WRI methodology for calculating water use embedded in purchased electricity](https://www.wri.org/data/dataset-guidance-calculating-water-use-embedded-purchased-electricity). The mapping from AWS region to electricity grid zone uses the [GSF Realtime cloud project](https://github.com/Green-Software-Foundation/real-time-cloud).
+* **`water_electricity_production_l`** – the volume of water (in litres) consumed during **electricity generation** to power the data centre. Computed as `operational_energy_kwh` × `power_usage_effectiveness` × WCF, where WCF (Water Consumption Factor) represents the litres of water consumed per kWh of electricity generated. The WCF values per electricity grid zone are sourced from the [WRI methodology for calculating water use embedded in purchased electricity](https://www.wri.org/data/dataset-guidance-calculating-water-use-embedded-purchased-electricity).
 
 * **`water_consumption_stress_area_l`** – the total water consumption (`water_cooling_l` + `water_electricity_production_l`) attributed to regions under **high or extremely high water stress** (Aqueduct 4.0 baseline water stress category ≥ 3). This field is only populated when the electricity grid zone for the region has a water stress category of 3 (High) or 4 (Extremely High); it is absent otherwise. Water stress categories are derived from the [WRI Aqueduct 4.0](https://www.wri.org/data/aqueduct-global-maps-40) dataset.
 The World Resource Institute's Aqueduct tool is licensed through Creative Commons. The data has been extracted and mapped to the ElectricityMaps region code.
 
-Source: WRI Aqueduct, accessed on 6th March 2026 - WRI Aqueduct 4.0 https://aqueduct.wri.org/
-
-* Populates the columns `water_cooling_l`, `water_electricity_production_l`, and `water_consumption_stress_area_l`.
+**Output columns**: `water_cooling_l`, `water_electricity_production_l`, and `water_consumption_stress_area_l`.
 
 ## Serverless
 
 Provides an estimate of energy for the memory and vCPU usage of serverless services like Fargate or EMR.
 The default coefficients are taken from the [Tailpipe methodology](https://tailpipe.ai/methodology/serverless-explained/).
 
-Populates the column `operational_energy_kwh`.
+**Output column**:  `operational_energy_kwh`.
 
 ## OperationalEmissions
 
 Computes operational emissions based on the energy usage, average carbon intensity factors and `power_usage_effectiveness` estimated by the preceding modules, based on the `region`. It also accounts for two additional overheads:
-* **Power Supply Efficiency**: The power lost between the data center mains electricity and the server (default `1.04`).
-* **Power Transmission Losses**: The power lost between the power station and the data center mains electricity (default `1.08`).
+* **Power Supply Efficiency**: The power lost between the data centre mains electricity and the server (default `1.04`).
+* **Power Transmission Losses**: The power lost between the power station and the data centre mains electricity (default `1.08`).
 
 These two values can be overridden via configuration (`powerSupplyEfficiency` and `powerTransmissionLosses`).
 
 Populates the columns `operational_emissions_co2eq_g`.
 
 `operational_emissions_co2eq_g` is equal to `operational_energy_kwh` * `carbon_intensity` * `power_usage_effectiveness` * `powerSupplyEfficiency` * `powerTransmissionLosses`.
+
+**Output columns**: `operational_emissions_co2eq_g`.
 
 

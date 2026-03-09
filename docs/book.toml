@@ -1,5 +1,6 @@
 [book]
 authors = ["Julien Nioche"]
+description = "Estimate the environmental impact of your cloud usage"
 language = "en"
 src = "src"
 title = "SPRUCE"
@@ -7,3 +8,5 @@ title = "SPRUCE"
 [output.html]
 additional-css = ["custom.css"]
 git-repository-url = "https://github.com/DigitalPebble/spruce"
+default-theme = "rust"
+edit-url-template = "https://github.com/DigitalPebble/spruce/edit/main/docs/{path}"

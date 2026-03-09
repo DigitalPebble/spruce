@@ -1,3 +1,19 @@
 :root {
   --content-max-width: 70%;
 }
+
+img[src$="logo.png"] {
+  display: block;
+  margin: 0 auto;
+  max-width: 300px;
+}
+
+table td, table thead th {
+  padding: 6px 16px;
+  white-space: nowrap;
+}
+
+table td:last-child {
+  white-space: normal;
+}
+

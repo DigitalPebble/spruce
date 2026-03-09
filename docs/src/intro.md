@@ -13,6 +13,7 @@ splits the enrichment of the data into configurable stages.
 A typical sequence of stages would be:
 - estimation of embodied emissions from the hardware
 - estimation of energy used
+- estimation of water consumption
 - application of PUE and other overheads
 - application of carbon intensity factors
 
@@ -23,4 +24,4 @@ the CURs at scale without having to export or expose any of your data.
 
 The code of the project is in our [GitHub repo](https://github.com/DigitalPebble/spruce/).
 
-Spruce is licensed under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
+**SPRUCE** is licensed under the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0).

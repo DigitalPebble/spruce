@@ -131,7 +131,7 @@ See instructions on [Configure the modules](../howto/config_modules.md).
 
 Pass the config file to the Spark job with `-c`:
 
-```
+```shell
 spark-submit --class com.digitalpebble.spruce.SparkJob ./target/spruce-*.jar \
   -i ./curs -o ./output -c ./my-config.json
 ```
@@ -148,7 +148,7 @@ after any module that populates <code>operational_energy_kwh</code>, and
 If your module lives outside the SPRUCE source tree, build it as a JAR and add it to the
 Spark job's classpath:
 
-```
+```shell
 spark-submit --class com.digitalpebble.spruce.SparkJob \
   --jars ./my-module.jar \
   ./target/spruce-*.jar \

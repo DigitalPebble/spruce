@@ -6,13 +6,13 @@ The easiest way to explore SPRUCE output is `report.py`, a Python script that re
 
 ### Installation
 
-```bash
+```shell
 pip install -r requirements-report.txt   # duckdb (+ markdown, weasyprint for html/pdf)
 ```
 
 ### Usage
 
-```bash
+```shell
 # Markdown to stdout
 python report.py -i output/
 
@@ -189,7 +189,7 @@ Below is an example of what the results might look like.
 | region_code | co2_usage_kg | energy_usage_kwh | carbon_intensity |  pue | g_co2_per_dollar |
 |-------------|-------------:|-----------------:|-----------------:|-----:|-----------------:|
 | us-east-1   |      9292.05 |         17969.69 |           400.33 | 1.15 |            33.94 |
-| us-east-2   |      1569.79 │          3089.49 |           400.33 | 1.13 |           164.47 |
+| us-east-2   |      1569.79 |          3089.49 |           400.33 | 1.13 |           164.47 |
 | eu-west-2   |       583.54 |          2674.09 |           175.03 | 1.11 |            22.32 |
 | eu-north-1  |         0.35 |           13.95  |           20.42  |  1.1 |            6.84  |
 

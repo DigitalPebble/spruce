@@ -4,21 +4,21 @@ Instead of using a container, you can run SPRUCE directly on [Apache Spark](http
 
 ## Prerequisites
 
-You will need to have CUR reports as inputs. Those are generated via [DataExports](https://docs.aws.amazon.com/cur/latest/userguide/what-is-data-exports.html) and stored on S3 as Parquet files.
+You will need to have CUR reports as inputs. Those are generated via [Data Exports](https://docs.aws.amazon.com/cur/latest/userguide/what-is-data-exports.html) and stored on S3 as Parquet files.
 See instructions on [Generate Cost and Usage Reports](../howto/generate_cur.md).
 
 For this tutorial, we will assume that you copied the S3 files to your local file system. You can do this with the AWS CLI
 
-```
+```shell
 aws s3 cp s3://{bucket}/{prefix}/{data_export_name}/data/ curs --recursive
 ```
 
-To run SPRUCE locally, you need [Apache Spark](https://spark.apache.org/)  installed  and added to the $PATH.
+To run SPRUCE locally, you need [Apache Spark](https://spark.apache.org/) installed and added to the $PATH.
 
 Finally, you need the JAR containing the code and resources for SPRUCE.  You can copy it from the [latest release](https://github.com/DigitalPebble/spruce/releases) or alternatively, build from source,
-which requires Apache Maven and Java 17 or above.s
+which requires Apache Maven and Java 17 or above.
 
-```
+```shell
 mvn clean package
 ```
 
@@ -26,7 +26,7 @@ mvn clean package
 
 If you downloaded a released jar, make sure the path matches its location.
 
-```
+```shell
 spark-submit --class com.digitalpebble.spruce.SparkJob --driver-memory 8g ./target/spruce-*.jar -i ./curs -o ./output
 ```
 
