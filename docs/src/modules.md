@@ -15,7 +15,7 @@ See [Configure the modules](howto/config_modules.md) for instructions on how to 
 
 ## Cloud Carbon Footprint
 
-The following modules implement the heuristics from the [Cloud Carbon Footprint](https://www.cloudcarbonfootprint.org/) project. 
+The following modules implement the heuristics from the [Cloud Carbon Footprint](https://www.cloudcarbonfootprint.org/) project.
 
 ### ccf.Storage
 
@@ -46,9 +46,9 @@ The following modules make use of the [BoaviztAPI](https://doc.api.boavizta.org)
 
 Provides an estimate of [final energy](https://www.eea.europa.eu/en/analysis/indicators/primary-and-final-energy-consumption) used for computation (EC2, OpenSearch, RDS) as well as the related embodied emissions using the [BoaviztAPI](https://doc.api.boavizta.org/).
 
-**Output columns**: `operational_energy_kwh`, `embodied_emissions_co2eq_g` and `embodied_adp_sbeq_g`. 
+**Output columns**: `operational_energy_kwh`, `embodied_emissions_co2eq_g` and `embodied_adp_sbeq_g`.
 
-From https://doc.api.boavizta.org/Explanations/impacts/ 
+From https://doc.api.boavizta.org/Explanations/impacts/
 
 **Abiotic Depletion Potential (ADP)** is an environmental impact indicator. This category corresponds to mineral and resources used and is, in this sense, mainly influenced by the rate of resources extracted. The effect of this consumption on their depletion is estimated according to their availability stock at a global scale. This impact category is divided into two components: a material component and a fossil fuels component (we use a version of ADP which include both).
 This impact is expressed in grams of antimony equivalent (gSbeq).
@@ -71,11 +71,7 @@ Provides an estimate of energy consumption and embodied emissions for LLM infere
 
 The module reads the model identifier from the `product` map in the CUR row and normalises the token count from `pricing_unit` (handling real-world values such as `1K tokens` or `1M tokens`). It uses the `line_item_usage_type` field to distinguish between input and output tokens, falling back to a ratio split when the usage type is ambiguous.
 
-Only the base energy (kWh) and embodied emissions (gCO₂eq) are computed here. Final operational emissions are produced by the standard downstream pipeline (`PUE` → `AverageCarbonIntensity` → `OperationalEmissions`), consistent with how other modules integrate into SPRUCE.
-
-> **Note:** The EcoLogits coefficients are derived from research data and should be validated before use in production reporting.
-
-Populates the columns `operational_energy_kwh` and `embodied_emissions_co2eq_g`.
+**Output columns**: `operational_energy_kwh` and `embodied_emissions_co2eq_g`.
 
 ## electricitymaps.AverageCarbonIntensity
 
@@ -106,7 +102,7 @@ Estimates water consumption associated with cloud usage, producing three columns
 * **`water_electricity_production_l`** – the volume of water (in litres) consumed during **electricity generation** to power the data centre. Computed as `operational_energy_kwh` × `power_usage_effectiveness` × WCF, where WCF (Water Consumption Factor) represents the litres of water consumed per kWh of electricity generated. The WCF values per electricity grid zone are sourced from the [WRI methodology for calculating water use embedded in purchased electricity](https://www.wri.org/data/dataset-guidance-calculating-water-use-embedded-purchased-electricity).
 
 * **`water_consumption_stress_area_l`** – the total water consumption (`water_cooling_l` + `water_electricity_production_l`) attributed to regions under **high or extremely high water stress** (Aqueduct 4.0 baseline water stress category ≥ 3). This field is only populated when the electricity grid zone for the region has a water stress category of 3 (High) or 4 (Extremely High); it is absent otherwise. Water stress categories are derived from the [WRI Aqueduct 4.0](https://www.wri.org/data/aqueduct-global-maps-40) dataset.
-The World Resource Institute's Aqueduct tool is licensed through Creative Commons. The data has been extracted and mapped to the ElectricityMaps region code.
+  The World Resource Institute's Aqueduct tool is licensed through Creative Commons. The data has been extracted and mapped to the ElectricityMaps region code.
 
 **Output columns**: `water_cooling_l`, `water_electricity_production_l`, and `water_consumption_stress_area_l`.
 
@@ -125,10 +121,7 @@ Computes operational emissions based on the energy usage, average carbon intensi
 
 These two values can be overridden via configuration (`powerSupplyEfficiency` and `powerTransmissionLosses`).
 
-Populates the columns `operational_emissions_co2eq_g`.
-
 `operational_emissions_co2eq_g` is equal to `operational_energy_kwh` * `carbon_intensity` * `power_usage_effectiveness` * `powerSupplyEfficiency` * `powerTransmissionLosses`.
 
 **Output columns**: `operational_emissions_co2eq_g`.
-
 
