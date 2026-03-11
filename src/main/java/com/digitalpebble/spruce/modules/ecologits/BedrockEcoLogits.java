@@ -64,12 +64,12 @@ public class BedrockEcoLogits implements EnrichmentModule {
         }
 
         int productIndex = PRODUCT.resolveIndex(row);
-        if (row.isNullAt(productIndex)) {
+        Object productObj = row.get(productIndex);
+        if (productObj == null) {
             return;
         }
 
         // extract the model from Scala Map
-        Object productObj = row.get(productIndex);
         Map<String, String> productMap;
         if (productObj instanceof scala.collection.Map) {
             productMap = JavaConverters.mapAsJavaMapConverter((scala.collection.Map<String, String>) productObj).asJava();
@@ -81,11 +81,13 @@ public class BedrockEcoLogits implements EnrichmentModule {
 
         String modelId = productMap.get("model");
         if (modelId == null || modelId.isEmpty()) {
+            LOG.warn("BedrockEcoLogits: model key missing or empty in product map");
             return;
         }
 
         EcoLogits.ModelImpacts modelImpacts = impacts.getImpacts(modelId);
         if (modelImpacts == null) {
+            LOG.warn("BedrockEcoLogits: no EcoLogits coefficients found for model '{}'", modelId);
             return;
         }
 
@@ -104,17 +106,14 @@ public class BedrockEcoLogits implements EnrichmentModule {
         boolean isInput = false;
         boolean isOutput = false;
 
-        int usageTypeIndex = LINE_ITEM_USAGE_TYPE.resolveIndex(row);
-        if (usageTypeIndex >= 0 && !row.isNullAt(usageTypeIndex)) {
-            Object typeObj = row.get(usageTypeIndex);
-            if (typeObj instanceof String) {
-                String usageType = ((String) typeObj).toLowerCase();
-                isInput = usageType.contains("input");
-                isOutput = usageType.contains("output");
-            }
+        String usageType = LINE_ITEM_USAGE_TYPE.getString(row);
+        if (usageType != null) {
+            String lower = usageType.toLowerCase();
+            isInput = lower.contains("input");
+            isOutput = lower.contains("output");
         }
 
-        double energyKwh = 0.0;
+        double energyKwh;
         if (isInput && !isOutput) {
             energyKwh = (totalTokens / 1_000.0) * modelImpacts.getEnergyKwhPer1kInputTokens();
         } else if (isOutput && !isInput) {
@@ -127,14 +126,10 @@ public class BedrockEcoLogits implements EnrichmentModule {
                     + (outputTokens / 1_000.0) * modelImpacts.getEnergyKwhPer1kOutputTokens();
         }
 
-        // calculate embodied emissions
         double embodiedEmissions = (totalTokens / 1_000.0) * modelImpacts.getEmbodiedCo2eGPer1kTokens();
 
-        double currentEnergy = (Double) enrichedValues.getOrDefault(ENERGY_USED, 0.0);
-        double currentEmbodied = (Double) enrichedValues.getOrDefault(EMBODIED_EMISSIONS, 0.0);
-
-        enrichedValues.put(ENERGY_USED, currentEnergy + energyKwh);
-        enrichedValues.put(EMBODIED_EMISSIONS, currentEmbodied + embodiedEmissions);
+        enrichedValues.put(ENERGY_USED, energyKwh);
+        enrichedValues.put(EMBODIED_EMISSIONS, embodiedEmissions);
 
         LOG.debug("Bedrock model={} tokens={} energy_kwh={} embodied_g={}", modelId, totalTokens, energyKwh, embodiedEmissions);
     }
