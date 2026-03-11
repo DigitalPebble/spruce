@@ -179,9 +179,9 @@ public class EcoLogitsTest {
                 EcoLogits.ModelImpacts impacts = ecoLogits.getImpacts("meta.llama3-8b-instruct-v1:0");
                 assertNotNull(impacts);
 
-                assertEquals(0.00004, impacts.getEnergyKwhPer1kInputTokens(),  1e-10, "Input energy for meta.llama3-8b-instruct-v1:0 should match bedrock.json");
-                assertEquals(0.00020, impacts.getEnergyKwhPer1kOutputTokens(), 1e-10, "Output energy for meta.llama3-8b-instruct-v1:0 should match bedrock.json");
-                assertEquals(0.001,   impacts.getEmbodiedCo2eGPer1kTokens(),   1e-10, "Embodied CO₂e for meta.llama3-8b-instruct-v1:0 should match bedrock.json");
+                assertEquals(0.00002551, impacts.getEnergyKwhPer1kInputTokens(),  1e-10, "Input energy for meta.llama3-8b-instruct-v1:0 should match bedrock.json");
+                assertEquals(0.00005101, impacts.getEnergyKwhPer1kOutputTokens(), 1e-10, "Output energy for meta.llama3-8b-instruct-v1:0 should match bedrock.json");
+                assertEquals(0.00001971,   impacts.getEmbodiedCo2eGPer1kTokens(),   1e-10, "Embodied CO₂e for meta.llama3-8b-instruct-v1:0 should match bedrock.json");
             }
 
             @Test
