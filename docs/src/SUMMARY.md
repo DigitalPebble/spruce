@@ -25,3 +25,5 @@
 - [Split impacts allocations](howto/splits.md)
 - [Contribute to SPRUCE](howto/contributing.md)
 
+[Resources](./resources.md)
+
