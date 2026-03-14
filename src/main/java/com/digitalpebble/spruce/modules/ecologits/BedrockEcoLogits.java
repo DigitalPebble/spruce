@@ -5,7 +5,6 @@ package com.digitalpebble.spruce.modules.ecologits;
 import com.digitalpebble.spruce.Column;
 import com.digitalpebble.spruce.EnrichmentModule;
 import org.apache.spark.sql.Row;
-import scala.collection.JavaConverters;
 
 import java.util.Map;
 
@@ -56,7 +55,6 @@ public class BedrockEcoLogits implements EnrichmentModule {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void enrich(Row row, Map<Column, Object> enrichedValues) {
         String productCode = LINE_ITEM_PRODUCT_CODE.getString(row);
         if (!"AmazonBedrock".equals(productCode)) {
@@ -64,22 +62,12 @@ public class BedrockEcoLogits implements EnrichmentModule {
         }
 
         int productIndex = PRODUCT.resolveIndex(row);
-        Object productObj = row.get(productIndex);
-        if (productObj == null) {
+        Map<Object, Object> productMap = row.getJavaMap(productIndex);
+        if (productMap == null) {
             return;
         }
 
-        // extract the model from Scala Map
-        Map<String, String> productMap;
-        if (productObj instanceof scala.collection.Map) {
-            productMap = JavaConverters.mapAsJavaMapConverter((scala.collection.Map<String, String>) productObj).asJava();
-        } else if (productObj instanceof Map) {
-            productMap = (Map<String, String>) productObj;
-        } else {
-            return;
-        }
-
-        String modelId = productMap.get("model");
+        String modelId = (String) productMap.get("model");
         if (modelId == null || modelId.isEmpty()) {
             LOG.warn("BedrockEcoLogits: model key missing or empty in product map");
             return;

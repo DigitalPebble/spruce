@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import scala.collection.JavaConverters;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -47,7 +48,7 @@ public class BedrockEcoLogitsTest {
                          Double usageAmount, String pricingUnit, String usageType) {
         Object[] values = new Object[7];
         values[0] = productCode;
-        values[1] = productMap;
+        values[1] = productMap != null ? JavaConverters.mapAsScalaMapConverter(productMap).asScala() : null;
         values[2] = usageAmount;
         values[3] = pricingUnit;
         values[4] = usageType;
