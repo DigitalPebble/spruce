@@ -41,7 +41,15 @@ public class EcoLogits implements Serializable {
                 double inputEnergy = ((Number) values.get("energy_kwh_per_1k_input_tokens")).doubleValue();
                 double outputEnergy = ((Number) values.get("energy_kwh_per_1k_output_tokens")).doubleValue();
                 double embodied = ((Number) values.get("embodied_co2e_g_per_1k_tokens")).doubleValue();
-                modelsMap.put(entry.getKey(), new ModelImpacts(inputEnergy, outputEnergy, embodied));
+                ModelImpacts impacts = new ModelImpacts(inputEnergy, outputEnergy, embodied);
+                modelsMap.put(entry.getKey(), impacts);
+
+                // register aliases pointing to the same ModelImpacts instance
+                if (values.containsKey("aliases")) {
+                    for (String alias : (java.util.List<String>) values.get("aliases")) {
+                        modelsMap.put(alias, impacts);
+                    }
+                }
             }
             LOG.info("Loaded {} LLM model coefficients from {}", modelsMap.size(), DEFAULT_RESOURCE);
         } catch (IOException e) {
