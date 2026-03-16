@@ -17,6 +17,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static com.digitalpebble.spruce.SpruceColumn.EMBODIED_EMISSIONS;
+import static com.digitalpebble.spruce.SpruceColumn.ENERGY_USED;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class BedrockEcoLogitsTest {
@@ -72,8 +74,8 @@ public class BedrockEcoLogitsTest {
     void testColumnsAdded() {
         Column[] added = module.columnsAdded();
         assertEquals(2, added.length);
-        assertEquals(SpruceColumn.ENERGY_USED, added[0]);
-        assertEquals(SpruceColumn.EMBODIED_EMISSIONS, added[1]);
+        assertEquals(ENERGY_USED, added[0]);
+        assertEquals(EMBODIED_EMISSIONS, added[1]);
     }
 
     @ParameterizedTest
@@ -120,8 +122,8 @@ public class BedrockEcoLogitsTest {
         Map<Column, Object> enriched = new HashMap<>();
         module.enrich(row, enriched);
 
-        assertNotNull(enriched.get(SpruceColumn.ENERGY_USED));
-        assertEquals(CLAUDE_V2_INPUT_ENERGY, (Double) enriched.get(SpruceColumn.ENERGY_USED), 1e-9);
+        assertNotNull(enriched.get(ENERGY_USED));
+        assertEquals(CLAUDE_V2_INPUT_ENERGY, ENERGY_USED.getDouble(enriched), 1e-9);
     }
 
     @Test
@@ -130,8 +132,8 @@ public class BedrockEcoLogitsTest {
         Map<Column, Object> enriched = new HashMap<>();
         module.enrich(row, enriched);
 
-        assertNotNull(enriched.get(SpruceColumn.ENERGY_USED));
-        assertEquals(CLAUDE_V2_OUTPUT_ENERGY, (Double) enriched.get(SpruceColumn.ENERGY_USED), 1e-9);
+        assertNotNull(enriched.get(ENERGY_USED));
+        assertEquals(CLAUDE_V2_OUTPUT_ENERGY, ENERGY_USED.getDouble(enriched), 1e-9);
     }
 
     @Test
@@ -142,8 +144,8 @@ public class BedrockEcoLogitsTest {
 
         // Fallback: 50% input + 50% output
         double expected = (CLAUDE_V2_INPUT_ENERGY * 0.5) + (CLAUDE_V2_OUTPUT_ENERGY * 0.5);
-        assertNotNull(enriched.get(SpruceColumn.ENERGY_USED));
-        assertEquals(expected, (Double) enriched.get(SpruceColumn.ENERGY_USED), 1e-9);
+        assertNotNull(enriched.get(ENERGY_USED));
+        assertEquals(expected, ENERGY_USED.getDouble(enriched), 1e-9);
     }
 
     @Test
@@ -152,8 +154,8 @@ public class BedrockEcoLogitsTest {
         Map<Column, Object> enriched = new HashMap<>();
         module.enrich(row, enriched);
 
-        assertNotNull(enriched.get(SpruceColumn.EMBODIED_EMISSIONS));
-        assertEquals(CLAUDE_V2_EMBODIED, (Double) enriched.get(SpruceColumn.EMBODIED_EMISSIONS), 1e-9);
+        assertNotNull(enriched.get(EMBODIED_EMISSIONS));
+        assertEquals(CLAUDE_V2_EMBODIED, EMBODIED_EMISSIONS.getDouble(enriched), 1e-9);
     }
 
     @Test
@@ -161,13 +163,13 @@ public class BedrockEcoLogitsTest {
         // The module should store the computed value, not add to any pre-existing one
         Row row = createRow(schema, "AmazonBedrock", VALID_PRODUCT_MAP, 1.0, "1K tokens", "EUN1-Claude-input-tokens");
         Map<Column, Object> enriched = new HashMap<>();
-        enriched.put(SpruceColumn.ENERGY_USED, 10.0);
-        enriched.put(SpruceColumn.EMBODIED_EMISSIONS, 5.0);
+        enriched.put(ENERGY_USED, 10.0);
+        enriched.put(EMBODIED_EMISSIONS, 5.0);
 
         module.enrich(row, enriched);
 
-        assertEquals(CLAUDE_V2_INPUT_ENERGY, (Double) enriched.get(SpruceColumn.ENERGY_USED), 1e-9);
-        assertEquals(CLAUDE_V2_EMBODIED, (Double) enriched.get(SpruceColumn.EMBODIED_EMISSIONS), 1e-9);
+        assertEquals(CLAUDE_V2_INPUT_ENERGY, ENERGY_USED.getDouble(enriched), 1e-9);
+        assertEquals(CLAUDE_V2_EMBODIED, EMBODIED_EMISSIONS.getDouble(enriched), 1e-9);
     }
 
     @Test
@@ -178,6 +180,6 @@ public class BedrockEcoLogitsTest {
 
         // 2.0 * 1_000_000 tokens = 2000 * 1K tokens
         double expected = 2000.0 * CLAUDE_V2_INPUT_ENERGY;
-        assertEquals(expected, (Double) enriched.get(SpruceColumn.ENERGY_USED), 1e-9);
+        assertEquals(expected, ENERGY_USED.getDouble(enriched), 1e-9);
     }
 }
