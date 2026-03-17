@@ -73,6 +73,8 @@ The module reads the model identifier from the `product` map in the CUR row and 
 
 **Output columns**: `operational_energy_kwh` and `embodied_emissions_co2eq_g`.
 
+> **Batch size assumption:** EcoLogits hardcodes a batch size of `B=64` concurrent requests. The resulting coefficients are a mid-batch estimate — they underestimate energy for low-traffic scenarios and overestimate it for high-throughput batch inference (e.g. Bedrock Batch mode). Making `B` dynamic requires provider telemetry not available in billing data.
+
 ## electricitymaps.AverageCarbonIntensity
 
 Adds average carbon intensity factors generated from [ElectricityMaps](https://www.electricitymaps.com/)' 2024 datasets.
@@ -102,7 +104,7 @@ Estimates water consumption associated with cloud usage, producing three columns
 * **`water_electricity_production_l`** – the volume of water (in litres) consumed during **electricity generation** to power the data centre. Computed as `operational_energy_kwh` × `power_usage_effectiveness` × WCF, where WCF (Water Consumption Factor) represents the litres of water consumed per kWh of electricity generated. The WCF values per electricity grid zone are sourced from the [WRI methodology for calculating water use embedded in purchased electricity](https://www.wri.org/data/dataset-guidance-calculating-water-use-embedded-purchased-electricity).
 
 * **`water_consumption_stress_area_l`** – the total water consumption (`water_cooling_l` + `water_electricity_production_l`) attributed to regions under **high or extremely high water stress** (Aqueduct 4.0 baseline water stress category ≥ 3). This field is only populated when the electricity grid zone for the region has a water stress category of 3 (High) or 4 (Extremely High); it is absent otherwise. Water stress categories are derived from the [WRI Aqueduct 4.0](https://www.wri.org/data/aqueduct-global-maps-40) dataset.
-  The World Resource Institute's Aqueduct tool is licensed through Creative Commons. The data has been extracted and mapped to the ElectricityMaps region code.
+The World Resource Institute's Aqueduct tool is licensed through Creative Commons. The data has been extracted and mapped to the ElectricityMaps region code.
 
 **Output columns**: `water_cooling_l`, `water_electricity_production_l`, and `water_consumption_stress_area_l`.
 
