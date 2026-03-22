@@ -38,6 +38,12 @@
       }
     },
     {
+      "className": "com.digitalpebble.spruce.modules.ecologits.BedrockEcoLogits",
+      "config": {
+        "input_token_ratio": 0.5
+      }
+    },
+    {
       "className": "com.digitalpebble.spruce.modules.PUE",
       "config": {
         "default": 1.15

@@ -15,7 +15,7 @@ See [Configure the modules](howto/config_modules.md) for instructions on how to 
 
 ## Cloud Carbon Footprint
 
-The following modules implement the heuristics from the [Cloud Carbon Footprint](https://www.cloudcarbonfootprint.org/) project. 
+The following modules implement the heuristics from the [Cloud Carbon Footprint](https://www.cloudcarbonfootprint.org/) project.
 
 ### ccf.Storage
 
@@ -48,9 +48,9 @@ The following modules make use of the [BoaviztAPI](https://doc.api.boavizta.org)
 
 Provides an estimate of [final energy](https://www.eea.europa.eu/en/analysis/indicators/primary-and-final-energy-consumption) used for computation (EC2, OpenSearch, RDS) as well as the related embodied emissions using the [BoaviztAPI](https://doc.api.boavizta.org/).
 
-**Output columns**: `operational_energy_kwh`, `embodied_emissions_co2eq_g` and `embodied_adp_sbeq_g`. 
+**Output columns**: `operational_energy_kwh`, `embodied_emissions_co2eq_g` and `embodied_adp_sbeq_g`.
 
-From https://doc.api.boavizta.org/Explanations/impacts/ 
+From https://doc.api.boavizta.org/Explanations/impacts/
 
 **Abiotic Depletion Potential (ADP)** is an environmental impact indicator. This category corresponds to mineral and resources used and is, in this sense, mainly influenced by the rate of resources extracted. The effect of this consumption on their depletion is estimated according to their availability stock at a global scale. This impact category is divided into two components: a material component and a fossil fuels component (we use a version of ADP which include both).
 This impact is expressed in grams of antimony equivalent (gSbeq).
@@ -62,6 +62,20 @@ This impact is expressed in grams of antimony equivalent (gSbeq).
 Similar to the previous module but does not get the information from an instance of the BoaviztAPI but from a static file generated from it. This makes it simpler to use SPRUCE.
 
 **Output columns**: `operational_energy_kwh`, `embodied_emissions_co2eq_g` and `embodied_adp_sbeq_g`.
+
+## EcoLogits
+
+The following modules estimate the energy consumption and embodied emissions of LLM inference using static coefficients derived from the [EcoLogits](https://ecologits.ai/) project.
+
+### ecologits.BedrockEcoLogits
+
+Provides an estimate of energy consumption and embodied emissions for LLM inference on **AWS Bedrock**, based on static per-model coefficients from the EcoLogits project. This follows the same pattern as `boavizta.BoaviztAPIstatic`: a static data file bundled in the JAR is loaded at initialisation time, and the module matches Bedrock CUR rows to per-model coefficients to compute energy usage and embodied emissions.
+
+The module reads the model identifier from the `product` map in the CUR row and normalises the token count from `pricing_unit` (handling real-world values such as `1K tokens` or `1M tokens`). It uses the `line_item_usage_type` field to distinguish between input and output tokens, falling back to a ratio split when the usage type is ambiguous.
+
+**Output columns**: `operational_energy_kwh` and `embodied_emissions_co2eq_g`.
+
+> **Batch size assumption:** EcoLogits hardcodes a batch size of `B=64` concurrent requests. The resulting coefficients are a mid-batch estimate — they underestimate energy for low-traffic scenarios and overestimate it for high-throughput batch inference (e.g. Bedrock Batch mode). Making `B` dynamic requires provider telemetry not available in billing data.
 
 ## electricitymaps.AverageCarbonIntensity
 
@@ -133,5 +147,4 @@ These two values can be overridden via configuration (`powerSupplyEfficiency` an
 `operational_emissions_co2eq_g` is equal to `operational_energy_kwh` * `carbon_intensity` * `power_usage_effectiveness` * `powerSupplyEfficiency` * `powerTransmissionLosses`.
 
 **Output columns**: `operational_emissions_co2eq_g`.
-
 
