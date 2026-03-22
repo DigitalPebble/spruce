@@ -19,6 +19,8 @@ import static com.digitalpebble.spruce.SpruceColumn.ENERGY_USED;
  *
  * @see <a href="https://www.cloudcarbonfootprint.org/docs/methodology#networking">CCF methodology</a>
  * @see <a href="https://github.com/cloud-carbon-footprint/cloud-carbon-footprint/blob/9f2cf436e5ad020830977e52c3b0a1719d20a8b9/packages/aws/src/lib/CostAndUsageTypes.ts#L25">resource file</a>
+ *
+ * @deprecated com.digitalpebble.spruce.modules.Networking is a more accurate replacement
  **/
 public class Networking implements EnrichmentModule {
 

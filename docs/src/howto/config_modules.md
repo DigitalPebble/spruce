@@ -6,7 +6,7 @@ The enrichment modules are configured in a file called `default-config.json`. Th
 {{#include ../../../src/main/resources/default-config.json}}
 ```
 
-This determines which modules are used and in what order but also configures their behaviour. For instance, the default coefficient set for the ccf.Networking module is _0.001_ kWh/Gb.
+This determines which modules are used and in what order but also configures their behaviour. For instance, the Networking module uses different coefficients for intra-region, inter-region, and external data transfers, all configurable via the `network_coefficients_kwh_gb` map.
 
 ## Change the configuration
 

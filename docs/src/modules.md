@@ -29,6 +29,8 @@ See [methodology](https://www.cloudcarbonfootprint.org/docs/methodology#storage)
 
 Provides an estimate of energy used for networking in and out of data centres. Applies a flat coefficient of _0.001 kWh/Gb_ by default, see [methodology](https://www.cloudcarbonfootprint.org/docs/methodology#networking) for more details. The coefficient can be changed via configuration as shown in [Configure the modules](howto/config_modules.md).
 
+**Note**: this module has been replaced by [Networking](#networking) in the default configuration, which distinguishes between transfer types.
+
 **Output column**:  `operational_energy_kwh`.
 
 ### ccf.Accelerators
@@ -107,6 +109,25 @@ Estimates water consumption associated with cloud usage, producing three columns
 The World Resource Institute's Aqueduct tool is licensed through Creative Commons. The data has been extracted and mapped to the ElectricityMaps region code.
 
 **Output columns**: `water_cooling_l`, `water_electricity_production_l`, and `water_consumption_stress_area_l`.
+
+## Networking
+
+Provides an estimate of energy used for networking in and out of data centres. Unlike `ccf.Networking` which applies a single flat coefficient, this module distinguishes between three transfer types with separate coefficients (in kWh/Gb):
+
+| Transfer type | Key | Default | Description |
+|---|---|---|---|
+| Intra-region | `intra` | 0.001 | Traffic within the same region |
+| Inter-region | `inter` | 0.0015 | Traffic between AWS regions |
+| External | `extra` | 0.059 | Traffic to/from the internet (AWS Inbound / Outbound) |
+
+The coefficients are taken from the Boavizta Cloud Emissions Working Group and can be overridden via the `network_coefficients_kwh_gb` configuration map.
+
+The relevance and usefulness of attributing emissions for networking based on usage is
+subject for debate as the energy use of networking is pretty constant independently of
+traffic. The consequences of reducing networking are probably negligible but since the
+approach in SPRUCE is attributional, we do the same for networking in order to be consistent.
+
+**Output column**: `operational_energy_kwh`.
 
 ## Serverless
 
