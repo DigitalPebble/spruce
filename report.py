@@ -154,15 +154,14 @@ def q_regional(con):
             round(operational_g / 1000, 2)                      AS co2_usage_kg,
             round(energy_kwh, 2)                                 AS energy_kwh,
             round(avg_ci, 2)                                     AS carbon_intensity,
+            round(water_l, 2)                                    AS water_usage_l,
             round(water_stress_l, 2)                             AS water_stress_area_l,
             round(pue, 2)                                        AS pue,
-            round((operational_g + embodied_g) / NULLIF(public_cost, 0), 2) AS g_co2_per_dollar,
-            round(water_l, 2)                                    AS water_usage_l
+            round((operational_g + embodied_g) / NULLIF(public_cost, 0), 2) AS g_co2_per_dollar
         FROM agg
         ORDER BY energy_kwh DESC, co2_usage_kg DESC, region DESC
     """
     return con.execute(sql).fetchall()
-
 
 # ---------------------------------------------------------------------------
 # Tag discovery
