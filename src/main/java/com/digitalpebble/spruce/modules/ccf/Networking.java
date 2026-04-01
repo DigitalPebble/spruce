@@ -4,6 +4,7 @@ package com.digitalpebble.spruce.modules.ccf;
 
 import com.digitalpebble.spruce.Column;
 import com.digitalpebble.spruce.EnrichmentModule;
+import com.digitalpebble.spruce.Utils;
 import org.apache.spark.sql.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,9 +56,7 @@ public class Networking implements EnrichmentModule {
             return;
         }
         //  apply only to rows corresponding to networking in or out of a region
-        int index = PRODUCT.resolveIndex(row);
-        Map<Object, Object> productMap = row.getJavaMap(index);
-        String transfer_type = (String) productMap.getOrDefault("transfer_type", "");
+        String transfer_type = Utils.getStringFromProductMap(row, "transfer_type", "");
 
         if (!transfer_type.startsWith("InterRegion")) {
             return;

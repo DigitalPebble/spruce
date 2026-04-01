@@ -4,6 +4,7 @@ package com.digitalpebble.spruce.modules.ecologits;
 
 import com.digitalpebble.spruce.Column;
 import com.digitalpebble.spruce.EnrichmentModule;
+import com.digitalpebble.spruce.Utils;
 import org.apache.spark.sql.Row;
 
 import java.util.Map;
@@ -61,13 +62,7 @@ public class BedrockEcoLogits implements EnrichmentModule {
             return;
         }
 
-        int productIndex = PRODUCT.resolveIndex(row);
-        Map<Object, Object> productMap = row.getJavaMap(productIndex);
-        if (productMap == null) {
-            return;
-        }
-
-        String modelId = (String) productMap.get("model");
+        String modelId = Utils.getStringFromProductMap(row, "model", null);
         if (modelId == null || modelId.isEmpty()) {
             LOG.warn("BedrockEcoLogits: model key missing or empty in product map");
             return;
