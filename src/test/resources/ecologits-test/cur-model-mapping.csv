@@ -1,0 +1,5 @@
+# Test fixture - mapping for BedrockEcoLogitsTest / EcoLogitsTest
+cur_model_value,provider,model_name
+anthropic.claude-v2,test-provider,test-claude
+Claude 2,test-provider,test-claude
+Claude 2.1,test-provider,test-claude
