@@ -26,18 +26,33 @@ public class BedrockEcoLogitsTest {
     private BedrockEcoLogits module;
     private StructType schema;
 
-    // Valid Map for simulate the PRODUCT column
+    private static final String TEST_MAPPING = "ecologits-test/cur-model-mapping.csv";
+    private static final String TEST_COEFFICIENTS = "ecologits-test/coefficients.csv";
+
+    // The test fixture maps "anthropic.claude-v2" to test-provider/test-claude.
     private static final Map<String, String> VALID_PRODUCT_MAP = Map.of("model", "anthropic.claude-v2");
 
-    private static final double CLAUDE_V2_INPUT_ENERGY = 0.00017942;
-    private static final double CLAUDE_V2_OUTPUT_ENERGY = 0.00035885;
-    private static final double CLAUDE_V2_EMBODIED = 0.00013821;
+    // Coefficients in test-coefficients.csv: 1e-3 kWh and 5e-4 kg (=0.5 g) per 1k output tokens.
+    private static final double OUTPUT_ENERGY_PER_1K = 1.0e-3;
+    private static final double OUTPUT_EMBODIED_G_PER_1K = 0.5;
 
     @BeforeEach
     void setUp() {
         module = new BedrockEcoLogits();
         schema = Utils.getSchema(module);
+        EcoLogits impacts = new EcoLogits(TEST_MAPPING, TEST_COEFFICIENTS);
+        impacts.load();
+        module.setEcoLogits(impacts);
         module.init(new HashMap<>());
+    }
+
+    private BedrockEcoLogits buildModule(Map<String, Object> params) {
+        BedrockEcoLogits m = new BedrockEcoLogits();
+        EcoLogits impacts = new EcoLogits(TEST_MAPPING, TEST_COEFFICIENTS);
+        impacts.load();
+        m.setEcoLogits(impacts);
+        m.init(params);
+        return m;
     }
 
     /**
@@ -117,69 +132,80 @@ public class BedrockEcoLogitsTest {
     }
 
     @Test
-    void testEnrichesInputTokens() {
-        Row row = createRow(schema, "AmazonBedrock", VALID_PRODUCT_MAP, 1.0, "1K tokens", "EUN1-Claude-input-tokens");
-        Map<Column, Object> enriched = new HashMap<>();
-        module.enrich(row, enriched);
-
-        assertNotNull(enriched.get(ENERGY_USED));
-        assertEquals(CLAUDE_V2_INPUT_ENERGY, ENERGY_USED.getDouble(enriched), 1e-9);
-    }
-
-    @Test
     void testEnrichesOutputTokens() {
         Row row = createRow(schema, "AmazonBedrock", VALID_PRODUCT_MAP, 1.0, "1K tokens", "EUN1-Claude-output-tokens");
         Map<Column, Object> enriched = new HashMap<>();
         module.enrich(row, enriched);
 
         assertNotNull(enriched.get(ENERGY_USED));
-        assertEquals(CLAUDE_V2_OUTPUT_ENERGY, ENERGY_USED.getDouble(enriched), 1e-9);
+        assertEquals(OUTPUT_ENERGY_PER_1K, ENERGY_USED.getDouble(enriched), 1e-12);
+    }
+
+    @Test
+    void testEnrichesInputTokensDefaultRatioIsZero() {
+        // EcoLogits attributes ~all generation cost to output tokens; default i2o ratio = 0.
+        Row row = createRow(schema, "AmazonBedrock", VALID_PRODUCT_MAP, 1.0, "1K tokens", "EUN1-Claude-input-tokens");
+        Map<Column, Object> enriched = new HashMap<>();
+        module.enrich(row, enriched);
+
+        assertEquals(0.0, ENERGY_USED.getDouble(enriched), 1e-12);
+        assertEquals(0.0, EMBODIED_EMISSIONS.getDouble(enriched), 1e-12);
+    }
+
+    @Test
+    void testEnrichesInputTokensWithFullRatio() {
+        // Operator-overridden i2o=1.0: input rows score the same as output rows.
+        BedrockEcoLogits m = buildModule(Map.of("input_to_output_energy_ratio", 1.0));
+        Row row = createRow(schema, "AmazonBedrock", VALID_PRODUCT_MAP, 1.0, "1K tokens", "EUN1-Claude-input-tokens");
+        Map<Column, Object> enriched = new HashMap<>();
+        m.enrich(row, enriched);
+
+        assertEquals(OUTPUT_ENERGY_PER_1K, ENERGY_USED.getDouble(enriched), 1e-12);
     }
 
     @Test
     void testEnrichesFallbackSplit() {
+        // Ambiguous usage type, default ratios: 50% portion is "output", 50% is input × i2o(0) = 0.
         Row row = createRow(schema, "AmazonBedrock", VALID_PRODUCT_MAP, 1.0, "1K tokens", "generic-tokens-usage");
         Map<Column, Object> enriched = new HashMap<>();
         module.enrich(row, enriched);
 
-        // Fallback: 50% input + 50% output
-        double expected = (CLAUDE_V2_INPUT_ENERGY * 0.5) + (CLAUDE_V2_OUTPUT_ENERGY * 0.5);
+        double expected = OUTPUT_ENERGY_PER_1K * 0.5;
         assertNotNull(enriched.get(ENERGY_USED));
-        assertEquals(expected, ENERGY_USED.getDouble(enriched), 1e-9);
+        assertEquals(expected, ENERGY_USED.getDouble(enriched), 1e-12);
     }
 
     @Test
     void testEnrichesEmbodiedEmissions() {
-        Row row = createRow(schema, "AmazonBedrock", VALID_PRODUCT_MAP, 1.0, "1K tokens", "input");
+        Row row = createRow(schema, "AmazonBedrock", VALID_PRODUCT_MAP, 1.0, "1K tokens", "output");
         Map<Column, Object> enriched = new HashMap<>();
         module.enrich(row, enriched);
 
         assertNotNull(enriched.get(EMBODIED_EMISSIONS));
-        assertEquals(CLAUDE_V2_EMBODIED, EMBODIED_EMISSIONS.getDouble(enriched), 1e-9);
+        assertEquals(OUTPUT_EMBODIED_G_PER_1K, EMBODIED_EMISSIONS.getDouble(enriched), 1e-12);
     }
 
     @Test
     void testOverwritesExistingEnergyValue() {
-        // The module should store the computed value, not add to any pre-existing one
-        Row row = createRow(schema, "AmazonBedrock", VALID_PRODUCT_MAP, 1.0, "1K tokens", "EUN1-Claude-input-tokens");
+        Row row = createRow(schema, "AmazonBedrock", VALID_PRODUCT_MAP, 1.0, "1K tokens", "EUN1-Claude-output-tokens");
         Map<Column, Object> enriched = new HashMap<>();
         enriched.put(ENERGY_USED, 10.0);
         enriched.put(EMBODIED_EMISSIONS, 5.0);
 
         module.enrich(row, enriched);
 
-        assertEquals(CLAUDE_V2_INPUT_ENERGY, ENERGY_USED.getDouble(enriched), 1e-9);
-        assertEquals(CLAUDE_V2_EMBODIED, EMBODIED_EMISSIONS.getDouble(enriched), 1e-9);
+        assertEquals(OUTPUT_ENERGY_PER_1K, ENERGY_USED.getDouble(enriched), 1e-12);
+        assertEquals(OUTPUT_EMBODIED_G_PER_1K, EMBODIED_EMISSIONS.getDouble(enriched), 1e-12);
     }
 
     @Test
     void testScalesWithMillionsMultiplier() {
-        Row row = createRow(schema, "AmazonBedrock", VALID_PRODUCT_MAP, 2.0, "1M tokens", "EUN1-Claude-input-tokens");
+        Row row = createRow(schema, "AmazonBedrock", VALID_PRODUCT_MAP, 2.0, "1M tokens", "EUN1-Claude-output-tokens");
         Map<Column, Object> enriched = new HashMap<>();
         module.enrich(row, enriched);
 
-        // 2.0 * 1_000_000 tokens = 2000 * 1K tokens
-        double expected = 2000.0 * CLAUDE_V2_INPUT_ENERGY;
-        assertEquals(expected, ENERGY_USED.getDouble(enriched), 1e-9);
+        // 2.0 × 1_000_000 tokens = 2000 × 1k tokens
+        double expected = 2000.0 * OUTPUT_ENERGY_PER_1K;
+        assertEquals(expected, ENERGY_USED.getDouble(enriched), 1e-12);
     }
 }
