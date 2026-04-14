@@ -296,8 +296,8 @@ def main():
                         help="Path to enriched Parquet directory, glob, or S3 URI (e.g. output/, output/**/*.parquet, s3://bucket/prefix/).")
     parser.add_argument("-o", "--output", default=None,
                         help="Output file. Format is inferred from suffix: .md (Markdown), .html (HTML), .pdf (PDF via weasyprint). Defaults to Markdown on stdout.")
-    parser.add_argument("--top-tags", type=int, default=10, metavar="N",
-                        help="Maximum number of resource tags to offer for breakdown (default: 10)")
+    parser.add_argument("-t", "--top-tags", type=int, default=10, metavar="N",
+                        help="Maximum number of resource tags to offer for breakdown (default: 10). Use 0 or negative to skip tag selection entirely.")
     args = parser.parse_args()
 
     # Normalise input path to a glob DuckDB can use
@@ -337,35 +337,38 @@ def main():
     # -----------------------------------------------------------------------
     # Interactive tag breakdown
     # -----------------------------------------------------------------------
-    available_tags = find_tags_by_coverage(con, args.top_tags)
+    available_tags = []
     tag_sections = []  # list of (key, coverage_pct, breakdown_rows)
 
-    if not available_tags:
-        sys.stderr.write("\nNo consistent resource tags found in the data.\n")
-    else:
-        remaining = list(available_tags)
-        sys.stderr.write("\nResource tags found (by line-item coverage):\n")
-        while remaining:
-            for i, (key, pct) in enumerate(remaining, 1):
-                sys.stderr.write(f"  {i}. {key}  ({pct} %)\n")
-            sys.stderr.write("Enter number to see breakdown, or press Enter to finish: ")
-            sys.stderr.flush()
-            choice = sys.stdin.readline().strip()
-            if not choice:
-                break
-            try:
-                idx = int(choice) - 1
-                if 0 <= idx < len(remaining):
-                    key, pct = remaining.pop(idx)
-                    breakdown = q_tag_breakdown(con, key)
-                    tag_sections.append((key, pct, breakdown))
-                    sys.stderr.write(f"\n### Tag: {key}  ({pct} % coverage)\n\n")
-                    sys.stderr.write(md_table(breakdown, ["tag_value", "energy_kwh", "operational_kg", "embodied_kg", "water_usage_l"]))
-                    sys.stderr.write("\n")
-                else:
-                    sys.stderr.write(f"Please enter a number between 1 and {len(remaining)}.\n")
-            except ValueError:
-                sys.stderr.write("Please enter a number or press Enter to finish.\n")
+    if args.top_tags >= 1:
+        available_tags = find_tags_by_coverage(con, args.top_tags)
+
+        if not available_tags:
+            sys.stderr.write("\nNo consistent resource tags found in the data.\n")
+        else:
+            remaining = list(available_tags)
+            sys.stderr.write("\nResource tags found (by line-item coverage):\n")
+            while remaining:
+                for i, (key, pct) in enumerate(remaining, 1):
+                    sys.stderr.write(f"  {i}. {key}  ({pct} %)\n")
+                sys.stderr.write("Enter number to see breakdown, or press Enter to finish: ")
+                sys.stderr.flush()
+                choice = sys.stdin.readline().strip()
+                if not choice:
+                    break
+                try:
+                    idx = int(choice) - 1
+                    if 0 <= idx < len(remaining):
+                        key, pct = remaining.pop(idx)
+                        breakdown = q_tag_breakdown(con, key)
+                        tag_sections.append((key, pct, breakdown))
+                        sys.stderr.write(f"\n### Tag: {key}  ({pct} % coverage)\n\n")
+                        sys.stderr.write(md_table(breakdown, ["tag_value", "energy_kwh", "operational_kg", "embodied_kg", "water_usage_l"]))
+                        sys.stderr.write("\n")
+                    else:
+                        sys.stderr.write(f"Please enter a number between 1 and {len(remaining)}.\n")
+                except ValueError:
+                    sys.stderr.write("Please enter a number or press Enter to finish.\n")
 
     # -----------------------------------------------------------------------
     # Assemble report
