@@ -6,7 +6,6 @@ import com.digitalpebble.spruce.Column;
 import com.digitalpebble.spruce.EnrichmentModule;
 import com.digitalpebble.spruce.Provider;
 import com.digitalpebble.spruce.Utils;
-import com.digitalpebble.spruce.modules.electricitymaps.RegionMappings;
 import org.apache.spark.sql.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +27,8 @@ import static com.digitalpebble.spruce.SpruceColumn.*;
  *     Effectiveness) is looked up per AWS region from {@code aws-pue-wue.csv}.</li>
  * <li>{@link com.digitalpebble.spruce.SpruceColumn#WATER_ENERGY} – water consumed during
  *     electricity generation, computed as {@code energy_kwh * PUE * WCF} (litres). The WCF
- *     (Water Consumption Factor) is looked up per Electricity Maps zone.</li>
+ *     (Water Consumption Factor) is looked up per cloud region from {@code wcf.csv}, derived
+ *     from WRI eGRID subregion data (US) and country-level data (non-US).</li>
  * <li>{@link com.digitalpebble.spruce.SpruceColumn#WATER_STRESS} – total water consumption
  *     (cooling + energy) that occurs in areas under high or extremely high water stress
  *     (Aqueduct 4.0 category &ge; 3). This field is only populated when the region's water
@@ -104,13 +104,10 @@ public class Water implements EnrichmentModule {
 
         // Water from energy generation (WCF)
         double waterEnergy = 0;
-        String emZone = RegionMappings.getEMRegion(Provider.AWS, region);
-        if (emZone != null) {
-            Double wcf = WaterStats.getWCF(emZone);
-            if (wcf != null) {
-                waterEnergy = totalEnergy * wcf;
-                enrichedValues.put(WATER_ENERGY, waterEnergy);
-            }
+        Double wcf = WaterStats.getWCF(Provider.AWS, region);
+        if (wcf != null) {
+            waterEnergy = totalEnergy * wcf;
+            enrichedValues.put(WATER_ENERGY, waterEnergy);
         }
 
         // Water consumption in areas under stress (looked up directly by provider + region)
@@ -137,30 +134,37 @@ public class Water implements EnrichmentModule {
     /**
      * Provides water statistics per cloud region.
      * <ul>
-     *   <li>Water Consumption Factor (WCF) in l/kWh, keyed by Electricity Maps zone ID</li>
+     *   <li>Water Consumption Factor (WCF) in l/kWh — loaded from {@code wcf.csv},
+     *       derived from WRI eGRID subregion data (US) and country-level data (non-US),
+     *       keyed by provider and region</li>
      *   <li>Water Stress Category (0–4) — loaded from {@code water-stress.csv},
      *       derived from Aqueduct 4.0 baseline water stress, keyed by provider and region</li>
      * </ul>
      */
     static class WaterStats {
 
-        private static final String WCF_CSV = "em-locations-wcf.csv";
+        private static final String WCF_CSV = "wcf.csv";
         private static final String WATER_STRESS_CSV = "water-stress.csv";
 
-        private static final Map<String, Double> wcfByZone = new HashMap<>();
+        // provider name (lowercase) → region → WCF in l/kWh
+        private static final Map<String, Map<String, Double>> wcfByProviderRegion = new HashMap<>();
         // provider name (lowercase) → region → water stress category
         private static final Map<String, Map<String, Integer>> waterStressByProviderRegion = new HashMap<>();
 
         static {
-            // Load WCF values
+            // Load WCF values keyed by provider + region
+            // Format: provider,region,wcf
             List<String[]> wcfRows = Utils.loadCSV(WCF_CSV);
             for (String[] parts : wcfRows) {
-                if (parts.length >= 2) {
-                    String zoneId = parts[0].trim();
-                    String wcfStr = parts[1].trim();
-                    if (!wcfStr.isEmpty()) {
+                if (parts.length >= 3) {
+                    String provider = parts[0].trim();
+                    String region = parts[1].trim();
+                    String wcfStr = parts[2].trim();
+                    if (!provider.isEmpty() && !region.isEmpty() && !wcfStr.isEmpty()) {
                         try {
-                            wcfByZone.put(zoneId, Double.parseDouble(wcfStr));
+                            wcfByProviderRegion
+                                    .computeIfAbsent(provider, k -> new HashMap<>())
+                                    .put(region, Double.parseDouble(wcfStr));
                         } catch (NumberFormatException ignored) {
                         }
                     }
@@ -187,12 +191,14 @@ public class Water implements EnrichmentModule {
             }
         }
 
-        static Double getWCF(String zoneId) {
-            return wcfByZone.get(zoneId);
+        static Double getWCF(Provider provider, String region) {
+            Map<String, Double> regionMap = wcfByProviderRegion.get(provider.csvKey);
+            if (regionMap == null) return null;
+            return regionMap.get(region);
         }
 
         static Integer getWaterStressCategory(Provider provider, String region) {
-            Map<String, Integer> regionMap = waterStressByProviderRegion.get(provider.name().toLowerCase());
+            Map<String, Integer> regionMap = waterStressByProviderRegion.get(provider.csvKey);
             if (regionMap == null) return null;
             return regionMap.get(region);
         }
