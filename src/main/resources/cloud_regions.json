@@ -81,8 +81,8 @@
         "zones": "3"
       },
       "ca-central-1": {
-        "latitude": "45.5576996",
-        "longitude": "-74.0104842",
+        "latitude": "45.501690",
+        "longitude": "-73.567253",
         "metro_area": "Montréal",
         "country": "Canada",
         "name": "Canada (Central)",
@@ -108,9 +108,9 @@
         "zones": "3"
       },
       "cn-northwest-1": {
-        "latitude": "28.275333",
-        "longitude": "112.552073",
-        "metro_area": "Ningxiang",
+        "latitude": "38.487193",
+        "longitude": "106.230909",
+        "metro_area": "Yinchuan",
         "country": "China",
         "name": "Mainland China (Ningxia)",
         "in_service": true,
@@ -333,9 +333,9 @@
         "zones": "4"
       },
       "us-east-1": {
-        "latitude": "38.890370",
-        "longitude": "-77.031959",
-        "metro_area": "Washington",
+        "latitude": "39.043757",
+        "longitude": "-77.487442",
+        "metro_area": "Ashburn",
         "country": "United States",
         "name": "US East (Northern Virginia)",
         "in_service": true,

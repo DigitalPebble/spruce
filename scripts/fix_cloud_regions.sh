@@ -7,6 +7,12 @@
 #   - Swaps AWS us-west-1 and us-west-2, which are swapped upstream.
 #   - Fixes Azure East US coordinates (upstream points both East US and
 #     East US 2 at Richmond; East US is actually Ashburn/Sterling).
+#   - Fixes AWS us-east-1 coordinates (upstream points to Washington DC;
+#     the region is actually in Ashburn/Loudoun County, VA).
+#   - Fixes AWS cn-northwest-1 (upstream labels it "Ningxiang" in Hunan;
+#     the region is in Ningxia, near Yinchuan).
+#   - Fixes AWS ca-central-1 coordinates (upstream points ~50 km west of
+#     Montréal Island; the region is in Montréal).
 #
 # Input and output default to cloud_regions.json (edited in place via a temp
 # file). Pass a path to override.
@@ -15,7 +21,10 @@
 
 set -euo pipefail
 
-FILE="${1:-cloud_regions.json}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+FILE="${1:-$PROJECT_ROOT/src/main/resources/cloud_regions.json}"
 
 if ! command -v jq >/dev/null 2>&1; then
     echo "error: jq not found on PATH" >&2
@@ -27,7 +36,7 @@ if [[ ! -f "$FILE" ]]; then
     exit 1
 fi
 
-tmp="$(mktemp "./${FILE}.fixed.XXXXXX")"
+tmp="$(mktemp "${FILE}.fixed.XXXXXX")"
 trap 'rm -f "$tmp"' EXIT
 
 jq '
@@ -62,6 +71,20 @@ jq '
     | (.aws.cloud_regions["us-west-2"]) as $uw2
     | .aws.cloud_regions["us-west-1"] = $uw2
     | .aws.cloud_regions["us-west-2"] = $uw1
+
+    # us-east-1 is Ashburn/Loudoun County, VA, not Washington DC.
+    | .aws.cloud_regions["us-east-1"].latitude   = "39.043757"
+    | .aws.cloud_regions["us-east-1"].longitude  = "-77.487442"
+    | .aws.cloud_regions["us-east-1"].metro_area = "Ashburn"
+
+    # cn-northwest-1 is in Ningxia (Yinchuan), not Ningxiang in Hunan.
+    | .aws.cloud_regions["cn-northwest-1"].latitude   = "38.487193"
+    | .aws.cloud_regions["cn-northwest-1"].longitude  = "106.230909"
+    | .aws.cloud_regions["cn-northwest-1"].metro_area = "Yinchuan"
+
+    # ca-central-1 is Montréal, not Saint-Lazare ~50 km west of the island.
+    | .aws.cloud_regions["ca-central-1"].latitude   = "45.501690"
+    | .aws.cloud_regions["ca-central-1"].longitude  = "-73.567253"
 
     # --- GCP fixes -------------------------------------------------------
     | (.gcp._unresolved | map(select(.name == "Mexico")) | .[0]) as $gmx
