@@ -28,8 +28,7 @@ import static com.digitalpebble.spruce.SpruceColumn.*;
  *     Effectiveness) is looked up per AWS region from {@code aws-pue-wue.csv}.</li>
  * <li>{@link com.digitalpebble.spruce.SpruceColumn#WATER_ENERGY} – water consumed during
  *     electricity generation, computed as {@code energy_kwh * PUE * WCF} (litres). The WCF
- *     (Water Consumption Factor) is looked up per Electricity Maps zone from
- *     {@code em-locations-wcf.csv}.</li>
+ *     (Water Consumption Factor) is looked up per Electricity Maps zone.</li>
  * <li>{@link com.digitalpebble.spruce.SpruceColumn#WATER_STRESS} – total water consumption
  *     (cooling + energy) that occurs in areas under high or extremely high water stress
  *     (Aqueduct 4.0 category &ge; 3). This field is only populated when the region's water
@@ -112,12 +111,12 @@ public class Water implements EnrichmentModule {
                 waterEnergy = totalEnergy * wcf;
                 enrichedValues.put(WATER_ENERGY, waterEnergy);
             }
+        }
 
-            // Water consumption in areas under stress
-            Integer stressCat = WaterStats.getWaterStressCategory(emZone);
-            if (stressCat != null && stressCat >= HIGH_STRESS_THRESHOLD) {
-                enrichedValues.put(WATER_STRESS, waterCooling + waterEnergy);
-            }
+        // Water consumption in areas under stress (looked up directly by provider + region)
+        Integer stressCat = WaterStats.getWaterStressCategory(Provider.AWS, region);
+        if (stressCat != null && stressCat >= HIGH_STRESS_THRESHOLD) {
+            enrichedValues.put(WATER_STRESS, waterCooling + waterEnergy);
         }
     }
 
@@ -136,20 +135,21 @@ public class Water implements EnrichmentModule {
     }
 
     /**
-     * Provides water statistics per Electricity Maps zone ID.
+     * Provides water statistics per cloud region.
      * <ul>
-     *   <li>Water Consumption Factor (WCF) in l/kWh — loaded from {@code em-locations-wcf.csv}</li>
-     *   <li>Water Stress Category (0–4) — loaded from {@code em-water-stress.csv},
-     *       derived from Aqueduct 4.0 baseline water stress</li>
+     *   <li>Water Consumption Factor (WCF) in l/kWh, keyed by Electricity Maps zone ID</li>
+     *   <li>Water Stress Category (0–4) — loaded from {@code water-stress.csv},
+     *       derived from Aqueduct 4.0 baseline water stress, keyed by provider and region</li>
      * </ul>
      */
     static class WaterStats {
 
         private static final String WCF_CSV = "em-locations-wcf.csv";
-        private static final String WATER_STRESS_CSV = "em-water-stress.csv";
+        private static final String WATER_STRESS_CSV = "water-stress.csv";
 
         private static final Map<String, Double> wcfByZone = new HashMap<>();
-        private static final Map<String, Integer> waterStressByZone = new HashMap<>();
+        // provider name (lowercase) → region → water stress category
+        private static final Map<String, Map<String, Integer>> waterStressByProviderRegion = new HashMap<>();
 
         static {
             // Load WCF values
@@ -167,15 +167,19 @@ public class Water implements EnrichmentModule {
                 }
             }
 
-            // Load water stress categories
+            // Load water stress categories from water-stress.csv
+            // Format: provider,region,water_stress_cat
             List<String[]> stressRows = Utils.loadCSV(WATER_STRESS_CSV);
             for (String[] parts : stressRows) {
-                if (parts.length >= 2) {
-                    String zoneId = parts[0].trim();
-                    String catStr = parts[1].trim();
-                    if (!catStr.isEmpty()) {
+                if (parts.length >= 3) {
+                    String provider = parts[0].trim();
+                    String region = parts[1].trim();
+                    String catStr = parts[2].trim();
+                    if (!provider.isEmpty() && !region.isEmpty() && !catStr.isEmpty()) {
                         try {
-                            waterStressByZone.put(zoneId, Integer.parseInt(catStr));
+                            waterStressByProviderRegion
+                                    .computeIfAbsent(provider, k -> new HashMap<>())
+                                    .put(region, Integer.parseInt(catStr));
                         } catch (NumberFormatException ignored) {
                         }
                     }
@@ -187,8 +191,10 @@ public class Water implements EnrichmentModule {
             return wcfByZone.get(zoneId);
         }
 
-        static Integer getWaterStressCategory(String zoneId) {
-            return waterStressByZone.get(zoneId);
+        static Integer getWaterStressCategory(Provider provider, String region) {
+            Map<String, Integer> regionMap = waterStressByProviderRegion.get(provider.name().toLowerCase());
+            if (regionMap == null) return null;
+            return regionMap.get(region);
         }
     }
 }
