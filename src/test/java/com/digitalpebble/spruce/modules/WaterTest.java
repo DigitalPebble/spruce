@@ -3,6 +3,7 @@
 package com.digitalpebble.spruce.modules;
 
 import com.digitalpebble.spruce.Column;
+import com.digitalpebble.spruce.Provider;
 import com.digitalpebble.spruce.SpruceColumn;
 import com.digitalpebble.spruce.Utils;
 import org.apache.spark.sql.Row;
@@ -97,8 +98,8 @@ class WaterTest {
         water.enrich(row, enriched);
 
         assertTrue(enriched.containsKey(WATER_ENERGY));
-        // 100 * 1.15 * 2.31 = 265.65
-        assertEquals(265.65, (Double) enriched.get(WATER_ENERGY), 0.01);
+        // 100 * 1.15 * 2.3127 = 265.96
+        assertEquals(265.96, (Double) enriched.get(WATER_ENERGY), 0.01);
     }
 
     @Test
@@ -132,11 +133,11 @@ class WaterTest {
 
     @Test
     void waterStressPopulatedForHighStressRegion() {
-        // ap-south-1 (Mumbai) -> IN-WE, stress=4 (Extremely High)
-        // WUE matches regex ap-.+ = 0.98, WCF = 3.44
+        // ap-south-1 (Mumbai) -> stress=4 (Extremely High)
+        // WUE matches regex ap-.+ = 0.98, WCF = 3.4368 (India, wcf.csv)
         // waterCooling = 100 * 1.42 * 0.98 = 139.16
-        // waterEnergy = 100 * 1.42 * 3.44 = 488.48
-        // stress = 139.16 + 488.48 = 627.64
+        // waterEnergy = 100 * 1.42 * 3.4368 = 488.03
+        // stress = 139.16 + 488.03 = 627.19
         Row row = emptyRow();
         Map<Column, Object> enriched = new HashMap<>();
         enriched.put(ENERGY_USED, 100d);
@@ -145,15 +146,15 @@ class WaterTest {
         water.enrich(row, enriched);
 
         assertTrue(enriched.containsKey(WATER_STRESS));
-        assertEquals(627.64, (Double) enriched.get(WATER_STRESS), 0.01);
+        assertEquals(627.19, (Double) enriched.get(WATER_STRESS), 0.01);
     }
 
     @Test
     void waterStressIncludesCoolingAndEnergy() {
-        // ap-southeast-2 (Sydney) -> AU-NSW, stress=3 (High), WUE=0.12, WCF=4.73
+        // ap-southeast-2 (Sydney) -> stress=3 (High), WUE=0.12, WCF=4.7293 (Australia, wcf.csv)
         // waterCooling = 100 * 1.0 * 0.12 = 12.0
-        // waterEnergy = 100 * 1.0 * 4.73 = 473.0
-        // stress = 12.0 + 473.0 = 485.0
+        // waterEnergy = 100 * 1.0 * 4.7293 = 472.93
+        // stress = 12.0 + 472.93 = 484.93
         Row row = emptyRow();
         Map<Column, Object> enriched = new HashMap<>();
         enriched.put(ENERGY_USED, 100d);
@@ -163,12 +164,12 @@ class WaterTest {
         assertTrue(enriched.containsKey(WATER_COOLING));
         assertTrue(enriched.containsKey(WATER_ENERGY));
         assertTrue(enriched.containsKey(WATER_STRESS));
-        assertEquals(485.0, (Double) enriched.get(WATER_STRESS), 0.01);
+        assertEquals(484.93, (Double) enriched.get(WATER_STRESS), 0.01);
     }
 
     @Test
     void noWaterStressForMediumStressRegion() {
-        // us-east-1 -> US-MIDA-PJM, stress=2 (Medium-High, below threshold)
+        // us-east-1 -> stress=2 (Medium-High, below threshold)
         Row row = emptyRow();
         Map<Column, Object> enriched = new HashMap<>();
         enriched.put(ENERGY_USED, 100d);
@@ -197,86 +198,124 @@ class WaterTest {
     @Nested
     class WaterStatsTest {
 
-        // --- WCF tests ---
+        // --- WCF tests (keyed by provider + region) ---
 
         @Test
-        void wcfForKnownZone() {
-            assertEquals(5.72, Water.WaterStats.getWCF("AT"), 0.01);
+        void wcfForUsEast1() {
+            // us-east-1 (Virginia) → RFCE eGRID subregion
+            assertEquals(2.3127, Water.WaterStats.getWCF(Provider.AWS, "us-east-1"), 0.001);
         }
 
         @Test
-        void wcfNullForZoneWithoutValue() {
-            assertNull(Water.WaterStats.getWCF("AE"));
+        void wcfForUsWest2() {
+            // us-west-2 (Oregon) → NWPP eGRID subregion
+            assertEquals(9.4825, Water.WaterStats.getWCF(Provider.AWS, "us-west-2"), 0.001);
         }
 
         @Test
-        void wcfNullForUnknownZone() {
-            assertNull(Water.WaterStats.getWCF("UNKNOWN"));
+        void wcfForIreland() {
+            // eu-west-1 (Ireland) → country-level WRI data
+            assertEquals(1.4769, Water.WaterStats.getWCF(Provider.AWS, "eu-west-1"), 0.001);
         }
 
-        // --- Water stress tests (country-level zones) ---
+        @Test
+        void wcfForAustralia() {
+            // ap-southeast-2 (Sydney) → Australia country-level WRI data
+            assertEquals(4.7293, Water.WaterStats.getWCF(Provider.AWS, "ap-southeast-2"), 0.001);
+        }
 
         @Test
-        void waterStressForCountryZone() {
-            assertEquals(4, Water.WaterStats.getWaterStressCategory("AE"));
+        void wcfForJapan() {
+            // ap-northeast-1 (Tokyo) → Japan country-level WRI data
+            assertEquals(2.3064, Water.WaterStats.getWCF(Provider.AWS, "ap-northeast-1"), 0.001);
+        }
+
+        @Test
+        void wcfNullForSingapore() {
+            // Singapore has no WRI data
+            assertNull(Water.WaterStats.getWCF(Provider.AWS, "ap-southeast-1"));
+        }
+
+        @Test
+        void wcfNullForUnknownRegion() {
+            assertNull(Water.WaterStats.getWCF(Provider.AWS, "bogus-region-99"));
+        }
+
+        @Test
+        void wcfForGcpRegion() {
+            // gcp:us-west1 (Oregon) → NWPP eGRID subregion
+            assertEquals(9.4825, Water.WaterStats.getWCF(Provider.GOOGLE, "us-west1"), 0.001);
+        }
+
+        @Test
+        void wcfForAzureRegion() {
+            // azure:westeurope (Netherlands) → country-level WRI data
+            assertEquals(3.4330, Water.WaterStats.getWCF(Provider.AZURE, "westeurope"), 0.001);
+        }
+
+        // --- Water stress tests keyed by (provider, region) ---
+
+        @Test
+        void waterStressForUAE() {
+            // me-central-1 (UAE) = Extremely High (4)
+            assertEquals(4, Water.WaterStats.getWaterStressCategory(Provider.AWS, "me-central-1"));
         }
 
         @Test
         void waterStressLowForSwitzerland() {
-            assertEquals(0, Water.WaterStats.getWaterStressCategory("CH"));
-        }
-
-        // --- Water stress tests (regional sub-zones) ---
-
-        @Test
-        void waterStressForAustralianState() {
-            // AU-NSW = New South Wales = cat 3
-            assertEquals(3, Water.WaterStats.getWaterStressCategory("AU-NSW"));
+            // eu-central-2 (Zurich) = Low (0)
+            assertEquals(0, Water.WaterStats.getWaterStressCategory(Provider.AWS, "eu-central-2"));
         }
 
         @Test
-        void waterStressForUSState() {
-            // US-CAL-CISO = California = cat 4
-            assertEquals(4, Water.WaterStats.getWaterStressCategory("US-CAL-CISO"));
+        void waterStressForAustraliaNSW() {
+            // ap-southeast-2 (Sydney, New South Wales) = High (3)
+            assertEquals(3, Water.WaterStats.getWaterStressCategory(Provider.AWS, "ap-southeast-2"));
         }
 
         @Test
-        void waterStressForUSFlorida() {
-            // US-FLA-FPL = Florida = cat 3
-            assertEquals(3, Water.WaterStats.getWaterStressCategory("US-FLA-FPL"));
+        void waterStressForUSCalifornia() {
+            // us-west-1 (San Francisco, California) = Extremely High (4)
+            assertEquals(4, Water.WaterStats.getWaterStressCategory(Provider.AWS, "us-west-1"));
         }
 
         @Test
-        void waterStressForIndianGrid() {
-            // IN-NO = Northern India (NCT of Delhi) = cat 4
-            assertEquals(4, Water.WaterStats.getWaterStressCategory("IN-NO"));
+        void waterStressForIndiaHyderabad() {
+            // ap-south-2 (Hyderabad, Telangana) = High (3)
+            assertEquals(3, Water.WaterStats.getWaterStressCategory(Provider.AWS, "ap-south-2"));
         }
 
         @Test
-        void waterStressForJapanTokyo() {
-            // JP-TK = Tokyo = cat 2
-            assertEquals(2, Water.WaterStats.getWaterStressCategory("JP-TK"));
+        void waterStressForIndiaMumbai() {
+            // ap-south-1 (Mumbai, Maharashtra) = Extremely High (4)
+            assertEquals(4, Water.WaterStats.getWaterStressCategory(Provider.AWS, "ap-south-1"));
         }
 
-        // --- Water stress tests (territories) ---
+        @Test
+        void waterStressForJapan() {
+            // ap-northeast-1 (Tokyo, Kanagawa) = Medium-High (2) from province-level Aqueduct data
+            assertEquals(2, Water.WaterStats.getWaterStressCategory(Provider.AWS, "ap-northeast-1"));
+        }
 
         @Test
         void waterStressForHongKong() {
-            // HK -> China = cat 2
-            assertEquals(2, Water.WaterStats.getWaterStressCategory("HK"));
+            // ap-east-1 (Hong Kong) = Medium-High (2)
+            assertEquals(2, Water.WaterStats.getWaterStressCategory(Provider.AWS, "ap-east-1"));
         }
 
         // --- No data / unknown ---
 
         @Test
-        void waterStressNullForNoDataZone() {
-            // SG has no water stress data in Aqueduct (-9999)
-            assertNull(Water.WaterStats.getWaterStressCategory("SG"));
+        void waterStressNullForSingapore() {
+            // ap-southeast-1 (Singapore): Aqueduct has no data for Singapore
+            assertNull(Water.WaterStats.getWaterStressCategory(Provider.AWS, "ap-southeast-1"));
         }
 
         @Test
-        void waterStressNullForUnknownZone() {
-            assertNull(Water.WaterStats.getWaterStressCategory("UNKNOWN"));
+        void waterStressNullForUnknownRegion() {
+            assertNull(Water.WaterStats.getWaterStressCategory(Provider.AWS, "bogus-region-99"));
         }
+
     }
+
 }

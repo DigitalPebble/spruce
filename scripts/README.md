@@ -118,14 +118,92 @@ Environment variables:
 - `EMBER_GEOCACHE` — override the geocode cache path (default
   `./geocode_cache.tsv`).
 
+## Cloud region water data
+
+Scripts that build per-cloud-region water datasets from WRI sources.
+Both scripts share the same geocode cache (`src/main/resources/geocode_cache.tsv`)
+and download cache (`scripts/.aqueduct_cache/`).
+
+Run from the project root after `fetch_cloud_regions.sh` / `fix_cloud_regions.sh`:
+
+```sh
+python3 scripts/fetch_wri_wcf.py
+python3 scripts/fetch_aqueduct_water_stress.py
+```
+
+Requires: Python 3.8+, `openpyxl` (`pip install openpyxl`).
+
+### `fetch_wri_wcf.py`
+
+Downloads the WRI spreadsheet *Guidance for Calculating Water Use Embedded in
+Purchased Electricity* and produces a Water Consumption Factor (WCF, l/kWh)
+for each cloud region.
+
+**Source:** `https://files.wri.org/d8/s3fs-public/guidance-calculating-water-use-embedded-purchased-electricity-appendices-1-to-7.xlsx`
+
+The spreadsheet's first sheet contains two side-by-side tables:
+- **Appendix 1** — US eGRID subregion WCF values (gal/kWh).
+- **Appendix 2** — Country-level WCF values (gal/kWh).
+
+Values are converted to l/kWh (× 3.78541).
+
+Resolution per cloud region:
+1. **US regions** — reverse-geocode the region's lat/lon via Nominatim to get the
+   US state, then map state → eGRID subregion code (e.g. Virginia → RFCE,
+   Oregon → NWPP, Ohio → RFCW). Virginia is split: lat > 38.5° → RFCE
+   (Northern Virginia / Pepco), otherwise SRVC (Dominion).
+2. **Non-US regions** — match by country name. "United Kingdom" is aliased to
+   the WRI entry "Great Britain".
+
+Output: `src/main/resources/wcf.csv`, columns `provider,region,wcf`.
+
+Usage: `./fetch_wri_wcf.py [cloud_regions.json] [output.csv]`
+
+Environment variables:
+- `GEOCACHE` — override the geocode cache path (default `<output_dir>/geocode_cache.tsv`).
+
+### `fetch_aqueduct_water_stress.py`
+
+Downloads the WRI Aqueduct 4.0 country/province baseline water stress rankings
+and maps each cloud region to a stress category (0–4).
+
+**Source:** `https://files.wri.org/aqueduct/aqueduct-4-0-country-rankings.zip`
+
+The zip contains an xlsx with two relevant sheets:
+- `province_baseline` — sub-national stress categories.
+- `country_baseline` — national stress categories.
+
+Only rows with `indicator_name = bws` (baseline water stress) and `weight = Tot`
+are used. Category values: 0 = Low, 1 = Low-Medium, 2 = Medium-High, 3 = High,
+4 = Extremely High.
+
+Resolution per cloud region (first match wins):
+1. **Province** — reverse-geocode the region's lat/lon via Nominatim (zoom=6,
+   `Accept-Language: en`) to get the state/province name in English. Common
+   administrative suffixes ("Prefecture", "Province", "County", etc.) are
+   stripped before matching. Matched against `province_baseline`.
+2. **Country** — matched by country name against `country_baseline`.
+
+Geocoded results are cached in `geocode_cache.tsv`. Cached entries with
+non-ASCII state names (fetched before the `Accept-Language: en` fix) are
+discarded and re-fetched automatically.
+
+Output: `src/main/resources/water-stress.csv`, columns `provider,region,water_stress_cat`.
+
+Usage: `./fetch_aqueduct_water_stress.py [cloud_regions.json] [output.csv]`
+
+Environment variables:
+- `GEOCACHE` — override the geocode cache path (default `<output_dir>/geocode_cache.tsv`).
+
 ## Requirements
 
 - `bash` 4+
 - `curl`
 - `jq`
 - `awk` (BSD awk on macOS or GNU awk both work)
+- Python 3.8+, `openpyxl` (`pip install openpyxl`)
 - Network access to `files.ember-energy.org`, `cloudinfrastructuremap.com`,
-  and `nominatim.openstreetmap.org`.
+  `files.wri.org`, and `nominatim.openstreetmap.org`.
 
 ## Data sources and licensing
 
@@ -134,8 +212,12 @@ Environment variables:
   under Creative Commons — see
   [ember-energy.org/creative-commons/](https://ember-energy.org/creative-commons/)
   for the specific licence and attribution requirements.
+- Water Consumption Factors: [WRI](https://www.wri.org/research/guidance-calculating-water-use-embedded-purchased-electricity),
+  Creative Commons Attribution 4.0 International.
+- Aqueduct 4.0 water stress: [WRI](https://www.wri.org/data/aqueduct-global-maps-40-data),
+  Creative Commons Attribution 4.0 International.
 - Reverse geocoding: OpenStreetMap Nominatim (please read and respect their
   [usage policy](https://operations.osmfoundation.org/policies/nominatim/)
-  — the script sends a descriptive `User-Agent` and sleeps 1 s between
+  — the scripts send a descriptive `User-Agent` and sleep 1 s between
   uncached requests).
 
