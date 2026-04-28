@@ -117,6 +117,8 @@ public class BoaviztAPI implements EnrichmentModule {
 
         if (impacts == null) {
             try {
+                // TODO #182 follow-up: parameterise via init(Map, Provider) so non-AWS workflows
+                //  pass the right provider to the Boavizta client. Same applies to BoaviztAPIstatic.
                 impacts = client.getImpacts(Provider.AWS, instanceType);
                 cache.put(instanceType, impacts);
             } catch (InstanceTypeUknown e1) {

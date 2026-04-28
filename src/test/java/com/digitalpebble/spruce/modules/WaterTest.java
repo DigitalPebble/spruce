@@ -27,7 +27,7 @@ class WaterTest {
     @BeforeEach
     void setUp() {
         water = new Water();
-        water.init(new HashMap<>());
+        water.init(new HashMap<>(), Provider.AWS);
         schema = Utils.getSchema(water);
     }
 
