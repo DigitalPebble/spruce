@@ -21,6 +21,15 @@ public interface EnrichmentModule extends Serializable {
     /** Initialisation of the module; used to loads resources **/
     default void init(Map<String, Object> params){}
 
+    /**
+     * Provider-aware initialisation. Override this if the module's behaviour depends on the
+     * active cloud provider (e.g. for region-keyed lookups). The default implementation
+     * delegates to {@link #init(Map)} so existing modules don't need to change.
+     */
+    default void init(Map<String, Object> params, Provider provider) {
+        init(params);
+    }
+
     /** Returns the columns required by this module **/
     Column[] columnsNeeded();
 

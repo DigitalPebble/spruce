@@ -48,6 +48,16 @@ public class Water implements EnrichmentModule {
     private final Map<String, Double> wueExactMatches = new HashMap<>();
     private final Map<Pattern, Double> wueRegexMatches = new HashMap<>();
 
+    /** Set via {@link #init(Map, Provider)} — left null on purpose so any call path that
+     *  bypasses provider-aware init fails loudly rather than silently using AWS. */
+    private Provider provider;
+
+    @Override
+    public void init(Map<String, Object> params, Provider provider) {
+        this.provider = provider;
+        init(params);
+    }
+
     @Override
     public void init(Map<String, Object> params) {
         // Load WUE values from column index 3 of the PUE-WUE CSV
@@ -104,14 +114,14 @@ public class Water implements EnrichmentModule {
 
         // Water from energy generation (WCF)
         double waterEnergy = 0;
-        Double wcf = WaterStats.getWCF(Provider.AWS, region);
+        Double wcf = WaterStats.getWCF(provider, region);
         if (wcf != null) {
             waterEnergy = totalEnergy * wcf;
             enrichedValues.put(WATER_ENERGY, waterEnergy);
         }
 
         // Water consumption in areas under stress (looked up directly by provider + region)
-        Integer stressCat = WaterStats.getWaterStressCategory(Provider.AWS, region);
+        Integer stressCat = WaterStats.getWaterStressCategory(provider, region);
         if (stressCat != null && stressCat >= HIGH_STRESS_THRESHOLD) {
             enrichedValues.put(WATER_STRESS, waterCooling + waterEnergy);
         }
