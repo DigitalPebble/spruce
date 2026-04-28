@@ -23,6 +23,13 @@ Provides an estimate of energy used for storage by applying a flat coefficient p
 Service-specific replication factors are applied.
 See [methodology](https://www.cloudcarbonfootprint.org/docs/methodology#storage) for more details.
 
+The HDD and SSD coefficients (in Wh per TB-hour) can be overridden via configuration:
+
+| Key | Default | Description |
+|---|---|---|
+| `hdd_coefficient_tb_h` | 0.65 | Energy per TB-hour for HDD storage |
+| `ssd_coefficient_tb_h` | 1.2  | Energy per TB-hour for SSD storage |
+
 **Output column**:  `operational_energy_kwh`.
 
 ### ccf.Networking
@@ -144,7 +151,13 @@ approach in SPRUCE is attributional, we do the same for networking in order to b
 ## Serverless
 
 Provides an estimate of energy for the memory and vCPU usage of serverless services like Fargate or EMR.
-The default coefficients are taken from the [Tailpipe methodology](https://tailpipe.ai/methodology/serverless-explained/).
+The default coefficients are taken from the [Tailpipe methodology](https://tailpipe.ai/methodology/serverless-explained/) and can be overridden via configuration:
+
+| Key | Default | Description |
+|---|---|---|
+| `memory_coefficient_kwh`  | 0.0000598    | kWh per GB of memory |
+| `arm_cpu_coefficient_kwh` | 0.00191015625 | kWh per vCPU (ARM) |
+| `x86_cpu_coefficient_kwh` | 0.0088121875  | kWh per vCPU (x86) |
 
 **Output column**:  `operational_energy_kwh`.
 

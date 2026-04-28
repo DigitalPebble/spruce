@@ -89,7 +89,7 @@ class WaterTest {
 
     @Test
     void waterEnergyFromRegionMapping() {
-        // us-east-1 maps to EM zone US-MIDA-PJM which has WCF = 2.31
+        // wcf.csv: aws,us-east-1 -> WCF = 2.31
         Row row = emptyRow();
         Map<Column, Object> enriched = new HashMap<>();
         enriched.put(ENERGY_USED, 100d);
