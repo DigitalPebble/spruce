@@ -185,15 +185,12 @@ public class BoaviztAPIClientTest {
                                     "value": 0.0086
                                   }
                             },
-                            "pe": {
+                            "fe": {
                                 "use": {
                                     "value": 15.5,
                                     "unit": "MJ"
                                 },
-                                "embedded": {
-                                    "value": 120.0,
-                                    "unit": "MJ"
-                                }
+                                "embedded": "not implemented"
                             },
                             "adp": {
                                 "use": {

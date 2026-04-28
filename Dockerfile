@@ -5,3 +5,4 @@ RUN mvn -B -ntp -Dmaven.test.skip=true -f /home/app/pom.xml clean package
 
 FROM apache/spark:4.1.1-java17
 COPY --from=build /home/app/target/spruce-*.jar /usr/local/lib/spruce.jar
+ENTRYPOINT ["/opt/spark/bin/spark-submit", "--driver-memory", "4g", "--master", "local[*]", "/usr/local/lib/spruce.jar"]

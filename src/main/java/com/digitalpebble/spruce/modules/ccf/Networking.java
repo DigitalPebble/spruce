@@ -4,6 +4,7 @@ package com.digitalpebble.spruce.modules.ccf;
 
 import com.digitalpebble.spruce.Column;
 import com.digitalpebble.spruce.EnrichmentModule;
+import com.digitalpebble.spruce.Utils;
 import org.apache.spark.sql.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +20,8 @@ import static com.digitalpebble.spruce.SpruceColumn.ENERGY_USED;
  *
  * @see <a href="https://www.cloudcarbonfootprint.org/docs/methodology#networking">CCF methodology</a>
  * @see <a href="https://github.com/cloud-carbon-footprint/cloud-carbon-footprint/blob/9f2cf436e5ad020830977e52c3b0a1719d20a8b9/packages/aws/src/lib/CostAndUsageTypes.ts#L25">resource file</a>
+ *
+ * @deprecated com.digitalpebble.spruce.modules.Networking is a more accurate replacement
  **/
 public class Networking implements EnrichmentModule {
 
@@ -53,9 +56,7 @@ public class Networking implements EnrichmentModule {
             return;
         }
         //  apply only to rows corresponding to networking in or out of a region
-        int index = PRODUCT.resolveIndex(row);
-        Map<Object, Object> productMap = row.getJavaMap(index);
-        String transfer_type = (String) productMap.getOrDefault("transfer_type", "");
+        String transfer_type = Utils.getStringFromProductMap(row, "transfer_type", "");
 
         if (!transfer_type.startsWith("InterRegion")) {
             return;

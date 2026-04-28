@@ -133,6 +133,39 @@ public abstract class Utils {
     }
 
     /**
+     * Extracts a string value from the {@code product} map column.
+     * Handles both {@code scala.collection.Map} (standard) and {@code Seq<Row>}
+     * (Parquet key-value struct array) representations used by Spark 4.x.
+     *
+     * @param row          the CUR row
+     * @param key          the map key to look up
+     * @param defaultValue value returned when the key is absent or the column is null
+     * @return the value for {@code key}, or {@code defaultValue} if not found
+     */
+    @SuppressWarnings("unchecked")
+    public static String getStringFromProductMap(Row row, String key, String defaultValue) {
+        int index = CURColumn.PRODUCT.resolveIndex(row);
+        if (row.isNullAt(index)) return defaultValue;
+        Object raw = row.get(index);
+        if (raw instanceof scala.collection.Map) {
+            scala.Option<?> opt = ((scala.collection.Map<String, ?>) raw).get(key);
+            return opt.isDefined() ? String.valueOf(opt.get()) : defaultValue;
+        }
+        if (raw instanceof scala.collection.Seq) {
+            scala.collection.Seq<?> seq = (scala.collection.Seq<?>) raw;
+            for (int i = 0; i < seq.size(); i++) {
+                Object elem = seq.apply(i);
+                if (elem instanceof Row kv) {
+                    if (key.equals(kv.get(0))) {
+                        return kv.isNullAt(1) ? defaultValue : kv.getString(1);
+                    }
+                }
+            }
+        }
+        return defaultValue;
+    }
+
+    /**
      * Loads a CSV resource and returns a list of String arrays.
      * Skips lines starting with # or empty lines.
      */

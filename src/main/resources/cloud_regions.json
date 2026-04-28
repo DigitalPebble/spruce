@@ -1,0 +1,1529 @@
+{
+  "aws": {
+    "_source": "https://www.cloudinfrastructuremap.com/api/cloud-service-provider/amazon-web-services.js",
+    "_license": "Creative Commons Attribution-ShareAlike 4.0 International -- CC BY-SA 4.0",
+    "_unresolved": [
+      {
+        "latitude": "-33.437269",
+        "longitude": "-70.650564",
+        "metro_area": "Santiago",
+        "country": "Chile",
+        "name": "AWS Chile (Santiago)",
+        "in_service": false,
+        "zones": "3",
+        "cloud_region": null
+      },
+      {
+        "latitude": "50.112065",
+        "longitude": "8.683415",
+        "metro_area": "Frankfurt",
+        "country": "Germany",
+        "name": "European Sovereign Cloud (Germany)",
+        "in_service": false,
+        "zones": "3",
+        "cloud_region": null
+      },
+      {
+        "latitude": "24.647325",
+        "longitude": "46.714585",
+        "metro_area": "Riyadh",
+        "country": "Saudi Arabia",
+        "name": "Saudi Arabia (Riyadh)",
+        "in_service": false,
+        "zones": "3",
+        "cloud_region": null
+      }
+    ],
+    "cloud_regions": {
+      "ap-southeast-4": {
+        "latitude": "-37.817532",
+        "longitude": "144.967148",
+        "metro_area": "Melbourne",
+        "country": "Australia",
+        "name": "Asia Pacific (Melbourne)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "ap-southeast-2": {
+        "latitude": "-33.869696",
+        "longitude": "151.20704",
+        "metro_area": "Sydney",
+        "country": "Australia",
+        "name": "Asia Pacific (Sydney)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "me-south-1": {
+        "latitude": "26.229438",
+        "longitude": "50.575955",
+        "metro_area": "Manama",
+        "country": "Bahrain",
+        "name": "Middle East (Bahrain)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "sa-east-1": {
+        "latitude": "-23.562880",
+        "longitude": "-46.654659",
+        "metro_area": "São Paulo",
+        "country": "Brazil",
+        "name": "South America (São Paulo)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "ca-west-1": {
+        "latitude": "51.045220",
+        "longitude": "-114.063014",
+        "metro_area": "Calgary",
+        "country": "Canada",
+        "name": "Canada (West) ",
+        "in_service": true,
+        "zones": "3"
+      },
+      "ca-central-1": {
+        "latitude": "45.501690",
+        "longitude": "-73.567253",
+        "metro_area": "Montréal",
+        "country": "Canada",
+        "name": "Canada (Central)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "cn-north-1": {
+        "latitude": "39.906010",
+        "longitude": "116.387909",
+        "metro_area": "Beijing",
+        "country": "China",
+        "name": "Mainland China (Beijing)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "ap-east-1": {
+        "latitude": "22.283325",
+        "longitude": "114.158720",
+        "metro_area": "Hong Kong",
+        "country": "China",
+        "name": "China (Hong Kong)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "cn-northwest-1": {
+        "latitude": "38.487193",
+        "longitude": "106.230909",
+        "metro_area": "Yinchuan",
+        "country": "China",
+        "name": "Mainland China (Ningxia)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "eu-west-3": {
+        "latitude": "48.856930",
+        "longitude": "2.341200",
+        "metro_area": "Paris",
+        "country": "France",
+        "name": "Europe West (Paris)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "eu-central-1": {
+        "latitude": "50.112065",
+        "longitude": "8.683415",
+        "metro_area": "Frankfurt",
+        "country": "Germany",
+        "name": "Europe Central (Frankfurt)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "ap-south-2": {
+        "latitude": "17.612611",
+        "longitude": "78.451538",
+        "metro_area": "Hyderabad",
+        "country": "India",
+        "name": "Asia Pacific (Hyderabad)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "ap-south-1": {
+        "latitude": "19.07608",
+        "longitude": "72.875866",
+        "metro_area": "Mumbai",
+        "country": "India",
+        "name": "Asia Pacific (Mumbai)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "ap-southeast-3": {
+        "latitude": "-6.171588",
+        "longitude": "106.827868",
+        "metro_area": "Jakarta",
+        "country": "Indonesia",
+        "name": "Indonesia (Jakarta)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "eu-west-1": {
+        "latitude": "53.348114",
+        "longitude": "-6.248262",
+        "metro_area": "Dublin",
+        "country": "Ireland",
+        "name": "Europe West (Ireland)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "il-central-1": {
+        "latitude": "32.045043",
+        "longitude": "34.769661",
+        "metro_area": "Tel Aviv",
+        "country": "Israel",
+        "name": "Middle East (Tel Aviv)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "eu-south-1": {
+        "latitude": "45.468945",
+        "longitude": "9.181030",
+        "metro_area": "Milan",
+        "country": "Italy",
+        "name": "Europe (Milan)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "ap-northeast-3": {
+        "latitude": "34.677471",
+        "longitude": "135.503235",
+        "metro_area": "Osaka",
+        "country": "Japan",
+        "name": "Asia Pacific (Osaka)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "ap-northeast-1": {
+        "latitude": "35.5092405",
+        "longitude": "139.7698121",
+        "metro_area": "Tokyo",
+        "country": "Japan",
+        "name": "Asia Pacific (Tokyo)",
+        "in_service": true,
+        "zones": "4"
+      },
+      "ap-southeast-1": {
+        "latitude": "1.293873",
+        "longitude": "103.853107",
+        "metro_area": "Singapore",
+        "country": "Singapore",
+        "name": "Asia Pacific (Singapore)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "af-south-1": {
+        "latitude": "-33.919086",
+        "longitude": "18.421981",
+        "metro_area": "Cape Town",
+        "country": "South Africa",
+        "name": "Africa (Cape Town)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "ap-northeast-2": {
+        "latitude": "37.557121",
+        "longitude": "126.977379",
+        "metro_area": "Seoul",
+        "country": "South Korea",
+        "name": "Asia Pacific (Seoul)",
+        "in_service": true,
+        "zones": "4"
+      },
+      "eu-south-2": {
+        "latitude": "41.651730",
+        "longitude": "-0.881319",
+        "metro_area": "Zaragoza",
+        "country": "Spain",
+        "name": "Europe South (Spain)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "eu-north-1": {
+        "latitude": "59.332268",
+        "longitude": "18.062797",
+        "metro_area": "Stockholm",
+        "country": "Sweden",
+        "name": "Europe North (Stockholm)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "eu-central-2": {
+        "latitude": "47.377060",
+        "longitude": "8.539550",
+        "metro_area": "Zürich",
+        "country": "Switzerland",
+        "name": "Europe (Zurich) ",
+        "in_service": true,
+        "zones": "3"
+      },
+      "ap-southeast-7": {
+        "latitude": "13.753330",
+        "longitude": "100.504822",
+        "metro_area": "Bangkok",
+        "country": "Thailand",
+        "name": "AWS Thailand",
+        "in_service": true,
+        "zones": "3"
+      },
+      "me-central-1": {
+        "latitude": "25.26934",
+        "longitude": "55.308487",
+        "metro_area": "Dubai",
+        "country": "United Arab Emirates",
+        "name": "United Arab Emirates",
+        "in_service": true,
+        "zones": "3"
+      },
+      "eu-west-2": {
+        "latitude": "51.506325",
+        "longitude": "-0.127144",
+        "metro_area": "London",
+        "country": "United Kingdom",
+        "name": "Europe West (London)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "us-gov-east-1": {
+        "latitude": "40.0811745",
+        "longitude": "-82.8087864",
+        "metro_area": "Columbus",
+        "country": "United States",
+        "name": "AWS GovCloud (US-East)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "us-east-2": {
+        "latitude": "40.029810",
+        "longitude": "-83.151054",
+        "metro_area": "Columbus",
+        "country": "United States",
+        "name": "US East (Ohio)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "us-gov-west-1": {
+        "latitude": "45.919796",
+        "longitude": "-119.338855",
+        "metro_area": "Hermiston",
+        "country": "United States",
+        "name": "AWS GovCloud (US-West)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "us-west-1": {
+        "latitude": "37.777125",
+        "longitude": "-122.419644",
+        "metro_area": "San Francisco",
+        "country": "United States",
+        "name": "US West (Northern California)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "us-west-2": {
+        "latitude": "45.839855",
+        "longitude": "-119.700583",
+        "metro_area": "Hermiston",
+        "country": "United States",
+        "name": "US West (Oregon)",
+        "in_service": true,
+        "zones": "4"
+      },
+      "us-east-1": {
+        "latitude": "39.043757",
+        "longitude": "-77.487442",
+        "metro_area": "Ashburn",
+        "country": "United States",
+        "name": "US East (Northern Virginia)",
+        "in_service": true,
+        "zones": "6"
+      },
+      "ap-southeast-6": {
+        "latitude": "-36.884209",
+        "longitude": "174.770419",
+        "metro_area": "Auckland",
+        "country": "New Zealand",
+        "name": "Asia Pacific (Auckland)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "ap-southeast-5": {
+        "latitude": "3.104665",
+        "longitude": "101.691170",
+        "metro_area": "Kuala Lumpur",
+        "country": "Malaysia",
+        "name": "Malaysia",
+        "in_service": true,
+        "zones": "3"
+      },
+      "mx-central-1": {
+        "latitude": "20.6121228",
+        "longitude": "-100.4802578",
+        "metro_area": "Santiago de Querétaro",
+        "country": "Mexico",
+        "name": "AWS Mexico central",
+        "in_service": true,
+        "zones": "3"
+      },
+      "ap-east-2": {
+        "latitude": "25.080441",
+        "longitude": "121.564194",
+        "metro_area": "Taipei",
+        "country": "Taiwan",
+        "name": "Asia Pacific (Taipei)",
+        "in_service": true,
+        "zones": "3"
+      }
+    }
+  },
+  "gcp": {
+    "_source": "https://www.cloudinfrastructuremap.com/api/cloud-service-provider/google-cloud.js",
+    "_license": "Creative Commons Attribution-ShareAlike 4.0 International -- CC BY-SA 4.0",
+    "_unresolved": [
+      {
+        "latitude": "-36.884209",
+        "longitude": "174.770419",
+        "metro_area": "Auckland",
+        "country": "New Zealand",
+        "name": "New Zealand",
+        "in_service": false,
+        "zones": "3",
+        "cloud_region": null
+      },
+      {
+        "latitude": "59.912280",
+        "longitude": "10.749980",
+        "metro_area": "Oslo",
+        "country": "Norway",
+        "name": "Norway",
+        "in_service": false,
+        "zones": "3",
+        "cloud_region": null
+      },
+      {
+        "latitude": "33.448260",
+        "longitude": "-112.075774",
+        "metro_area": "Phoenix",
+        "country": "United States",
+        "name": "Phoenix",
+        "in_service": false,
+        "zones": "3",
+        "cloud_region": null
+      }
+    ],
+    "cloud_regions": {
+      "australia-southeast2": {
+        "latitude": "-37.817532",
+        "longitude": "144.967148",
+        "metro_area": "Melbourne",
+        "country": "Australia",
+        "name": "Melbourne",
+        "in_service": true,
+        "zones": "3"
+      },
+      "australia-southeast1": {
+        "latitude": "-33.869696",
+        "longitude": "151.20704",
+        "metro_area": "Sydney",
+        "country": "Australia",
+        "name": "Sydney",
+        "in_service": true,
+        "zones": "3"
+      },
+      "europe-west1": {
+        "latitude": "50.447849",
+        "longitude": "3.820250",
+        "metro_area": "Mons",
+        "country": "Belgium",
+        "name": "Belgium",
+        "in_service": true,
+        "zones": "3"
+      },
+      "southamerica-east1": {
+        "latitude": "-23.562880",
+        "longitude": "-46.654659",
+        "metro_area": "São Paulo",
+        "country": "Brazil",
+        "name": "Sao Paulo",
+        "in_service": true,
+        "zones": "3"
+      },
+      "northamerica-northeast1": {
+        "latitude": "45.5576996",
+        "longitude": "-74.0104842",
+        "metro_area": "Montréal",
+        "country": "Canada",
+        "name": "Montreal",
+        "in_service": true,
+        "zones": "3"
+      },
+      "northamerica-northeast2": {
+        "latitude": "43.648560",
+        "longitude": "-79.385324",
+        "metro_area": "Toronto",
+        "country": "Canada",
+        "name": "Toronto",
+        "in_service": true,
+        "zones": "3"
+      },
+      "southamerica-west1": {
+        "latitude": "-33.437269",
+        "longitude": "-70.650564",
+        "metro_area": "Santiago",
+        "country": "Chile",
+        "name": "Santiago",
+        "in_service": true,
+        "zones": "3"
+      },
+      "asia-east2": {
+        "latitude": "22.283325",
+        "longitude": "114.158720",
+        "metro_area": "Hong Kong",
+        "country": "China",
+        "name": "Hong Kong",
+        "in_service": true,
+        "zones": "3"
+      },
+      "europe-north1": {
+        "latitude": "60.566667",
+        "longitude": "27.2",
+        "metro_area": "Hamina",
+        "country": "Finland",
+        "name": "Finland",
+        "in_service": true,
+        "zones": "3"
+      },
+      "europe-west9": {
+        "latitude": "48.856930",
+        "longitude": "2.341200",
+        "metro_area": "Paris",
+        "country": "France",
+        "name": "Paris",
+        "in_service": true,
+        "zones": "3"
+      },
+      "europe-west10": {
+        "latitude": "52.516074",
+        "longitude": "13.376987",
+        "metro_area": "Berlin",
+        "country": "Germany",
+        "name": "Berlin",
+        "in_service": true,
+        "zones": "3"
+      },
+      "europe-west3": {
+        "latitude": "50.112065",
+        "longitude": "8.683415",
+        "metro_area": "Frankfurt",
+        "country": "Germany",
+        "name": "Frankfurt",
+        "in_service": true,
+        "zones": "3"
+      },
+      "asia-south1": {
+        "latitude": "19.07608",
+        "longitude": "72.875866",
+        "metro_area": "Mumbai",
+        "country": "India",
+        "name": "Mumbai",
+        "in_service": true,
+        "zones": "3"
+      },
+      "asia-south2": {
+        "latitude": "28.635308",
+        "longitude": "77.224960",
+        "metro_area": "New Delhi",
+        "country": "India",
+        "name": "Delhi",
+        "in_service": true,
+        "zones": "3"
+      },
+      "asia-southeast2": {
+        "latitude": "-6.171588",
+        "longitude": "106.827868",
+        "metro_area": "Jakarta",
+        "country": "Indonesia",
+        "name": "Jakarta",
+        "in_service": true,
+        "zones": "3"
+      },
+      "me-west1": {
+        "latitude": "32.045043",
+        "longitude": "34.769661",
+        "metro_area": "Tel Aviv",
+        "country": "Israel",
+        "name": "Tel Aviv",
+        "in_service": true,
+        "zones": "3"
+      },
+      "europe-west8": {
+        "latitude": "45.468945",
+        "longitude": "9.181030",
+        "metro_area": "Milan",
+        "country": "Italy",
+        "name": "Milan",
+        "in_service": true,
+        "zones": "3"
+      },
+      "europe-west12": {
+        "latitude": "45.069512",
+        "longitude": "7.705403",
+        "metro_area": "Turin",
+        "country": "Italy",
+        "name": "Turin",
+        "in_service": true,
+        "zones": "3"
+      },
+      "asia-northeast2": {
+        "latitude": "34.677471",
+        "longitude": "135.503235",
+        "metro_area": "Osaka",
+        "country": "Japan",
+        "name": "Osaka",
+        "in_service": true,
+        "zones": "3"
+      },
+      "asia-northeast1": {
+        "latitude": "35.5092405",
+        "longitude": "139.7698121",
+        "metro_area": "Tokyo",
+        "country": "Japan",
+        "name": "Tokyo",
+        "in_service": true,
+        "zones": "3"
+      },
+      "europe-west4": {
+        "latitude": "53.442799",
+        "longitude": "6.816020",
+        "metro_area": "Groningen",
+        "country": "Netherlands",
+        "name": "Netherlands",
+        "in_service": true,
+        "zones": "3"
+      },
+      "europe-central2": {
+        "latitude": "52.235370",
+        "longitude": "21.009485",
+        "metro_area": "Warsaw",
+        "country": "Poland",
+        "name": "Warsaw",
+        "in_service": true,
+        "zones": "3"
+      },
+      "me-central1": {
+        "latitude": "25.294537",
+        "longitude": "51.51939",
+        "metro_area": "Doha",
+        "country": "Qatar",
+        "name": "Doha",
+        "in_service": true,
+        "zones": "3"
+      },
+      "me-central2": {
+        "latitude": "26.444250",
+        "longitude": "50.104671",
+        "metro_area": "Dammam",
+        "country": "Saudi Arabia",
+        "name": "Damman",
+        "in_service": true,
+        "zones": "3"
+      },
+      "asia-southeast1": {
+        "latitude": "1.293873",
+        "longitude": "103.853107",
+        "metro_area": "Singapore",
+        "country": "Singapore",
+        "name": "Singapore",
+        "in_service": true,
+        "zones": "3"
+      },
+      "africa-south1": {
+        "latitude": "-26.204944",
+        "longitude": "28.040035",
+        "metro_area": "Johannesburg",
+        "country": "South Africa",
+        "name": "Johannesburg",
+        "in_service": true,
+        "zones": "3"
+      },
+      "asia-northeast3": {
+        "latitude": "37.557121",
+        "longitude": "126.977379",
+        "metro_area": "Seoul",
+        "country": "South Korea",
+        "name": "Seoul",
+        "in_service": true,
+        "zones": "3"
+      },
+      "europe-southwest1": {
+        "latitude": "40.420300",
+        "longitude": "-3.705774",
+        "metro_area": "Madrid",
+        "country": "Spain",
+        "name": "Madrid",
+        "in_service": true,
+        "zones": "3"
+      },
+      "europe-north2": {
+        "latitude": "59.332268",
+        "longitude": "18.062797",
+        "metro_area": "Stockholm",
+        "country": "Sweden",
+        "name": "Sweden",
+        "in_service": true,
+        "zones": "3"
+      },
+      "europe-west6": {
+        "latitude": "47.377060",
+        "longitude": "8.539550",
+        "metro_area": "Zürich",
+        "country": "Switzerland",
+        "name": "Zurich",
+        "in_service": true,
+        "zones": "3"
+      },
+      "asia-east1": {
+        "latitude": "24.0717",
+        "longitude": "120.5624",
+        "metro_area": "Taichung",
+        "country": "Taiwan",
+        "name": "Taiwan",
+        "in_service": true,
+        "zones": "3"
+      },
+      "europe-west2": {
+        "latitude": "51.506325",
+        "longitude": "-0.127144",
+        "metro_area": "London",
+        "country": "United Kingdom",
+        "name": "London",
+        "in_service": true,
+        "zones": "3"
+      },
+      "us-east1": {
+        "latitude": "33.196499",
+        "longitude": "-80.012690",
+        "metro_area": "Charleston",
+        "country": "United States",
+        "name": "South Carolina",
+        "in_service": true,
+        "zones": "3"
+      },
+      "us-east5": {
+        "latitude": "39.961960",
+        "longitude": "-83.002984",
+        "metro_area": "Columbus",
+        "country": "United States",
+        "name": "Columbus",
+        "in_service": true,
+        "zones": "3"
+      },
+      "us-south1": {
+        "latitude": "32.778155",
+        "longitude": "-96.795404",
+        "metro_area": "Dallas",
+        "country": "United States",
+        "name": "Dallas",
+        "in_service": true,
+        "zones": "3"
+      },
+      "us-west4": {
+        "latitude": "36.171915",
+        "longitude": "-115.139974",
+        "metro_area": "Las Vegas",
+        "country": "United States",
+        "name": "Las Vegas",
+        "in_service": true,
+        "zones": "3"
+      },
+      "us-west2": {
+        "latitude": "34.053481",
+        "longitude": "-118.245336",
+        "metro_area": "Los Angeles",
+        "country": "United States",
+        "name": "Los Angeles",
+        "in_service": true,
+        "zones": "3"
+      },
+      "us-central1": {
+        "latitude": "41.2328248",
+        "longitude": "-95.9167208",
+        "metro_area": "Omaha",
+        "country": "United States",
+        "name": "Iowa",
+        "in_service": true,
+        "zones": "4"
+      },
+      "us-west3": {
+        "latitude": "40.759505",
+        "longitude": "-111.888229",
+        "metro_area": "Salt Lake City",
+        "country": "United States",
+        "name": "Salt Lake City",
+        "in_service": true,
+        "zones": "3"
+      },
+      "us-west1": {
+        "latitude": "45.601555",
+        "longitude": "-121.183434",
+        "metro_area": "The Dalles",
+        "country": "United States",
+        "name": "Oregon",
+        "in_service": true,
+        "zones": "3"
+      },
+      "us-east4": {
+        "latitude": "39.051631",
+        "longitude": "-77.483151",
+        "metro_area": "Washington",
+        "country": "United States",
+        "name": "Northern Virginia",
+        "in_service": true,
+        "zones": "3"
+      },
+      "northamerica-south1": {
+        "latitude": "20.6121228",
+        "longitude": "-100.4802578",
+        "metro_area": "Santiago de Querétaro",
+        "country": "Mexico",
+        "name": "Mexico",
+        "in_service": true,
+        "zones": "3"
+      },
+      "asia-southeast3": {
+        "latitude": "13.753330",
+        "longitude": "100.504822",
+        "metro_area": "Bangkok",
+        "country": "Thailand",
+        "name": "Thailand",
+        "in_service": false,
+        "zones": "3"
+      }
+    }
+  },
+  "azure": {
+    "_source": "https://www.cloudinfrastructuremap.com/api/cloud-service-provider/microsoft-azure.js",
+    "_license": "Creative Commons Attribution-ShareAlike 4.0 International -- CC BY-SA 4.0",
+    "_unresolved": [
+      {
+        "latitude": "-1.277298",
+        "longitude": "36.806261",
+        "metro_area": "Nairobi",
+        "country": "Kenya",
+        "name": "East Africa (Nairobi)",
+        "in_service": false,
+        "zones": "3",
+        "cloud_region": null
+      },
+      {
+        "latitude": "13.753330",
+        "longitude": "100.504822",
+        "metro_area": "Bangkok",
+        "country": "Thailand",
+        "name": "Thailand",
+        "in_service": false,
+        "zones": "3",
+        "cloud_region": null
+      },
+      {
+        "latitude": "41.589790",
+        "longitude": "-93.615659",
+        "metro_area": "Des Moines",
+        "country": "United States",
+        "name": "US Sec West Central",
+        "in_service": true,
+        "zones": "3",
+        "cloud_region": null
+      }
+    ],
+    "cloud_regions": {
+      "australiacentral": {
+        "latitude": "-35.306541",
+        "longitude": "149.126556",
+        "metro_area": "Canberra",
+        "country": "Australia",
+        "name": "Australia Central (Canberra)",
+        "in_service": true,
+        "zones": "1"
+      },
+      "australiacentral2": {
+        "latitude": "-35.306541",
+        "longitude": "149.126556",
+        "metro_area": "Canberra",
+        "country": "Australia",
+        "name": "Australia Central 2 (Canberra)",
+        "in_service": true,
+        "zones": "1"
+      },
+      "australiasoutheast": {
+        "latitude": "-37.817532",
+        "longitude": "144.967148",
+        "metro_area": "Melbourne",
+        "country": "Australia",
+        "name": "Australia Southeast (Melbourne)",
+        "in_service": true,
+        "zones": "1"
+      },
+      "australiaeast": {
+        "latitude": "-33.869696",
+        "longitude": "151.20704",
+        "metro_area": "Sydney",
+        "country": "Australia",
+        "name": "Australia East (Sydney)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "austriaeast": {
+        "latitude": "48.202548",
+        "longitude": "16.368805",
+        "metro_area": "Vienna",
+        "country": "Austria",
+        "name": "Austria East (Vienna)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "belgiumcentral": {
+        "latitude": "50.846626886537614",
+        "longitude": "4.3503418787872805",
+        "metro_area": "Brussels",
+        "country": "Belgium",
+        "name": "Belgium Central",
+        "in_service": false,
+        "zones": "3"
+      },
+      "brazilsoutheast": {
+        "latitude": "-22.903448",
+        "longitude": "-43.209557",
+        "metro_area": "Rio de Janeiro",
+        "country": "Brazil",
+        "name": "Brazil Southeast (Rio)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "brazilsouth": {
+        "latitude": "-23.562880",
+        "longitude": "-46.654659",
+        "metro_area": "São Paulo",
+        "country": "Brazil",
+        "name": "Brazil South (São Paulo)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "canadaeast": {
+        "latitude": "46.812749",
+        "longitude": "-71.219359",
+        "metro_area": "Quebec City",
+        "country": "Canada",
+        "name": "Canada East (Quebec City)",
+        "in_service": true,
+        "zones": "1"
+      },
+      "canadacentral": {
+        "latitude": "43.648560",
+        "longitude": "-79.385324",
+        "metro_area": "Toronto",
+        "country": "Canada",
+        "name": "Canada Central (Toronto)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "chilecentral": {
+        "latitude": "-33.437269",
+        "longitude": "-70.650564",
+        "metro_area": "Santiago",
+        "country": "Chile",
+        "name": "Chile Central (Santiago)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "chinanorth": {
+        "latitude": "39.906010",
+        "longitude": "116.387909",
+        "metro_area": "Beijing",
+        "country": "China",
+        "name": "China North (Beijing)",
+        "in_service": true,
+        "zones": "1"
+      },
+      "chinanorth2": {
+        "latitude": "39.906010",
+        "longitude": "116.387909",
+        "metro_area": "Beijing",
+        "country": "China",
+        "name": "China North 2 (Beijing)",
+        "in_service": true,
+        "zones": "1"
+      },
+      "chinanorth3": {
+        "latitude": "39.509720000000002",
+        "longitude": "116.69472",
+        "metro_area": "Beijing",
+        "country": "China",
+        "name": "China North 3 (Beijing)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "eastasia": {
+        "latitude": "22.283325",
+        "longitude": "114.158720",
+        "metro_area": "Hong Kong",
+        "country": "China",
+        "name": "East Asia (Hong Kong)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "chinaeast3": {
+        "latitude": "32.048500",
+        "longitude": "118.778969",
+        "metro_area": "Nanjing",
+        "country": "China",
+        "name": "China East 3 (Jiangsu)",
+        "in_service": true,
+        "zones": "1"
+      },
+      "chinaeast": {
+        "latitude": "31.247571",
+        "longitude": "121.472587",
+        "metro_area": "Shanghai",
+        "country": "China",
+        "name": "China East (Shanghai)",
+        "in_service": true,
+        "zones": "1"
+      },
+      "chinaeast2": {
+        "latitude": "31.247571",
+        "longitude": "121.472587",
+        "metro_area": "Shanghai",
+        "country": "China",
+        "name": "China East 2 (Shanghai)",
+        "in_service": true,
+        "zones": "1"
+      },
+      "denmarkeast": {
+        "latitude": "55.676183",
+        "longitude": "12.569333",
+        "metro_area": "Copenhagen",
+        "country": "Denmark",
+        "name": "Denmark East (Copenhagen)",
+        "in_service": false,
+        "zones": "3"
+      },
+      "finlandcentral": {
+        "latitude": "60.1712",
+        "longitude": "24.932563",
+        "metro_area": "Helsinki",
+        "country": "Finland",
+        "name": "Finland (Helsinki)",
+        "in_service": false,
+        "zones": "3"
+      },
+      "francesouth": {
+        "latitude": "43.293579",
+        "longitude": "5.372507",
+        "metro_area": "Marseille",
+        "country": "France",
+        "name": "France South (Marseille)",
+        "in_service": true,
+        "zones": "1"
+      },
+      "francecentral": {
+        "latitude": "48.856930",
+        "longitude": "2.341200",
+        "metro_area": "Paris",
+        "country": "France",
+        "name": "France Central (Paris)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "germanynorth": {
+        "latitude": "52.516074",
+        "longitude": "13.376987",
+        "metro_area": "Berlin",
+        "country": "Germany",
+        "name": "Germany North (Berlin)",
+        "in_service": true,
+        "zones": "1"
+      },
+      "germanywestcentral": {
+        "latitude": "50.112065",
+        "longitude": "8.683415",
+        "metro_area": "Frankfurt",
+        "country": "Germany",
+        "name": "Germany West Central (Frankfurt)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "greececentral": {
+        "latitude": "37.976093",
+        "longitude": "23.736254",
+        "metro_area": "Athens",
+        "country": "Greece",
+        "name": "Greece Central (Athens)",
+        "in_service": false,
+        "zones": "3"
+      },
+      "southindia": {
+        "latitude": "13.063918",
+        "longitude": "80.243049",
+        "metro_area": "Chennai",
+        "country": "India",
+        "name": "South India (Chennai)",
+        "in_service": true,
+        "zones": "1"
+      },
+      "indiasouthcentral": {
+        "latitude": "17.612611",
+        "longitude": "78.451538",
+        "metro_area": "Hyderabad",
+        "country": "India",
+        "name": "Southcentral (Hyderabad)",
+        "in_service": false,
+        "zones": "3"
+      },
+      "westindia": {
+        "latitude": "19.07608",
+        "longitude": "72.875866",
+        "metro_area": "Mumbai",
+        "country": "India",
+        "name": "West India (Mumbai)",
+        "in_service": true,
+        "zones": "1"
+      },
+      "centralindia": {
+        "latitude": "18.526710",
+        "longitude": "73.861600",
+        "metro_area": "Pune",
+        "country": "India",
+        "name": "Central India (Pune)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "indonesiacentral": {
+        "latitude": "-6.171588",
+        "longitude": "106.827868",
+        "metro_area": "Jakarta",
+        "country": "Indonesia",
+        "name": "Indonesia Central (Jakarta)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "northeurope": {
+        "latitude": "53.348114",
+        "longitude": "-6.248262",
+        "metro_area": "Dublin",
+        "country": "Ireland",
+        "name": "North Europe (Dublin)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "israelcentral": {
+        "latitude": "32.045043",
+        "longitude": "34.769661",
+        "metro_area": "Tel Aviv",
+        "country": "Israel",
+        "name": "Israel Central (Tel Aviv)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "italynorth": {
+        "latitude": "45.468945",
+        "longitude": "9.181030",
+        "metro_area": "Milan",
+        "country": "Italy",
+        "name": "Italy North (Milan)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "japanwest": {
+        "latitude": "34.677471",
+        "longitude": "135.503235",
+        "metro_area": "Osaka",
+        "country": "Japan",
+        "name": "Japan West (Osaka)",
+        "in_service": true,
+        "zones": "1"
+      },
+      "japaneast": {
+        "latitude": "35.8617292",
+        "longitude": "139.6454822",
+        "metro_area": "Tokyo",
+        "country": "Japan",
+        "name": "Japan East (Saitama, Tokyo)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "malaysiawest": {
+        "latitude": "3.104665",
+        "longitude": "101.691170",
+        "metro_area": "Kuala Lumpur",
+        "country": "Malaysia",
+        "name": "Malaysia West (Kuala Lumpur)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "mexicocentral": {
+        "latitude": "20.6121228",
+        "longitude": "-100.4802578",
+        "metro_area": "Santiago de Querétaro",
+        "country": "Mexico",
+        "name": "Mexico Central (Querétaro)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "westeurope": {
+        "latitude": "52.7935659",
+        "longitude": "4.9350576",
+        "metro_area": "Amsterdam",
+        "country": "Netherlands",
+        "name": "West Europe (Amsterdam)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "newzealandnorth": {
+        "latitude": "-36.884209",
+        "longitude": "174.770419",
+        "metro_area": "Auckland",
+        "country": "New Zealand",
+        "name": "New Zealand North (Auckland)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "norwayeast": {
+        "latitude": "59.912280",
+        "longitude": "10.749980",
+        "metro_area": "Oslo",
+        "country": "Norway",
+        "name": "Norway East (Oslo)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "norwaywest": {
+        "latitude": "58.970833",
+        "longitude": "5.730794",
+        "metro_area": "Stavanger",
+        "country": "Norway",
+        "name": "Norway West (Stavanger)",
+        "in_service": true,
+        "zones": "1"
+      },
+      "polandcentral": {
+        "latitude": "52.235370",
+        "longitude": "21.009485",
+        "metro_area": "Warsaw",
+        "country": "Poland",
+        "name": "Poland Central (Warsaw)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "qatarcentral": {
+        "latitude": "25.294537",
+        "longitude": "51.51939",
+        "metro_area": "Doha",
+        "country": "Qatar",
+        "name": "Qatar Central (Doha)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "saudiarabiasouthcentral": {
+        "latitude": "24.647325",
+        "longitude": "46.714585",
+        "metro_area": "Riyadh",
+        "country": "Saudi Arabia",
+        "name": "Saudi Arabia East",
+        "in_service": false,
+        "zones": "3"
+      },
+      "southeastasia": {
+        "latitude": "1.293873",
+        "longitude": "103.853107",
+        "metro_area": "Singapore",
+        "country": "Singapore",
+        "name": "Southeast Asia (Singapore)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "southafricawest": {
+        "latitude": "-33.919086",
+        "longitude": "18.421981",
+        "metro_area": "Cape Town",
+        "country": "South Africa",
+        "name": "South Africa West (Cape Town)",
+        "in_service": true,
+        "zones": "1"
+      },
+      "southafricanorth": {
+        "latitude": "-26.204944",
+        "longitude": "28.040035",
+        "metro_area": "Johannesburg",
+        "country": "South Africa",
+        "name": "South Africa North (Johannesburg)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "koreasouth": {
+        "latitude": "35.170283",
+        "longitude": "128.999485",
+        "metro_area": "Busan",
+        "country": "South Korea",
+        "name": "Korea South (Busan)",
+        "in_service": true,
+        "zones": "1"
+      },
+      "koreacentral": {
+        "latitude": "37.557121",
+        "longitude": "126.977379",
+        "metro_area": "Seoul",
+        "country": "South Korea",
+        "name": "Korea Central (Seoul)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "spaincentral": {
+        "latitude": "40.420300",
+        "longitude": "-3.705774",
+        "metro_area": "Madrid",
+        "country": "Spain",
+        "name": "Spain Central (Madrid)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "swedencentral": {
+        "latitude": "60.673665",
+        "longitude": "17.145600",
+        "metro_area": "Gävle",
+        "country": "Sweden",
+        "name": "Sweden Central (Gävle)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "swedensouth": {
+        "latitude": "55.64214",
+        "longitude": "13.21247",
+        "metro_area": "Malmö",
+        "country": "Sweden",
+        "name": "Sweden South (Staffanstorp)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "switzerlandwest": {
+        "latitude": "46.208358",
+        "longitude": "6.142701",
+        "metro_area": "Geneva",
+        "country": "Switzerland",
+        "name": "Switzerland West (Geneva)",
+        "in_service": true,
+        "zones": "1"
+      },
+      "switzerlandnorth": {
+        "latitude": "47.377060",
+        "longitude": "8.539550",
+        "metro_area": "Zürich",
+        "country": "Switzerland",
+        "name": "Switzerland North (Zürich)",
+        "in_service": true,
+        "zones": "1"
+      },
+      "taiwannorth": {
+        "latitude": "25.080441",
+        "longitude": "121.564194",
+        "metro_area": "Taipei",
+        "country": "Taiwan",
+        "name": "Taiwan North (Taipei)",
+        "in_service": false,
+        "zones": "3"
+      },
+      "uaecentral": {
+        "latitude": "24.44396",
+        "longitude": "54.41896",
+        "metro_area": "Abu Dhabi",
+        "country": "United Arab Emirates",
+        "name": "UAE Central (Abu Dhabi)",
+        "in_service": true,
+        "zones": "1"
+      },
+      "uaenorth": {
+        "latitude": "25.26934",
+        "longitude": "55.308487",
+        "metro_area": "Dubai",
+        "country": "United Arab Emirates",
+        "name": "UAE North (Dubai)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "ukwest": {
+        "latitude": "51.481250",
+        "longitude": "-3.180734",
+        "metro_area": "Cardiff",
+        "country": "United Kingdom",
+        "name": "UK West (Cardiff)",
+        "in_service": true,
+        "zones": "1"
+      },
+      "uksouth": {
+        "latitude": "51.506325",
+        "longitude": "-0.127144",
+        "metro_area": "London",
+        "country": "United Kingdom",
+        "name": "UK South (London)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "eastus3": {
+        "latitude": "33.748315",
+        "longitude": "-84.391109",
+        "metro_area": "Atlanta",
+        "country": "United States",
+        "name": "East US 3 (Atlanta)",
+        "in_service": false,
+        "zones": "3"
+      },
+      "usgovtexas": {
+        "latitude": "30.267605",
+        "longitude": "-97.742984",
+        "metro_area": "Austin",
+        "country": "United States",
+        "name": "US Gov Texas",
+        "in_service": true,
+        "zones": "1"
+      },
+      "westcentralus": {
+        "latitude": "41.134815",
+        "longitude": "-104.821544",
+        "metro_area": "Cheyenne",
+        "country": "United States",
+        "name": "West Central US (Cheyenne)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "northcentralus": {
+        "latitude": "41.917253",
+        "longitude": "-87.895619",
+        "metro_area": "Chicago",
+        "country": "United States",
+        "name": "North Central US (Chicago)",
+        "in_service": true,
+        "zones": "1"
+      },
+      "centralus": {
+        "latitude": "41.589790",
+        "longitude": "-93.615659",
+        "metro_area": "Des Moines",
+        "country": "United States",
+        "name": "Central US (Des Moines)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "usdodwest": {
+        "latitude": "41.589790",
+        "longitude": "-93.615659",
+        "metro_area": "Des Moines",
+        "country": "United States",
+        "name": "US DoD Central",
+        "in_service": true,
+        "zones": "1"
+      },
+      "westus2": {
+        "latitude": "47.237515",
+        "longitude": "-119.853309",
+        "metro_area": "Moses Lake",
+        "country": "United States",
+        "name": "West US 2 (Quincy)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "usgovarizona": {
+        "latitude": "33.448260",
+        "longitude": "-112.075774",
+        "metro_area": "Phoenix",
+        "country": "United States",
+        "name": "US Gov Arizona",
+        "in_service": true,
+        "zones": "1"
+      },
+      "westus3": {
+        "latitude": "33.448260",
+        "longitude": "-112.075774",
+        "metro_area": "Phoenix",
+        "country": "United States",
+        "name": "West US 3 (Phoenix)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "eastus2": {
+        "latitude": "37.540700",
+        "longitude": "-77.433654",
+        "metro_area": "Richmond",
+        "country": "United States",
+        "name": "East US 2 (Richmond)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "usdodeast": {
+        "latitude": "37.540700",
+        "longitude": "-77.433654",
+        "metro_area": "Richmond",
+        "country": "United States",
+        "name": "US DoD East",
+        "in_service": true,
+        "zones": "1"
+      },
+      "eastus": {
+        "latitude": "39.043757",
+        "longitude": "-77.487442",
+        "metro_area": "Ashburn",
+        "country": "United States",
+        "name": "East US (Ashburn)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "usseceast": {
+        "latitude": "37.540700",
+        "longitude": "-77.433654",
+        "metro_area": "Richmond",
+        "country": "United States",
+        "name": "US Sec East",
+        "in_service": true,
+        "zones": "1"
+      },
+      "southcentralus": {
+        "latitude": "29.424490",
+        "longitude": "-98.494624",
+        "metro_area": "San Antonio",
+        "country": "United States",
+        "name": "South Central US (San Antonio)",
+        "in_service": true,
+        "zones": "3"
+      },
+      "westus": {
+        "latitude": "37.777125",
+        "longitude": "-122.419644",
+        "metro_area": "San Francisco",
+        "country": "United States",
+        "name": "West US (San Francisco)",
+        "in_service": true,
+        "zones": "1"
+      },
+      "ussecwest": {
+        "latitude": "37.777125",
+        "longitude": "-122.419644",
+        "metro_area": "San Francisco",
+        "country": "United States",
+        "name": "US Sec West",
+        "in_service": true,
+        "zones": "1"
+      },
+      "usgovvirginia": {
+        "latitude": "38.890370",
+        "longitude": "-77.031959",
+        "metro_area": "Washington",
+        "country": "United States",
+        "name": "US Gov Virginia ",
+        "in_service": true,
+        "zones": "3"
+      }
+    }
+  }
+}

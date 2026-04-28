@@ -20,7 +20,7 @@ import java.util.Map;
  */
 public class BoaviztAPIClient {
 
-    private static final String URLPattern = "%s/v1/cloud/instance?provider=aws&instance_type=%s&verbose=false&duration=1&criteria=pe&criteria=gwp&criteria=adp";
+    private static final String URLPattern = "%s/v1/cloud/instance?provider=aws&instance_type=%s&verbose=false&duration=1&criteria=gwp&criteria=adp&criteria=fe";
     // Conversion factor from megajoules (MJ) to kilowatt-hours (kWh)
     private static final double MJtoKWh = 0.277778;
     private static final ObjectMapper objectMapper = new ObjectMapper();
@@ -28,10 +28,6 @@ public class BoaviztAPIClient {
     private static final OkHttpClient client = new OkHttpClient();
 
     private final String address;
-
-    // The default location in BoaviztAPI is EEE
-    // https://github.com/Boavizta/boaviztapi/blob/13a87c74603b79859f644f6704605fc3cfdfe0cd/boaviztapi/data/factors.yml#L3428C16-L3428C22
-    private final double PE_FACTOR_DEFAULT_LOCATION = 12.873d;
 
     /**
      * Constructs a new BoaviztAPIClient.
@@ -72,8 +68,8 @@ public class BoaviztAPIClient {
             });
             result = (Map<String, Object>) result.get("impacts");
 
-            Double use_value_mj = extractValue(result, "pe", true);
-            final double final_energy_kwh = use_value_mj * MJtoKWh / PE_FACTOR_DEFAULT_LOCATION;
+            Double fe_use_value_mj = extractValue(result, "fe", true);
+            final double final_energy_kwh = fe_use_value_mj * MJtoKWh;
 
             Double embedded_value_kgCO2eq = extractValue(result, "gwp", false);
             Double embedded_adp_value_kgCO2eq = extractValue(result, "adp", false);

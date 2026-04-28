@@ -5,14 +5,17 @@ package com.digitalpebble.spruce;
 /** Normalises names for cloud provider e.g. when reading resource files **/
 public enum Provider {
 
-    AWS("Amazon Web Services"),
-    GOOGLE("Google Cloud"),
-    AZURE("Microsoft Azure");
+    AWS("Amazon Web Services", "aws"),
+    GOOGLE("Google Cloud", "gcp"),
+    AZURE("Microsoft Azure", "azure");
 
     private final String text;
+    /** Short lowercase key used in resource CSV files (e.g. water-stress.csv, wcf.csv). */
+    public final String csvKey;
 
-    private Provider(final String text) {
+    private Provider(final String text, final String csvKey) {
         this.text = text;
+        this.csvKey = csvKey;
     }
 
     /// Returns the Provider enum constant that matches the given text.

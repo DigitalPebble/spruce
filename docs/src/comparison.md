@@ -29,7 +29,7 @@ SPRUCE is part of a growing ecosystem of open source tools focused on measuring 
 | **Output**             | Enriched Parquet/CSV files for custom analytics and visualization    | Pre-built dashboard and recommendations               |
 | **Embodied Carbon**    | Includes embodied emissions via Boavizta integration                 | Limited embodied carbon estimates                     |
 | **Scalability**        | Designed for large-scale data processing with Apache Spark           | Suitable for smaller to medium deployments            |
-| **Carbon Intensity**   | Uses ElectricityMaps average data (lifecycle emissions)              | Default factors outdated                              |
+| **Carbon Intensity**   | Uses Ember average data                                             | Default factors outdated                              |
 | **Maintenance Status** | Actively maintained with regular updates                             | No longer actively maintained                         |
 | **Complexity**         | Easy to run on Docker                                                | Challenging to set up                                 |
 
@@ -66,7 +66,7 @@ SPRUCE is part of a growing ecosystem of open source tools focused on measuring 
 | **Integration**     | Enriches existing billing data for FinOps alignment              | Standalone tool for environmental assessment          |
 | **Scalability**     | Designed for large-scale historical data processing              | Suitable for periodic resource audits                 |
 | **Output**          | Enriched reports in Parquet/CSV for custom analytics             | Prometheus metrics and Grafana dashboard              |
-| **Accuracy**        | Uses ElectricityMaps intensity factors                             | Uses outdated factors from BoaviztAPI                 |
+| **Accuracy**        | Uses Ember intensity factors                                        | Uses outdated factors from BoaviztAPI                 |
 
 ### When to Choose SPRUCE
 
