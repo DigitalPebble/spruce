@@ -121,7 +121,7 @@ Modules are registered in a JSON config file. Copy `default-config.json` from th
     { "className": "com.example.spruce.modules.MyServiceEnergy",
       "config": { "coefficient": 0.007 } },
     { "className": "com.digitalpebble.spruce.modules.PUE" },
-    { "className": "com.digitalpebble.spruce.modules.electricitymaps.AverageCarbonIntensity" },
+    { "className": "com.digitalpebble.spruce.modules.ember.AverageCarbonIntensity" },
     { "className": "com.digitalpebble.spruce.modules.OperationalEmissions" }
   ]
 }
