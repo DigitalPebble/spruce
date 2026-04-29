@@ -43,7 +43,7 @@ See [methodology](https://www.cloudcarbonfootprint.org/docs/methodology/#graphic
 
 The following modules make use of the [BoaviztAPI](https://doc.api.boavizta.org).
 
-### boavizta.BoaviztAPI
+### boavizta.aws.BoaviztAPI
 
 Provides an estimate of [final energy](https://www.eea.europa.eu/en/analysis/indicators/primary-and-final-energy-consumption) used for computation (EC2, OpenSearch, RDS) as well as the related embodied emissions using the [BoaviztAPI](https://doc.api.boavizta.org/).
 
@@ -56,7 +56,7 @@ This impact is expressed in grams of antimony equivalent (gSbeq).
 
 **Source**: [sciencedirect](https://www.sciencedirect.com/topics/engineering/abiotic-depletion-potential)
 
-### boavizta.BoaviztAPIstatic
+### boavizta.aws.BoaviztAPIstatic
 
 Similar to the previous module but does not get the information from an instance of the BoaviztAPI but from a static file generated from it. This makes it simpler to use SPRUCE.
 
@@ -68,7 +68,7 @@ The following modules estimate the energy consumption and embodied emissions of 
 
 ### ecologits.BedrockEcoLogits
 
-Provides an estimate of energy consumption and embodied emissions for LLM inference on **AWS Bedrock**, based on static per-model coefficients from the EcoLogits project. This follows the same pattern as `boavizta.BoaviztAPIstatic`: a static data file bundled in the JAR is loaded at initialisation time, and the module matches Bedrock CUR rows to per-model coefficients to compute energy usage and embodied emissions.
+Provides an estimate of energy consumption and embodied emissions for LLM inference on **AWS Bedrock**, based on static per-model coefficients from the EcoLogits project. This follows the same pattern as `boavizta.aws.BoaviztAPIstatic`: a static data file bundled in the JAR is loaded at initialisation time, and the module matches Bedrock CUR rows to per-model coefficients to compute energy usage and embodied emissions.
 
 The module reads the model identifier from the `product` map in the CUR row and normalises the token count from `pricing_unit` (handling real-world values such as `1K tokens` or `1M tokens`). It uses the `line_item_usage_type` field to distinguish between input and output tokens, falling back to a ratio split when the usage type is ambiguous.
 
