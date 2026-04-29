@@ -21,7 +21,7 @@
       }
     },
     {
-      "className": "com.digitalpebble.spruce.modules.boavizta.BoaviztAPIstatic"
+      "className": "com.digitalpebble.spruce.modules.boavizta.aws.BoaviztAPIstatic"
     },
     {
       "className": "com.digitalpebble.spruce.modules.aws.Serverless",
