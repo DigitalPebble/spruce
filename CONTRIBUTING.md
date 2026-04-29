@@ -24,7 +24,7 @@ Feel free to use [GitHub Discussions](https://github.com/DigitalPebble/spruce/di
 
 ### Making a Contribution
 
-- Create a new [issue](https://github.com/DigitalPebble/spruce/issue) on GitHub. Please describe the problem or improvement in the body of the issue. For larger issues, please open a new discussion and describe the problem.
+- Create a new [issue](https://github.com/DigitalPebble/spruce/issues) on GitHub. Please describe the problem or improvement in the body of the issue. For larger issues, please open a new discussion and describe the problem.
 - Next, create a pull request in GitHub.
 
 Contributors who have a history of successful participation are invited to join the project as a committer.

@@ -6,6 +6,7 @@ and produces a Markdown report with recommendations.
 """
 
 import argparse
+import os
 import sys
 from datetime import date
 
@@ -285,6 +286,57 @@ def build_recommendations(coverage_pct, uncovered_rows, regional_rows, billing_r
 
 
 # ---------------------------------------------------------------------------
+# HTML post-processing
+# ---------------------------------------------------------------------------
+
+_LOGO_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logo.png")
+
+
+def _inject_logo(html):
+    """Embed logo.png as a base64 data URI after the 'Enriched with SPRUCE' line."""
+    import base64, re
+    if not os.path.exists(_LOGO_PATH):
+        return html
+    with open(_LOGO_PATH, "rb") as f:
+        b64 = base64.b64encode(f.read()).decode()
+    img_tag = (
+        f'<p><img src="data:image/png;base64,{b64}" '
+        f'style="height:180px;margin-top:6px;" alt="SPRUCE logo"></p>'
+    )
+    return re.sub(
+        r'(<p>Enriched with.*?</p>)',
+        r'\1' + img_tag,
+        html,
+        count=1,
+        flags=re.DOTALL,
+    )
+
+
+_LANDSCAPE_SECTIONS = {"Top Emitters by Service", "Regional Analysis"}
+
+
+def _wrap_landscape_sections(html):
+    """Wrap wide table sections in a div that WeasyPrint renders in landscape."""
+    import re
+    parts = re.split(r'(<h2>[^<]*</h2>)', html)
+    result = []
+    in_landscape = False
+    for part in parts:
+        m = re.match(r'<h2>([^<]*)</h2>', part)
+        if m:
+            if in_landscape:
+                result.append('</div>')
+                in_landscape = False
+            if m.group(1) in _LANDSCAPE_SECTIONS:
+                result.append('<div class="landscape-section">')
+                in_landscape = True
+        result.append(part)
+    if in_landscape:
+        result.append('</div>')
+    return ''.join(result)
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -296,8 +348,8 @@ def main():
                         help="Path to enriched Parquet directory, glob, or S3 URI (e.g. output/, output/**/*.parquet, s3://bucket/prefix/).")
     parser.add_argument("-o", "--output", default=None,
                         help="Output file. Format is inferred from suffix: .md (Markdown), .html (HTML), .pdf (PDF via weasyprint). Defaults to Markdown on stdout.")
-    parser.add_argument("--top-tags", type=int, default=10, metavar="N",
-                        help="Maximum number of resource tags to offer for breakdown (default: 10)")
+    parser.add_argument("-t", "--top-tags", type=int, default=10, metavar="N",
+                        help="Maximum number of resource tags to offer for breakdown (default: 10). Use 0 or negative to skip tag selection entirely.")
     args = parser.parse_args()
 
     # Normalise input path to a glob DuckDB can use
@@ -337,35 +389,38 @@ def main():
     # -----------------------------------------------------------------------
     # Interactive tag breakdown
     # -----------------------------------------------------------------------
-    available_tags = find_tags_by_coverage(con, args.top_tags)
+    available_tags = []
     tag_sections = []  # list of (key, coverage_pct, breakdown_rows)
 
-    if not available_tags:
-        sys.stderr.write("\nNo consistent resource tags found in the data.\n")
-    else:
-        remaining = list(available_tags)
-        sys.stderr.write("\nResource tags found (by line-item coverage):\n")
-        while remaining:
-            for i, (key, pct) in enumerate(remaining, 1):
-                sys.stderr.write(f"  {i}. {key}  ({pct} %)\n")
-            sys.stderr.write("Enter number to see breakdown, or press Enter to finish: ")
-            sys.stderr.flush()
-            choice = sys.stdin.readline().strip()
-            if not choice:
-                break
-            try:
-                idx = int(choice) - 1
-                if 0 <= idx < len(remaining):
-                    key, pct = remaining.pop(idx)
-                    breakdown = q_tag_breakdown(con, key)
-                    tag_sections.append((key, pct, breakdown))
-                    sys.stderr.write(f"\n### Tag: {key}  ({pct} % coverage)\n\n")
-                    sys.stderr.write(md_table(breakdown, ["tag_value", "energy_kwh", "operational_kg", "embodied_kg", "water_usage_l"]))
-                    sys.stderr.write("\n")
-                else:
-                    sys.stderr.write(f"Please enter a number between 1 and {len(remaining)}.\n")
-            except ValueError:
-                sys.stderr.write("Please enter a number or press Enter to finish.\n")
+    if args.top_tags >= 1:
+        available_tags = find_tags_by_coverage(con, args.top_tags)
+
+        if not available_tags:
+            sys.stderr.write("\nNo consistent resource tags found in the data.\n")
+        else:
+            remaining = list(available_tags)
+            sys.stderr.write("\nResource tags found (by line-item coverage):\n")
+            while remaining:
+                for i, (key, pct) in enumerate(remaining, 1):
+                    sys.stderr.write(f"  {i}. {key}  ({pct} %)\n")
+                sys.stderr.write("Enter number to see breakdown, or press Enter to finish: ")
+                sys.stderr.flush()
+                choice = sys.stdin.readline().strip()
+                if not choice:
+                    break
+                try:
+                    idx = int(choice) - 1
+                    if 0 <= idx < len(remaining):
+                        key, pct = remaining.pop(idx)
+                        breakdown = q_tag_breakdown(con, key)
+                        tag_sections.append((key, pct, breakdown))
+                        sys.stderr.write(f"\n### Tag: {key}  ({pct} % coverage)\n\n")
+                        sys.stderr.write(md_table(breakdown, ["tag_value", "energy_kwh", "operational_kg", "embodied_kg", "water_usage_l"]))
+                        sys.stderr.write("\n")
+                    else:
+                        sys.stderr.write(f"Please enter a number between 1 and {len(remaining)}.\n")
+                except ValueError:
+                    sys.stderr.write("Please enter a number or press Enter to finish.\n")
 
     # -----------------------------------------------------------------------
     # Assemble report
@@ -380,9 +435,20 @@ def main():
     )
 
     # Billing summary
+    billing_with_total = list(billing_rows)
+    if billing_rows:
+        billing_with_total.append(tuple(
+            f"**{v}**" for v in (
+                "TOTAL",
+                round(sum(r[1] for r in billing_rows if r[1] is not None), 2),
+                round(sum(r[2] for r in billing_rows if r[2] is not None), 2),
+                round(sum(r[3] for r in billing_rows if r[3] is not None), 2),
+                round(sum(r[4] for r in billing_rows if r[4] is not None), 2),
+            )
+        ))
     parts.append(section(
         "Summary by Billing Period",
-        md_table(billing_rows, ["BILLING_PERIOD", "energy_kwh", "operational_kg", "embodied_kg", "water_usage_l"])
+        md_table(billing_with_total, ["BILLING_PERIOD", "energy_kwh", "operational_kg", "embodied_kg", "water_usage_l"])
     ))
 
     # Top emitters
@@ -449,14 +515,19 @@ def main():
         except ImportError:
             sys.exit("HTML/PDF output requires: pip install markdown weasyprint")
         html_body = md_lib.markdown(report, extensions=["tables", "nl2br"])
+        html_body = _inject_logo(html_body)
+        html_body = _wrap_landscape_sections(html_body)
         styled = f"""<!DOCTYPE html><html><head><meta charset="utf-8">
 <style>
-  body {{ font-family: sans-serif; font-size: 11px; margin: 2cm; color: #111; }}
+  @page {{ size: A4 portrait; margin: 2cm; }}
+  @page landscape-page {{ size: A4 landscape; margin: 1.5cm; }}
+  body {{ font-family: sans-serif; font-size: 11px; color: #111; }}
   h1 {{ font-size: 20px; }} h2 {{ font-size: 15px; border-bottom: 1px solid #ccc; }}
   table {{ border-collapse: collapse; width: 100%; margin-bottom: 1em; font-size: 10px; }}
   th, td {{ border: 1px solid #ccc; padding: 4px 8px; text-align: left; }}
   th {{ background: #f0f0f0; }}
   em {{ color: #555; }}
+  .landscape-section {{ page: landscape-page; }}
 </style></head><body>{html_body}</body></html>"""
         if suffix == "pdf":
             try:

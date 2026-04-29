@@ -22,16 +22,17 @@ Pull the latest Docker image with
 
 This retrieves a Docker image containing Apache Spark as well as the SPRUCE jar.
 
-The command below processes the data locally by mounting the directories containing the CURs and output as volumes:
+The command below processes the data locally by mounting the working directory as a volume. The input CURs are
+assumed to be in a directory called _curs_.
+
 ```shell
-docker run -it -v $(pwd)/curs:/curs -v $(pwd)/output:/output --rm --name spruce --network host \
+docker run --rm -v $(pwd):/workspace -w /workspace \
 ghcr.io/digitalpebble/spruce \
 /opt/spark/bin/spark-submit  \
---class com.digitalpebble.spruce.SparkJob \
 --driver-memory 4g \
 --master 'local[*]' \
 /usr/local/lib/spruce.jar \
--i /curs -o /output/enriched
+-i curs -o output
 ```
 
 The `-i` parameter specifies the location of the directory containing the CUR reports in Parquet format.
