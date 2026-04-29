@@ -1,10 +1,21 @@
-<project>
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <groupId>com.digitalpebble</groupId>
     <artifactId>spruce</artifactId>
     <modelVersion>4.0.0</modelVersion>
     <name>spruce</name>
     <packaging>jar</packaging>
     <version>1.0-SNAPSHOT</version>
+    <description>SPRUCE is an open-source enrichment platform for GreenOps which helps measure and reduce the environmental impact of cloud computing</description>
+    <url>https://github.com/digitalpebble/spruce</url>
+
+    <scm>
+        <connection>scm:git:git@github.com:digitalpebble/spruce.git</connection>
+        <developerConnection>scm:git:git@github.com:digitalpebble/spruce.git</developerConnection>
+        <url>https://github.com/digitalpebble/spruce</url>
+    </scm>
 
     <licenses>
         <license>
@@ -23,8 +34,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.release>17</maven.compiler.release>
         <spark.version>4.1.1</spark.version>
         <okhttp.version>5.3.2</okhttp.version>
         <caffeine.version>3.2.3</caffeine.version>
@@ -37,6 +47,11 @@
     <build>
         <pluginManagement>
             <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.14.0</version>
+                </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
@@ -63,10 +78,6 @@
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>com.digitalpebble.spruce.SparkJob</mainClass>
-                                    <manifestEntries>
-                                        <Change></Change>
-                                        <Build-Date></Build-Date>
-                                    </manifestEntries>
                                 </transformer>
                             </transformers>
                             <filters>
@@ -126,6 +137,25 @@
         </plugins>
     </build>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.junit</groupId>
+                <artifactId>junit-bom</artifactId>
+                <version>${junit.jupiter.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-bom</artifactId>
+                <version>${mockito.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
@@ -168,31 +198,26 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
-            <version>${junit.jupiter.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
-            <version>${junit.jupiter.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-params</artifactId>
-            <version>${junit.jupiter.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
-            <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
