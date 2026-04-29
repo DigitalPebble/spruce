@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
-package com.digitalpebble.spruce.modules.ccf;
+package com.digitalpebble.spruce.modules.ccf.aws;
 
 import com.digitalpebble.spruce.Column;
 import com.digitalpebble.spruce.EnrichmentModule;
