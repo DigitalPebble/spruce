@@ -1,8 +1,0 @@
-## Data sources
-
-The mappings between cloud region IDs and ElectricityMaps ID come from the [EM API](https://api.electricitymaps.com/v3/data-centers?limit=1000).
-The average lifecycle carbon intensities are taken from the [ElectricityMaps dataset](https://portal.electricitymaps.com/datasets/). The yearly averages for 2024 are used.
-
-## License
-
-Open Data Commons Open Database license (ODbL)

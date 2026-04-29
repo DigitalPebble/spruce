@@ -4,23 +4,27 @@
       "className": "com.digitalpebble.spruce.modules.RegionExtraction"
     },
     {
-      "className": "com.digitalpebble.spruce.modules.ccf.Storage",
+      "className": "com.digitalpebble.spruce.modules.ccf.aws.Storage",
       "config": {
         "hdd_coefficient_tb_h": 0.65,
         "ssd_coefficient_tb_h": 1.2
       }
     },
     {
-      "className": "com.digitalpebble.spruce.modules.ccf.Networking",
+      "className": "com.digitalpebble.spruce.modules.aws.Networking",
       "config": {
-        "network_coefficient": 0.001
+        "network_coefficients_kwh_gb": {
+          "intra": 0.001,
+          "inter": 0.0015,
+          "extra": 0.059
+        }
       }
     },
     {
-      "className": "com.digitalpebble.spruce.modules.boavizta.BoaviztAPIstatic"
+      "className": "com.digitalpebble.spruce.modules.boavizta.aws.BoaviztAPIstatic"
     },
     {
-      "className": "com.digitalpebble.spruce.modules.Serverless",
+      "className": "com.digitalpebble.spruce.modules.aws.Serverless",
       "config": {
         "memory_coefficient_kwh": 0.0000598,
         "x86_cpu_coefficient_kwh": 0.0088121875,
@@ -28,9 +32,15 @@
       }
     },
     {
-      "className": "com.digitalpebble.spruce.modules.ccf.Accelerators",
+      "className": "com.digitalpebble.spruce.modules.ccf.aws.Accelerators",
       "config": {
         "gpu_utilisation_percent": 50
+      }
+    },
+    {
+      "className": "com.digitalpebble.spruce.modules.ecologits.BedrockEcoLogits",
+      "config": {
+        "input_token_ratio": 0.5
       }
     },
     {
@@ -43,7 +53,7 @@
       "className": "com.digitalpebble.spruce.modules.Water"
     },
     {
-      "className": "com.digitalpebble.spruce.modules.electricitymaps.AverageCarbonIntensity"
+      "className": "com.digitalpebble.spruce.modules.ember.AverageCarbonIntensity"
     },
     {
       "className": "com.digitalpebble.spruce.modules.OperationalEmissions",
