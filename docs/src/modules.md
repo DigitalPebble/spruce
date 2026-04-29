@@ -17,7 +17,7 @@ See [Configure the modules](howto/config_modules.md) for instructions on how to 
 
 The following modules implement the heuristics from the [Cloud Carbon Footprint](https://www.cloudcarbonfootprint.org/) project.
 
-### ccf.Storage
+### ccf.aws.Storage
 
 Provides an estimate of energy used for storage by applying a flat coefficient per Gb, following the approach used by the [Cloud Carbon Footprint](https://www.cloudcarbonfootprint.org/) project.
 Service-specific replication factors are applied.
@@ -32,15 +32,7 @@ The HDD and SSD coefficients (in Wh per TB-hour) can be overridden via configura
 
 **Output column**:  `operational_energy_kwh`.
 
-### ccf.Networking
-
-Provides an estimate of energy used for networking in and out of data centres. Applies a flat coefficient of _0.001 kWh/Gb_ by default, see [methodology](https://www.cloudcarbonfootprint.org/docs/methodology#networking) for more details. The coefficient can be changed via configuration as shown in [Configure the modules](howto/config_modules.md).
-
-**Note**: this module has been replaced by [Networking](#networking) in the default configuration, which distinguishes between transfer types.
-
-**Output column**:  `operational_energy_kwh`.
-
-### ccf.Accelerators
+### ccf.aws.Accelerators
 
 Provides an estimate of energy used by accelerators, following the approach used by the [Cloud Carbon Footprint](https://www.cloudcarbonfootprint.org/) project.
 See [methodology](https://www.cloudcarbonfootprint.org/docs/methodology/#graphic-processing-units-gpus) for more details.
@@ -129,9 +121,9 @@ Estimates water consumption associated with cloud usage, producing three columns
 
 **Output columns**: `water_cooling_l`, `water_electricity_production_l`, and `water_consumption_stress_area_l`.
 
-## Networking
+## aws.Networking
 
-Provides an estimate of energy used for networking in and out of data centres. Unlike `ccf.Networking` which applies a single flat coefficient, this module distinguishes between three transfer types with separate coefficients (in kWh/Gb):
+Provides an estimate of energy used for networking in and out of data centres. The module distinguishes between three transfer types with separate coefficients (in kWh/Gb):
 
 | Transfer type | Key     | Default | Description                                           |
 | ------------- | ------- | ------- | ----------------------------------------------------- |
@@ -148,7 +140,7 @@ approach in SPRUCE is attributional, we do the same for networking in order to b
 
 **Output column**: `operational_energy_kwh`.
 
-## Serverless
+## aws.Serverless
 
 Provides an estimate of energy for the memory and vCPU usage of serverless services like Fargate or EMR.
 The default coefficients are taken from the [Tailpipe methodology](https://tailpipe.ai/methodology/serverless-explained/) and can be overridden via configuration:
