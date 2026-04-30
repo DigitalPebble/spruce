@@ -130,6 +130,10 @@
                                     </limits>
                                 </rule>
                             </rules>
+                            <excludes>
+                                <exclude>com/digitalpebble/spruce/modules/ecologits/EcoLogitsCoefficientsGenerator*</exclude>
+                                <exclude>com/digitalpebble/spruce/modules/boavizta/APITester*</exclude>
+                            </excludes>
                         </configuration>
                     </execution>
                 </executions>

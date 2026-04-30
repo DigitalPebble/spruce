@@ -16,13 +16,19 @@ import static com.digitalpebble.spruce.SpruceColumn.*;
  * Enrichment module estimating energy consumption and embodied emissions
  * for LLM inference on AWS Bedrock.
  * <p>
- * It extracts the model name from the CUR {@code product} map, determines token
- * types (input/output) via {@code line_item_usage_type}, and retrieves coefficients
- * using {@link EcoLogits}. If the usage type is ambiguous, it falls back to
- * a configurable {@code input_token_ratio} (default 0.5).
+ * It extracts the model name from the CUR {@code product} map, looks up the
+ * matching {@link EcoLogits} coefficients (per-1k-output-token), and applies
+ * them to the token count derived from {@code usage_amount × pricing_unit}.
  * <p>
- * Usage amounts are normalized to individual tokens based on the {@code pricing_unit}
- * before applying the per-1K-token coefficients.
+ * Coefficients only describe output tokens; this module decides how to score
+ * input-token usage rows. By default it treats them as zero (the EcoLogits
+ * methodology attributes ~all generation cost to output tokens). The
+ * {@code input_to_output_energy_ratio} config key (default {@code 0.0}) lets
+ * an operator override that — e.g. set to {@code 1.0} for a worst-case bound.
+ * <p>
+ * For ambiguous {@code line_item_usage_type} values (neither "input" nor
+ * "output"), the existing {@code input_token_ratio} (default {@code 0.5})
+ * splits the row before applying the input-to-output ratio.
  */
 public class BedrockEcoLogits implements EnrichmentModule {
 
@@ -31,18 +37,30 @@ public class BedrockEcoLogits implements EnrichmentModule {
     private EcoLogits impacts;
 
     private double inputTokenRatio = 0.5;
+    private double inputToOutputEnergyRatio = 0.0;
 
     @Override
     public void init(Map<String, Object> params) {
-        impacts = new EcoLogits();
-        impacts.load();
+        if (impacts == null) {
+            impacts = new EcoLogits();
+            impacts.load();
+        }
 
         if (params != null) {
             Number ratio = (Number) params.get("input_token_ratio");
             if (ratio != null) {
                 inputTokenRatio = ratio.doubleValue();
             }
+            Number i2o = (Number) params.get("input_to_output_energy_ratio");
+            if (i2o != null) {
+                inputToOutputEnergyRatio = i2o.doubleValue();
+            }
         }
+    }
+
+    /** Test hook: inject a pre-built EcoLogits instance before {@link #init(Map)}. */
+    void setEcoLogits(EcoLogits impacts) {
+        this.impacts = impacts;
     }
 
     @Override
@@ -70,7 +88,6 @@ public class BedrockEcoLogits implements EnrichmentModule {
 
         EcoLogits.ModelImpacts modelImpacts = impacts.getImpacts(modelId);
         if (modelImpacts == null) {
-            LOG.warn("BedrockEcoLogits: no EcoLogits coefficients found for model '{}'", modelId);
             return;
         }
 
@@ -85,10 +102,10 @@ public class BedrockEcoLogits implements EnrichmentModule {
         double tokenMultiplier = parseTokenMultiplier(PRICING_UNIT.getString(row));
         double totalTokens = usageAmount * tokenMultiplier;
 
-        // Check Input vs Output based on line_item_usage_type
+        // Translate the row's tokens into an "effective output token" count.
+        // EcoLogits attributes ~all generation cost to output tokens; input cost ≈ 0.
         boolean isInput = false;
         boolean isOutput = false;
-
         String usageType = LINE_ITEM_USAGE_TYPE.getString(row);
         if (usageType != null) {
             String lower = usageType.toLowerCase();
@@ -96,25 +113,27 @@ public class BedrockEcoLogits implements EnrichmentModule {
             isOutput = lower.contains("output");
         }
 
-        double energyKwh;
-        if (isInput && !isOutput) {
-            energyKwh = (totalTokens / 1_000.0) * modelImpacts.getEnergyKwhPer1kInputTokens();
-        } else if (isOutput && !isInput) {
-            energyKwh = (totalTokens / 1_000.0) * modelImpacts.getEnergyKwhPer1kOutputTokens();
+        double effectiveOutputTokens;
+        if (isOutput && !isInput) {
+            effectiveOutputTokens = totalTokens;
+        } else if (isInput && !isOutput) {
+            effectiveOutputTokens = totalTokens * inputToOutputEnergyRatio;
         } else {
-            // Fallback if CUR does not specify, or if the string is ambiguous (contains both)
-            double inputTokens = totalTokens * inputTokenRatio;
-            double outputTokens = totalTokens * (1.0 - inputTokenRatio);
-            energyKwh = (inputTokens / 1_000.0) * modelImpacts.getEnergyKwhPer1kInputTokens()
-                    + (outputTokens / 1_000.0) * modelImpacts.getEnergyKwhPer1kOutputTokens();
+            // Ambiguous: split the row, scale the input portion by the i2o ratio.
+            double inputPortion = totalTokens * inputTokenRatio;
+            double outputPortion = totalTokens * (1.0 - inputTokenRatio);
+            effectiveOutputTokens = outputPortion + inputPortion * inputToOutputEnergyRatio;
         }
 
-        double embodiedEmissions = (totalTokens / 1_000.0) * modelImpacts.getEmbodiedCo2eGPer1kTokens();
+        double per1k = effectiveOutputTokens / 1_000.0;
+        double energyKwh = per1k * modelImpacts.getEnergyKwhPer1kOutputTokens();
+        double embodiedEmissions = per1k * modelImpacts.getGwpEmbodiedGPer1kOutputTokens();
 
         enrichedValues.put(ENERGY_USED, energyKwh);
         enrichedValues.put(EMBODIED_EMISSIONS, embodiedEmissions);
 
-        LOG.debug("Bedrock model={} tokens={} energy_kwh={} embodied_g={}", modelId, totalTokens, energyKwh, embodiedEmissions);
+        LOG.debug("Bedrock model={} tokens={} effectiveOutput={} energy_kwh={} embodied_g={}",
+                modelId, totalTokens, effectiveOutputTokens, energyKwh, embodiedEmissions);
     }
 
     /**
