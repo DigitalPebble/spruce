@@ -82,7 +82,8 @@ public class BedrockEcoLogits implements EnrichmentModule {
 
         String modelId = Utils.getStringFromProductMap(row, "model", null);
         if (modelId == null || modelId.isEmpty()) {
-            LOG.warn("BedrockEcoLogits: model key missing or empty in product map");
+            // this is the case for models like TitanEmbeddingV2
+            // ignore for now
             return;
         }
 
