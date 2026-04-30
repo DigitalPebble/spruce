@@ -15,10 +15,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class EcoLogitsTest {
 
-    // CUR strings that are mapped to models present in coefficients.csv.
-    private static final String KNOWN_CUR_MODEL = "Claude 3 Haiku";
-    private static final String KNOWN_SMALL_MODEL = "Llama 3 8B Instruct";
-    private static final String KNOWN_LARGE_MODEL = "Llama 3 70B Instruct";
+    // Usage-type model keys mapped to (provider, model_name) pairs present in coefficients.csv.
+    private static final String KNOWN_CUR_MODEL = "Mistral7B";
+    private static final String KNOWN_SMALL_MODEL = "Mistral7B";
+    private static final String KNOWN_LARGE_MODEL = "MistralLarge";
     private static final String UNKNOWN_MODEL_ID = "non-existent-model-xyz";
 
     @Nested
@@ -105,21 +105,11 @@ public class EcoLogitsTest {
         }
 
         static Stream<String> knownModelIdsProvider() {
-            // CUR strings whose (provider, model_name) mapping is covered by coefficients.csv.
+            // Usage-type model keys covered by mapping.csv with coefficients in coefficients.csv.
             return Stream.of(
-                    "Claude 3 Haiku",
-                    "anthropic.claude-3-haiku-20240307-v1:0",
-                    "Llama 3 8B Instruct",
-                    "meta.llama3-8b-instruct-v1:0",
-                    "Llama 3 70B Instruct",
-                    "meta.llama3-70b-instruct-v1:0",
-                    "Mistral 7B Instruct",
-                    "mistral.mistral-7b-instruct-v0:2",
-                    "Mixtral 8x7B Instruct",
-                    "mistral.mixtral-8x7b-instruct-v0:1",
-                    "Command R",
-                    "cohere.command-r-v1:0",
-                    "Mistral Large"
+                    "Mistral7B",
+                    "MistralLarge",
+                    "Mixtral8x7B"
             );
         }
     }
