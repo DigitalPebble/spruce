@@ -68,9 +68,10 @@ public class EcoLogitsCoefficientsGenerator {
         generator.writeCsv(Paths.get(output), rows);
         System.out.printf("Wrote %d rows to %s%n", rows.size(), output);
 
-        int added = generator.appendMissingToMapping(Paths.get(mappingPath), rows);
-        if (added > 0) {
-            System.out.printf("Appended %d missing models to %s%n", added, mappingPath);
+        int missing = generator.reportMissingFromMapping(Paths.get(mappingPath), rows);
+        if (missing > 0) {
+            System.out.printf("%d model(s) above have coefficients but no entry in %s — add them manually if needed.%n",
+                    missing, mappingPath);
         }
     }
 
@@ -223,13 +224,12 @@ public class EcoLogitsCoefficientsGenerator {
     }
 
     /**
-     * Reads the existing mapping file and appends any (provider, model_name) pairs
-     * from the coefficients that have no entry in the mapping yet.
+     * Reads the existing mapping file and prints to stdout any (provider, model_name) pairs
+     * from the coefficients that have no mapping entry yet.
      *
-     * @return the number of entries appended
+     * @return the number of unmapped models found
      */
-    public int appendMissingToMapping(Path mappingPath, List<CoefficientRow> coefficients) throws IOException {
-        // Collect all (provider, model_name) pairs already in the mapping
+    public int reportMissingFromMapping(Path mappingPath, List<CoefficientRow> coefficients) throws IOException {
         Set<String> mapped = new HashSet<>();
         if (Files.exists(mappingPath)) {
             for (String line : Files.readAllLines(mappingPath)) {
@@ -246,25 +246,15 @@ public class EcoLogitsCoefficientsGenerator {
             }
         }
 
-        // Find coefficient entries not yet in the mapping
-        List<CoefficientRow> missing = new ArrayList<>();
+        int count = 0;
         for (CoefficientRow row : coefficients) {
             if (!mapped.contains(row.provider + "/" + row.modelName)) {
-                missing.add(row);
+                System.out.printf("NOT MAPPED: %s/%s%n",
+                        row.provider, row.modelName);
+                count++;
             }
         }
-
-        if (missing.isEmpty()) return 0;
-
-        // Append missing entries to the mapping file
-        try (PrintWriter w = new PrintWriter(Files.newBufferedWriter(mappingPath,
-                java.nio.file.StandardOpenOption.APPEND))) {
-            for (CoefficientRow row : missing) {
-                w.printf("%s,%s,%s%n", row.modelName, row.provider, row.modelName);
-            }
-        }
-
-        return missing.size();
+        return count;
     }
 
     private static String formatScientific(double v) {
