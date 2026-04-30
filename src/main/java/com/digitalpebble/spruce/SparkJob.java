@@ -50,7 +50,7 @@ public class SparkJob {
 
         SparkSession spark = SparkSession.builder()
                 .appName("SPRUCE")
-                .master("local[*]")
+        //        .master("local[*]")
                 .getOrCreate();
 
         spark.conf().set("mapreduce.fileoutputcommitter.marksuccessfuljobs", "false");
