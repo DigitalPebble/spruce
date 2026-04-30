@@ -25,7 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *   <li>{@code ecologits/coefficients.csv} — per-{@code (provider, model_name)}
  *       per-1k-output-token coefficients (energy, embodied GWP, embodied ADPe).
  *       Regenerated from the API by
- *       {@link com.digitalpebble.spruce.tools.EcoLogitsCoefficientsGenerator}.</li>
+ *       {@link EcoLogitsCoefficientsGenerator}.</li>
  * </ul>
  * Coefficients only describe output tokens because the underlying EcoLogits
  * methodology attributes the energy of an LLM request to the autoregressive
