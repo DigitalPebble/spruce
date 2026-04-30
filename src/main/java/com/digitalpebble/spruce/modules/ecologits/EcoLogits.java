@@ -19,8 +19,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>
  * Two CSV resources back this class:
  * <ul>
- *   <li>{@code ecologits/cur-model-mapping.csv} — maps a CUR {@code product.model}
- *       string to a canonical {@code (provider, model_name)} pair. The generator
+ *   <li>{@code ecologits/mapping.csv} — maps a provider-neutral model
+ *       label to a canonical {@code (provider, model_name)} pair. The generator
  *       appends any missing models automatically.</li>
  *   <li>{@code ecologits/coefficients.csv} — per-{@code (provider, model_name)}
  *       per-1k-output-token coefficients (energy, embodied GWP, embodied ADPe).
@@ -37,7 +37,7 @@ public class EcoLogits implements Serializable {
 
     private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(EcoLogits.class);
 
-    static final String DEFAULT_MAPPING_RESOURCE = "ecologits/cur-model-mapping.csv";
+    static final String DEFAULT_MAPPING_RESOURCE = "ecologits/mapping.csv";
     static final String DEFAULT_COEFFICIENTS_RESOURCE = "ecologits/coefficients.csv";
 
     private final String mappingResource;
@@ -63,7 +63,7 @@ public class EcoLogits implements Serializable {
     public void load() {
         loadCoefficients();
         loadMapping();
-        LOG.info("Loaded {} CUR model mappings and {} coefficient entries from {} / {}",
+        LOG.info("Loaded {} model label mappings and {} coefficient entries from {} / {}",
                 mapping.size(), coefficients.size(),
                 mappingResource, coefficientsResource);
     }
@@ -95,34 +95,34 @@ public class EcoLogits implements Serializable {
         List<String[]> rows = Utils.loadCSV(mappingResource);
         for (String[] parts : rows) {
             if (parts.length < 3) continue;
-            String curModel = parts[0].trim();
-            if (curModel.isEmpty() || "cur_model_value".equalsIgnoreCase(curModel)) continue;
+            String label = parts[0].trim();
+            if (label.isEmpty() || "label".equalsIgnoreCase(label)) continue;
             String provider = parts[1].trim();
             String model = parts[2].trim();
             if (provider.isEmpty() || model.isEmpty()) continue;
-            mapping.put(curModel.toLowerCase(Locale.ROOT), new ProviderModelKey(provider, model));
+            mapping.put(label.toLowerCase(Locale.ROOT), new ProviderModelKey(provider, model));
         }
     }
 
     /**
-     * Returns the impact coefficients for a CUR model string, or {@code null} if
-     * the model is not mapped or not covered by the API. Logs at most one warning
-     * per distinct missing model.
+     * Returns the impact coefficients for a model label, or {@code null} if
+     * the label is not mapped or not covered by the API. Logs at most one warning
+     * per distinct missing label.
      */
-    public ModelImpacts getImpacts(String curModelString) {
-        if (curModelString == null) return null;
-        String lower = curModelString.toLowerCase(Locale.ROOT);
+    public ModelImpacts getImpacts(String label) {
+        if (label == null) return null;
+        String lower = label.toLowerCase(Locale.ROOT);
         ProviderModelKey key = mapping.get(lower);
         if (key == null) {
             if (unknownModels.add(lower)) {
-                LOG.warn("Unmapped LLM model in CUR: {}", curModelString);
+                LOG.warn("Unmapped LLM model label: {}", label);
             }
             return null;
         }
         ModelImpacts impacts = coefficients.get(key);
         if (impacts == null && unknownModels.add(lower)) {
-            LOG.warn("CUR model {} maps to {} but no coefficients found in {}",
-                    curModelString, key, coefficientsResource);
+            LOG.warn("Model label {} maps to {} but no coefficients found in {}",
+                    label, key, coefficientsResource);
         }
         return impacts;
     }

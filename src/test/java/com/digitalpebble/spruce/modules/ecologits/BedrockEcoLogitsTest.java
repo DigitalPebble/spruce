@@ -26,7 +26,7 @@ public class BedrockEcoLogitsTest {
     private BedrockEcoLogits module;
     private StructType schema;
 
-    private static final String TEST_MAPPING = "ecologits-test/cur-model-mapping.csv";
+    private static final String TEST_MAPPING = "ecologits-test/mapping.csv";
     private static final String TEST_COEFFICIENTS = "ecologits-test/coefficients.csv";
 
     // The test fixture maps "anthropic.claude-v2" to test-provider/test-claude.
