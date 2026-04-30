@@ -12,6 +12,7 @@ FILE_EXTENSION = "parquet"          # "parquet" or "csv"
 
 # Exact column names to drop
 SENSITIVE_COLUMNS_EXACT = [
+    "cost_category",
     "resource_tags",
     "savings_plan_savings_plan_a_r_n",
     "reservation_reservation_a_r_n",
