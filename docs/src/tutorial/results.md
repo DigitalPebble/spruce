@@ -1,5 +1,12 @@
 # Explore the results
 
+## Interactive dashboard
+
+For an interactive view of SPRUCE-enriched Parquet output, use the Streamlit
+example described in [Build a simple dashboard](../howto/dashboard.md). It reads
+the same local paths, globs, and S3 URIs as `report.py`, then charts cost,
+energy, emissions, water, regional, and tag breakdowns with DuckDB queries.
+
 ## Automated report
 
 The easiest way to explore SPRUCE output is `report.py`, a Python script that reads enriched Parquet files, runs all the analyses described on this page automatically, and writes a formatted report — no SQL required.

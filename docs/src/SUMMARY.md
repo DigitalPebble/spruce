@@ -23,6 +23,7 @@
 - [Write a new module](howto/write_module.md)
 - [Configure logging](howto/config_logging.md)
 - [Split impacts allocations](howto/splits.md)
+- [Build a simple dashboard](howto/dashboard.md)
 - [Contribute to SPRUCE](howto/contributing.md)
 
 [Resources](./resources.md)
