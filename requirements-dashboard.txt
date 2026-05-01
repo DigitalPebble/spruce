@@ -1,0 +1,3 @@
+duckdb
+pandas
+streamlit>=1.36
