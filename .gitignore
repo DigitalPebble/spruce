@@ -10,6 +10,12 @@
 # Maven
 target/
 
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
 # avoid accidental addition of dirs mentioned in README
 curs/
 output/
