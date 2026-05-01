@@ -1,5 +1,4 @@
 # Test fixture - mapping for BedrockEcoLogitsTest / EcoLogitsTest
+# Key is the model key extracted from line_item_usage_type (e.g. EUN1-Claude-output-tokens → Claude)
 label,provider,model_name
-anthropic.claude-v2,test-provider,test-claude
-Claude 2,test-provider,test-claude
-Claude 2.1,test-provider,test-claude
+Claude,test-provider,test-claude

@@ -29,9 +29,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * </ul>
  * Coefficients only describe output tokens because the underlying EcoLogits
  * methodology attributes the energy of an LLM request to the autoregressive
- * generation phase. Translating CUR input-token usage into a comparable energy
- * figure is the responsibility of the calling enrichment module
- * (e.g. {@link BedrockEcoLogits}).
+ * generation phase. How input-token usage is handled is left to the calling
+ * enrichment module (e.g. {@link BedrockEcoLogits} ignores it).
  */
 public class EcoLogits implements Serializable {
 

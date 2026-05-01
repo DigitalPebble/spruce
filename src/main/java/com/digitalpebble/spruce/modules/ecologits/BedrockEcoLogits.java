@@ -4,7 +4,6 @@ package com.digitalpebble.spruce.modules.ecologits;
 
 import com.digitalpebble.spruce.Column;
 import com.digitalpebble.spruce.EnrichmentModule;
-import com.digitalpebble.spruce.Utils;
 import org.apache.spark.sql.Row;
 
 import java.util.Map;
@@ -16,19 +15,13 @@ import static com.digitalpebble.spruce.SpruceColumn.*;
  * Enrichment module estimating energy consumption and embodied emissions
  * for LLM inference on AWS Bedrock.
  * <p>
- * It extracts the model name from the CUR {@code product} map, looks up the
- * matching {@link EcoLogits} coefficients (per-1k-output-token), and applies
- * them to the token count derived from {@code usage_amount × pricing_unit}.
+ * It extracts the model key and token type from {@code line_item_usage_type}
+ * (format: {@code {REGION}-{ModelKey}-{input|output}-tokens[-batch]}), looks
+ * up the matching {@link EcoLogits} coefficients (per-1k-output-token), and
+ * applies them to the token count derived from {@code usage_amount × pricing_unit}.
  * <p>
- * Coefficients only describe output tokens; this module decides how to score
- * input-token usage rows. By default it treats them as zero (the EcoLogits
- * methodology attributes ~all generation cost to output tokens). The
- * {@code input_to_output_energy_ratio} config key (default {@code 0.0}) lets
- * an operator override that — e.g. set to {@code 1.0} for a worst-case bound.
- * <p>
- * For ambiguous {@code line_item_usage_type} values (neither "input" nor
- * "output"), the existing {@code input_token_ratio} (default {@code 0.5})
- * splits the row before applying the input-to-output ratio.
+ * Coefficients only describe output tokens; input-token rows are ignored
+ * (the EcoLogits methodology attributes ~all generation cost to output tokens).
  */
 public class BedrockEcoLogits implements EnrichmentModule {
 
@@ -36,25 +29,11 @@ public class BedrockEcoLogits implements EnrichmentModule {
 
     private EcoLogits impacts;
 
-    private double inputTokenRatio = 0.5;
-    private double inputToOutputEnergyRatio = 0.0;
-
     @Override
     public void init(Map<String, Object> params) {
         if (impacts == null) {
             impacts = new EcoLogits();
             impacts.load();
-        }
-
-        if (params != null) {
-            Number ratio = (Number) params.get("input_token_ratio");
-            if (ratio != null) {
-                inputTokenRatio = ratio.doubleValue();
-            }
-            Number i2o = (Number) params.get("input_to_output_energy_ratio");
-            if (i2o != null) {
-                inputToOutputEnergyRatio = i2o.doubleValue();
-            }
         }
     }
 
@@ -65,7 +44,7 @@ public class BedrockEcoLogits implements EnrichmentModule {
 
     @Override
     public Column[] columnsNeeded() {
-        return new Column[]{LINE_ITEM_PRODUCT_CODE, PRODUCT, USAGE_AMOUNT, PRICING_UNIT, LINE_ITEM_USAGE_TYPE};
+        return new Column[]{LINE_ITEM_PRODUCT_CODE, USAGE_AMOUNT, PRICING_UNIT, LINE_ITEM_USAGE_TYPE};
     }
 
     @Override
@@ -80,14 +59,15 @@ public class BedrockEcoLogits implements EnrichmentModule {
             return;
         }
 
-        String modelId = Utils.getStringFromProductMap(row, "model", null);
-        if (modelId == null || modelId.isEmpty()) {
-            // this is the case for models like TitanEmbeddingV2
-            // ignore for now
+        String usageType = LINE_ITEM_USAGE_TYPE.getString(row);
+        String[] parsed = parseUsageType(usageType);
+        if (parsed == null || "input".equals(parsed[1])) {
             return;
         }
 
-        EcoLogits.ModelImpacts modelImpacts = impacts.getImpacts(modelId);
+        String modelKey = parsed[0];
+
+        EcoLogits.ModelImpacts modelImpacts = impacts.getImpacts(modelKey);
         if (modelImpacts == null) {
             return;
         }
@@ -103,38 +83,44 @@ public class BedrockEcoLogits implements EnrichmentModule {
         double tokenMultiplier = parseTokenMultiplier(PRICING_UNIT.getString(row));
         double totalTokens = usageAmount * tokenMultiplier;
 
-        // Translate the row's tokens into an "effective output token" count.
-        // EcoLogits attributes ~all generation cost to output tokens; input cost ≈ 0.
-        boolean isInput = false;
-        boolean isOutput = false;
-        String usageType = LINE_ITEM_USAGE_TYPE.getString(row);
-        if (usageType != null) {
-            String lower = usageType.toLowerCase();
-            isInput = lower.contains("input");
-            isOutput = lower.contains("output");
-        }
-
-        double effectiveOutputTokens;
-        if (isOutput && !isInput) {
-            effectiveOutputTokens = totalTokens;
-        } else if (isInput && !isOutput) {
-            effectiveOutputTokens = totalTokens * inputToOutputEnergyRatio;
-        } else {
-            // Ambiguous: split the row, scale the input portion by the i2o ratio.
-            double inputPortion = totalTokens * inputTokenRatio;
-            double outputPortion = totalTokens * (1.0 - inputTokenRatio);
-            effectiveOutputTokens = outputPortion + inputPortion * inputToOutputEnergyRatio;
-        }
-
-        double per1k = effectiveOutputTokens / 1_000.0;
+        double per1k = totalTokens / 1_000.0;
         double energyKwh = per1k * modelImpacts.getEnergyKwhPer1kOutputTokens();
         double embodiedEmissions = per1k * modelImpacts.getGwpEmbodiedGPer1kOutputTokens();
 
         enrichedValues.put(ENERGY_USED, energyKwh);
         enrichedValues.put(EMBODIED_EMISSIONS, embodiedEmissions);
 
-        LOG.debug("Bedrock model={} tokens={} effectiveOutput={} energy_kwh={} embodied_g={}",
-                modelId, totalTokens, effectiveOutputTokens, energyKwh, embodiedEmissions);
+        LOG.debug("Bedrock modelKey={} outputTokens={} energy_kwh={} embodied_g={}",
+                modelKey, totalTokens, energyKwh, embodiedEmissions);
+    }
+
+    /**
+     * Parses {@code line_item_usage_type} with format
+     * {@code {REGION_PREFIX}-{ModelKey}-{input|output}-tokens[-batch]}.
+     *
+     * @return [modelKey, "input"|"output"], or {@code null} if the format is unrecognized
+     */
+    static String[] parseUsageType(String usageType) {
+        if (usageType == null) {
+            return null;
+        }
+        int firstDash = usageType.indexOf('-');
+        if (firstDash < 0) {
+            return null;
+        }
+        String withoutRegion = usageType.substring(firstDash + 1);
+        String lower = withoutRegion.toLowerCase();
+
+        if (lower.endsWith("-output-tokens-batch")) {
+            return new String[]{withoutRegion.substring(0, withoutRegion.length() - "-output-tokens-batch".length()), "output"};
+        } else if (lower.endsWith("-input-tokens-batch")) {
+            return new String[]{withoutRegion.substring(0, withoutRegion.length() - "-input-tokens-batch".length()), "input"};
+        } else if (lower.endsWith("-output-tokens")) {
+            return new String[]{withoutRegion.substring(0, withoutRegion.length() - "-output-tokens".length()), "output"};
+        } else if (lower.endsWith("-input-tokens")) {
+            return new String[]{withoutRegion.substring(0, withoutRegion.length() - "-input-tokens".length()), "input"};
+        }
+        return null;
     }
 
     /**
