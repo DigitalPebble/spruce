@@ -13,8 +13,16 @@ target/
 # Python
 __pycache__/
 *.py[cod]
+.venv/
+.venv-*/
+venv/
+env/
+.env/
 .pytest_cache/
 .ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
 
 # avoid accidental addition of dirs mentioned in README
 curs/

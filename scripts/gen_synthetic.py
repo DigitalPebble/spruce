@@ -8,7 +8,9 @@ import sys
 try:
     import duckdb
 except ImportError:
-    sys.exit("duckdb is required - run: pip install -r requirements-dashboard.txt")
+    sys.exit(
+        "duckdb is required - run: pip install -r reporting/requirements-dashboard.txt"
+    )
 
 
 def parse_args() -> argparse.Namespace:

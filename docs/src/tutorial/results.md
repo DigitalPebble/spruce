@@ -215,5 +215,3 @@ select resource_tags['cost_category_top_level'],
        order by 3 desc;
 ```
 
-
-
