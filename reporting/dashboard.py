@@ -277,19 +277,47 @@ def billing_query(where: str) -> str:
                     FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
                 2
             ) AS total_cost,
-            round(sum(operational_energy_kwh), 2) AS energy_kwh,
-            round(sum(operational_emissions_co2eq_g) / 1000, 2) AS operational_kg,
-            round(sum(embodied_emissions_co2eq_g) / 1000, 2) AS embodied_kg,
+            round(
+                sum(operational_energy_kwh)
+                    FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                2
+            ) AS energy_kwh,
+            round(
+                sum(operational_emissions_co2eq_g)
+                    FILTER (WHERE line_item_line_item_type LIKE '%Usage') / 1000,
+                2
+            ) AS operational_kg,
+            round(
+                sum(embodied_emissions_co2eq_g)
+                    FILTER (WHERE line_item_line_item_type LIKE '%Usage') / 1000,
+                2
+            ) AS embodied_kg,
             round(
                 (
-                    coalesce(sum(operational_emissions_co2eq_g), 0)
-                    + coalesce(sum(embodied_emissions_co2eq_g), 0)
+                    coalesce(
+                        sum(operational_emissions_co2eq_g)
+                            FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                        0
+                    )
+                    + coalesce(
+                        sum(embodied_emissions_co2eq_g)
+                            FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                        0
+                    )
                 ) / 1000,
                 2
             ) AS total_emissions_kg,
             round(
-                coalesce(sum(water_cooling_l), 0)
-                    + coalesce(sum(water_electricity_production_l), 0),
+                coalesce(
+                    sum(water_cooling_l)
+                        FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                    0
+                )
+                + coalesce(
+                    sum(water_electricity_production_l)
+                        FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                    0
+                ),
                 2
             ) AS water_usage_l
         FROM filtered
@@ -349,7 +377,8 @@ def regional_query(where: str) -> str:
                 sum(operational_emissions_co2eq_g) AS operational_g,
                 sum(embodied_emissions_co2eq_g) AS embodied_g,
                 sum(operational_energy_kwh) AS energy_kwh,
-                sum(pricing_public_on_demand_cost) AS public_cost,
+                sum(line_item_unblended_cost)
+                    FILTER (WHERE line_item_line_item_type LIKE '%Usage') AS usage_cost,
                 avg(carbon_intensity) AS avg_ci,
                 avg(power_usage_effectiveness) AS pue,
                 coalesce(sum(water_cooling_l), 0)
@@ -372,12 +401,12 @@ def regional_query(where: str) -> str:
             round(pue, 2) AS pue,
             round(
                 (coalesce(operational_g, 0) + coalesce(embodied_g, 0))
-                    / NULLIF(public_cost, 0),
+                    / NULLIF(usage_cost, 0),
                 2
             )
                 AS g_co2_per_dollar
         FROM agg
-        ORDER BY total_emissions_kg DESC, energy_kwh DESC, region DESC
+        ORDER BY total_emissions_kg DESC, energy_kwh DESC, region ASC
     """
 
 
@@ -410,6 +439,8 @@ def tag_breakdown_query(where: str, tag_key: str) -> str:
                 2
             ) AS water_usage_l
         FROM filtered
+        WHERE resource_tags[{key}] IS NOT NULL
+          AND resource_tags[{key}] != ''
         GROUP BY 1
     """
 
@@ -531,24 +562,19 @@ def render_table(
     if max_rows is not None:
         table = table.head(max_rows)
 
-    headers = "".join(f"<th>{html.escape(labels.get(col, col))}</th>" for col in columns)
-    rows = []
-    for _, row in table.iterrows():
-        cells = []
-        for col in columns:
-            value = row[col]
-            if isinstance(value, float):
-                text = f"{value:,.2f}"
-            elif value is None or pd.isna(value):
-                text = ""
-            else:
-                text = str(value)
-            cells.append(f"<td>{html.escape(text)}</td>")
-        rows.append(f"<tr>{''.join(cells)}</tr>")
+    column_config = {}
+    for col in columns:
+        label = labels.get(col, col)
+        if pd.api.types.is_float_dtype(table[col]):
+            column_config[col] = st.column_config.NumberColumn(label, format="%.2f")
+        else:
+            column_config[col] = st.column_config.TextColumn(label)
 
-    render_html(
-        f"<table class='spruce-table'><thead><tr>{headers}</tr></thead>"
-        f"<tbody>{''.join(rows)}</tbody></table>"
+    st.dataframe(
+        table,
+        use_container_width=True,
+        hide_index=True,
+        column_config=column_config,
     )
 
 
