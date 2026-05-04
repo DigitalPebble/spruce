@@ -921,9 +921,16 @@ def render_regions(regions: pd.DataFrame) -> None:
         paper_bgcolor=COLORS["surface"],
         plot_bgcolor=COLORS["surface"],
         font={"color": COLORS["text"], "family": "Inter, Segoe UI, sans-serif"},
-        height=430,
-        margin={"l": 24, "r": 24, "t": 20, "b": 20},
-        legend={"font": {"color": COLORS["text"]}},
+        height=480,
+        margin={"l": 24, "r": 24, "t": 20, "b": 80},
+        legend={
+            "font": {"color": COLORS["text"]},
+            "orientation": "h",
+            "yanchor": "top",
+            "y": -0.05,
+            "xanchor": "center",
+            "x": 0.5,
+        },
     )
     st.plotly_chart(fig, use_container_width=True, config=PLOT_CONFIG)
 
