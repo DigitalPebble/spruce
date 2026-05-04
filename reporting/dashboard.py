@@ -218,7 +218,12 @@ def get_tag_keys(input_path: str) -> list[str]:
             .astype(str)
             .tolist()
         )
-    except duckdb.Error:
+    except duckdb.Error as exc:
+        st.warning(
+            "Could not read `resource_tags` as a MAP. SPRUCE-enriched parquet "
+            "exposes tags as `MAP<VARCHAR,VARCHAR>`; raw CUR 2.0 exports use "
+            f"`array<struct<key,value>>` and require conversion. Underlying error: {exc}"
+        )
         return []
 
 
@@ -233,11 +238,22 @@ def overview_query(where: str) -> str:
                 count(*) AS row_count,
                 sum(line_item_unblended_cost)
                     FILTER (WHERE line_item_line_item_type LIKE '%Usage') AS total_cost,
-                sum(operational_energy_kwh) AS energy_kwh,
-                sum(operational_emissions_co2eq_g) AS operational_g,
-                sum(embodied_emissions_co2eq_g) AS embodied_g,
-                coalesce(sum(water_cooling_l), 0)
-                    + coalesce(sum(water_electricity_production_l), 0) AS water_l
+                sum(operational_energy_kwh)
+                    FILTER (WHERE line_item_line_item_type LIKE '%Usage') AS energy_kwh,
+                sum(operational_emissions_co2eq_g)
+                    FILTER (WHERE line_item_line_item_type LIKE '%Usage') AS operational_g,
+                sum(embodied_emissions_co2eq_g)
+                    FILTER (WHERE line_item_line_item_type LIKE '%Usage') AS embodied_g,
+                coalesce(
+                    sum(water_cooling_l)
+                        FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                    0
+                )
+                + coalesce(
+                    sum(water_electricity_production_l)
+                        FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                    0
+                ) AS water_l
             FROM filtered
         ), coverage AS (
             SELECT
@@ -344,19 +360,47 @@ def top_emitters_query(where: str) -> str:
                     FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
                 2
             ) AS total_cost,
-            round(sum(operational_emissions_co2eq_g) / 1000, 2) AS co2_usage_kg,
-            round(sum(embodied_emissions_co2eq_g) / 1000, 2) AS co2_embodied_kg,
+            round(
+                sum(operational_emissions_co2eq_g)
+                    FILTER (WHERE line_item_line_item_type LIKE '%Usage') / 1000,
+                2
+            ) AS co2_usage_kg,
+            round(
+                sum(embodied_emissions_co2eq_g)
+                    FILTER (WHERE line_item_line_item_type LIKE '%Usage') / 1000,
+                2
+            ) AS co2_embodied_kg,
             round(
                 (
-                    coalesce(sum(operational_emissions_co2eq_g), 0)
-                    + coalesce(sum(embodied_emissions_co2eq_g), 0)
+                    coalesce(
+                        sum(operational_emissions_co2eq_g)
+                            FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                        0
+                    )
+                    + coalesce(
+                        sum(embodied_emissions_co2eq_g)
+                            FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                        0
+                    )
                 ) / 1000,
                 2
             ) AS total_emissions_kg,
-            round(sum(operational_energy_kwh), 2) AS energy_kwh,
             round(
-                coalesce(sum(water_cooling_l), 0)
-                    + coalesce(sum(water_electricity_production_l), 0),
+                sum(operational_energy_kwh)
+                    FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                2
+            ) AS energy_kwh,
+            round(
+                coalesce(
+                    sum(water_cooling_l)
+                        FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                    0
+                )
+                + coalesce(
+                    sum(water_electricity_production_l)
+                        FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                    0
+                ),
                 2
             ) AS water_usage_l
         FROM filtered
@@ -374,16 +418,45 @@ def regional_query(where: str) -> str:
         ), agg AS (
             SELECT
                 coalesce(nullif(dashboard_region, ''), 'Unknown region') AS region,
-                sum(operational_emissions_co2eq_g) AS operational_g,
-                sum(embodied_emissions_co2eq_g) AS embodied_g,
-                sum(operational_energy_kwh) AS energy_kwh,
+                sum(operational_emissions_co2eq_g)
+                    FILTER (WHERE line_item_line_item_type LIKE '%Usage') AS operational_g,
+                sum(embodied_emissions_co2eq_g)
+                    FILTER (WHERE line_item_line_item_type LIKE '%Usage') AS embodied_g,
+                sum(operational_energy_kwh)
+                    FILTER (WHERE line_item_line_item_type LIKE '%Usage') AS energy_kwh,
                 sum(line_item_unblended_cost)
                     FILTER (WHERE line_item_line_item_type LIKE '%Usage') AS usage_cost,
-                avg(carbon_intensity) AS avg_ci,
-                avg(power_usage_effectiveness) AS pue,
-                coalesce(sum(water_cooling_l), 0)
-                    + coalesce(sum(water_electricity_production_l), 0) AS water_l,
-                coalesce(sum(water_consumption_stress_area_l), 0) AS water_stress_l
+                sum(operational_energy_kwh * carbon_intensity)
+                    FILTER (WHERE line_item_line_item_type LIKE '%Usage'
+                              AND operational_energy_kwh IS NOT NULL
+                              AND carbon_intensity IS NOT NULL) AS ci_weighted_num,
+                sum(operational_energy_kwh)
+                    FILTER (WHERE line_item_line_item_type LIKE '%Usage'
+                              AND operational_energy_kwh IS NOT NULL
+                              AND carbon_intensity IS NOT NULL) AS ci_weighted_den,
+                sum(operational_energy_kwh * power_usage_effectiveness)
+                    FILTER (WHERE line_item_line_item_type LIKE '%Usage'
+                              AND operational_energy_kwh IS NOT NULL
+                              AND power_usage_effectiveness IS NOT NULL) AS pue_weighted_num,
+                sum(operational_energy_kwh)
+                    FILTER (WHERE line_item_line_item_type LIKE '%Usage'
+                              AND operational_energy_kwh IS NOT NULL
+                              AND power_usage_effectiveness IS NOT NULL) AS pue_weighted_den,
+                coalesce(
+                    sum(water_cooling_l)
+                        FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                    0
+                )
+                + coalesce(
+                    sum(water_electricity_production_l)
+                        FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                    0
+                ) AS water_l,
+                coalesce(
+                    sum(water_consumption_stress_area_l)
+                        FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                    0
+                ) AS water_stress_l
             FROM filtered
             WHERE operational_emissions_co2eq_g IS NOT NULL
             GROUP BY 1
@@ -395,10 +468,10 @@ def regional_query(where: str) -> str:
             round((coalesce(operational_g, 0) + coalesce(embodied_g, 0)) / 1000, 2)
                 AS total_emissions_kg,
             round(coalesce(energy_kwh, 0), 2) AS energy_kwh,
-            round(avg_ci, 2) AS carbon_intensity,
+            round(ci_weighted_num / NULLIF(ci_weighted_den, 0), 2) AS carbon_intensity,
             round(water_l, 2) AS water_usage_l,
             round(water_stress_l, 2) AS water_stress_area_l,
-            round(pue, 2) AS pue,
+            round(pue_weighted_num / NULLIF(pue_weighted_den, 0), 2) AS pue,
             round(
                 (coalesce(operational_g, 0) + coalesce(embodied_g, 0))
                     / NULLIF(usage_cost, 0),
@@ -423,25 +496,54 @@ def tag_breakdown_query(where: str, tag_key: str) -> str:
                     FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
                 2
             ) AS total_cost,
-            round(sum(operational_energy_kwh), 2) AS energy_kwh,
-            round(sum(operational_emissions_co2eq_g) / 1000, 2) AS operational_kg,
-            round(sum(embodied_emissions_co2eq_g) / 1000, 2) AS embodied_kg,
+            round(
+                sum(operational_energy_kwh)
+                    FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                2
+            ) AS energy_kwh,
+            round(
+                sum(operational_emissions_co2eq_g)
+                    FILTER (WHERE line_item_line_item_type LIKE '%Usage') / 1000,
+                2
+            ) AS operational_kg,
+            round(
+                sum(embodied_emissions_co2eq_g)
+                    FILTER (WHERE line_item_line_item_type LIKE '%Usage') / 1000,
+                2
+            ) AS embodied_kg,
             round(
                 (
-                    coalesce(sum(operational_emissions_co2eq_g), 0)
-                    + coalesce(sum(embodied_emissions_co2eq_g), 0)
+                    coalesce(
+                        sum(operational_emissions_co2eq_g)
+                            FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                        0
+                    )
+                    + coalesce(
+                        sum(embodied_emissions_co2eq_g)
+                            FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                        0
+                    )
                 ) / 1000,
                 2
             ) AS total_emissions_kg,
             round(
-                coalesce(sum(water_cooling_l), 0)
-                    + coalesce(sum(water_electricity_production_l), 0),
+                coalesce(
+                    sum(water_cooling_l)
+                        FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                    0
+                )
+                + coalesce(
+                    sum(water_electricity_production_l)
+                        FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                    0
+                ),
                 2
             ) AS water_usage_l
         FROM filtered
         WHERE resource_tags[{key}] IS NOT NULL
           AND resource_tags[{key}] != ''
         GROUP BY 1
+        ORDER BY total_emissions_kg DESC NULLS LAST
     """
 
 
