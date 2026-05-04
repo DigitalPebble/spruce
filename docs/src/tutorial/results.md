@@ -3,9 +3,8 @@
 ## Interactive dashboard
 
 For an interactive view of SPRUCE-enriched Parquet output, use the Streamlit
-example described in [Build a simple dashboard](../howto/dashboard.md). It reads
-the same local paths, globs, and S3 URIs as `report.py`, then charts cost,
-energy, emissions, water, regional, and tag breakdowns with DuckDB queries.
+example described in [Build a simple dashboard](../howto/dashboard.md). It
+reads the same inputs as `report.py` and runs DuckDB queries locally.
 
 ## Automated report
 
