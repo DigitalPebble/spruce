@@ -37,7 +37,7 @@
         <maven.compiler.release>17</maven.compiler.release>
         <spark.version>4.1.1</spark.version>
         <okhttp.version>5.3.2</okhttp.version>
-        <caffeine.version>3.2.3</caffeine.version>
+        <caffeine.version>3.2.4</caffeine.version>
         <junit.jupiter.version>6.0.3</junit.jupiter.version>
         <mockito.version>5.23.0</mockito.version>
         <commons-cli.version>1.11.0</commons-cli.version>
