@@ -559,6 +559,20 @@ def configure_branding() -> None:
         page_icon=page_icon,
         layout="wide",
         initial_sidebar_state="expanded",
+        menu_items={
+            "Get help": "https://opensourcegreenops.cloud/",
+            "Report a bug": "https://github.com/DigitalPebble/spruce/issues",
+            "About": (
+                "**SPRUCE Dashboard**\n\n"
+                "Streamlit reporting UI for SPRUCE - an open-source enrichment"
+                " platform for GreenOps which helps measure and reduce the"
+                " environmental impact of cloud computing. This dashboard surfaces"
+                " spend trends, service breakdowns, and optimisation opportunities.\n\n"
+                "- Source: https://github.com/DigitalPebble/spruce\n"
+                "- Docs: https://opensourcegreenops.cloud/\n"
+                "- Discussions: https://github.com/DigitalPebble/spruce/discussions"
+            ),
+        },
     )
     if LOGO_PATH.exists() and hasattr(st, "logo"):
         st.logo(str(LOGO_PATH))
