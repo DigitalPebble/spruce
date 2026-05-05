@@ -1,5 +1,11 @@
 # Explore the results
 
+## Interactive dashboard
+
+For an interactive view of SPRUCE-enriched Parquet output, use the Streamlit
+example described in [Build a simple dashboard](../howto/dashboard.md). It
+reads the same inputs as `report.py` and runs DuckDB queries locally.
+
 ## Automated report
 
 The easiest way to explore SPRUCE output is `report.py`, a Python script that reads enriched Parquet files, runs all the analyses described on this page automatically, and writes a formatted report — no SQL required.
@@ -207,6 +213,4 @@ select resource_tags['cost_category_top_level'],
        group by 1
        order by 3 desc;
 ```
-
-
 
