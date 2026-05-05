@@ -20,19 +20,29 @@ try:
     import plotly.express as px
     import plotly.graph_objects as go
     import streamlit as st
-except ImportError:
+except ImportError as exc:
     sys.exit(
-        "dashboard.py requires: pip install -r reporting/requirements-dashboard.txt"
+        "dashboard.py requires: pip install -r reporting/requirements-dashboard.txt "
+        f"({exc})"
     )
 
 DEFAULT_TOP_N = 10
-REGION_EXPR = "coalesce(nullif(region, ''), product_region_code)"
+MAX_TOP_N = 50
+MAX_TAG_CHART_ROWS = 40
+MAX_TAG_CHART_HEIGHT = 1600
+REGION_EXPR = "region"
 REPO_ROOT = Path(__file__).resolve().parents[1]
 LOGO_PATH = REPO_ROOT / "logo.png"
 STYLES_PATH = Path(__file__).resolve().parent / "styles.css"
 
 BRAND_COLOR = "#BC6554"
 BRAND_PALETTE = ("#BC6554", "#8C4A3D", "#E0A64A", "#5A7C8A", "#7A8E55")
+REGION_PIE_PALETTE = (
+    list(BRAND_PALETTE)
+    + px.colors.qualitative.Safe
+    + px.colors.qualitative.Bold
+    + px.colors.qualitative.Alphabet
+)
 COLORS = MappingProxyType(
     {
         "background": "#F7F6F2",
@@ -114,6 +124,10 @@ def sql_literal(value: str) -> str:
     return "'" + str(value).replace("'", "''") + "'"
 
 
+def sql_identifier(value: str) -> str:
+    return '"' + value.replace('"', '""') + '"'
+
+
 def to_string_list(value: object) -> list[str]:
     if value is None:
         return []
@@ -146,11 +160,24 @@ def filter_clause(
     return where, tuple(params)
 
 
-def ensure_dashboard_columns(con: duckdb.DuckDBPyConnection) -> None:
-    existing = {row[1] for row in con.execute("PRAGMA table_info('cur')").fetchall()}
+def parquet_source_sql(parquet_path: str) -> str:
+    return f"read_parquet({sql_literal(parquet_path)}, hive_partitioning=true)"
+
+
+def create_dashboard_view(con: duckdb.DuckDBPyConnection, parquet_path: str) -> None:
+    source_sql = parquet_source_sql(parquet_path)
+    schema_rows = con.execute(f"DESCRIBE SELECT * FROM {source_sql}").fetchall()
+    existing_columns = [str(row[0]) for row in schema_rows]
+    existing_set = set(existing_columns)
+
+    select_exprs = [sql_identifier(column) for column in existing_columns]
     for column_name, column_type in DASHBOARD_COLUMN_DEFAULTS.items():
-        if column_name not in existing:
-            con.execute(f'ALTER TABLE cur ADD COLUMN "{column_name}" {column_type}')
+        if column_name not in existing_set:
+            select_exprs.append(
+                f"CAST(NULL AS {column_type}) AS {sql_identifier(column_name)}"
+            )
+
+    con.execute(f"CREATE VIEW cur AS SELECT {', '.join(select_exprs)} FROM {source_sql}")
 
 
 @st.cache_resource(show_spinner=False, max_entries=CONNECTION_CACHE_MAX_ENTRIES)
@@ -165,14 +192,7 @@ def load_connection(input_path: str) -> duckdb.DuckDBPyConnection:
         con.execute("LOAD httpfs")
         con.execute("CREATE SECRET (TYPE s3, PROVIDER credential_chain)")
 
-    con.execute(
-        """
-        CREATE TABLE cur AS
-        SELECT * FROM read_parquet(?, hive_partitioning=true)
-        """,
-        [parquet_path],
-    )
-    ensure_dashboard_columns(con)
+    create_dashboard_view(con, parquet_path)
     return con
 
 
@@ -483,14 +503,13 @@ def regional_query(where: str) -> str:
     """
 
 
-def tag_breakdown_query(where: str, tag_key: str) -> str:
-    key = sql_literal(tag_key)
+def tag_breakdown_query(where: str) -> str:
     return f"""
         WITH filtered AS (
             SELECT * FROM cur {where}
         )
         SELECT
-            resource_tags[{key}] AS tag_value,
+            resource_tags[?] AS tag_value,
             round(
                 sum(line_item_unblended_cost)
                     FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
@@ -540,8 +559,8 @@ def tag_breakdown_query(where: str, tag_key: str) -> str:
                 2
             ) AS water_usage_l
         FROM filtered
-        WHERE resource_tags[{key}] IS NOT NULL
-          AND resource_tags[{key}] != ''
+        WHERE resource_tags[?] IS NOT NULL
+          AND resource_tags[?] != ''
         GROUP BY 1
         ORDER BY total_emissions_kg DESC NULLS LAST
     """
@@ -578,14 +597,20 @@ def configure_branding() -> None:
         st.logo(str(LOGO_PATH))
 
 
-def load_css() -> None:
+@st.cache_data(show_spinner=False)
+def css_text() -> str:
     if STYLES_PATH.exists():
-        st.markdown(
-            f"<style>{STYLES_PATH.read_text(encoding='utf-8')}</style>",
-            unsafe_allow_html=True,
-        )
+        return STYLES_PATH.read_text(encoding="utf-8")
+    return ""
 
 
+def load_css() -> None:
+    css = css_text()
+    if css:
+        st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
+
+
+@st.cache_data(show_spinner=False)
 def logo_data_uri() -> str:
     if not LOGO_PATH.exists():
         return ""
@@ -748,6 +773,7 @@ def line_area_chart(
             fill="tozeroy",
             fillcolor=rgba_fill,
             name=title,
+            connectgaps=False,
             hovertemplate="%{x}<br>%{y:,.2f}<extra></extra>",
         )
     )
@@ -785,7 +811,6 @@ def render_trend(trend: pd.DataFrame) -> None:
         st.info("No billing period data found for the current filters.")
         return
 
-    trend = trend.fillna(0)
     st.plotly_chart(
         line_area_chart(trend, "energy_kwh", "Energy", "kWh", COLORS["energy"], 410),
         use_container_width=True,
@@ -899,21 +924,20 @@ def render_regions(regions: pd.DataFrame) -> None:
         return
 
     regions = regions.sort_values("total_emissions_kg", ascending=False)
+    region_colors = [
+        REGION_PIE_PALETTE[index % len(REGION_PIE_PALETTE)]
+        for index in range(len(regions))
+    ]
     fig = px.pie(
         regions,
         values="total_emissions_kg",
         names="region",
         hole=0.45,
-        color_discrete_sequence=[
-            BRAND_COLOR,
-            COLORS["accent_dark"],
-            COLORS["energy"],
-            COLORS["water"],
-            COLORS["green"],
-        ],
+        color_discrete_sequence=region_colors,
     )
     fig.update_traces(
         textinfo="percent+label",
+        domain={"y": [0.24, 1.0]},
         marker={"line": {"color": COLORS["surface"], "width": 2}},
         hovertemplate="%{label}<br>%{value:,.2f} kg CO2e<br>%{percent}<extra></extra>",
     )
@@ -921,13 +945,13 @@ def render_regions(regions: pd.DataFrame) -> None:
         paper_bgcolor=COLORS["surface"],
         plot_bgcolor=COLORS["surface"],
         font={"color": COLORS["text"], "family": "Inter, Segoe UI, sans-serif"},
-        height=480,
-        margin={"l": 24, "r": 24, "t": 20, "b": 80},
+        height=540,
+        margin={"l": 24, "r": 24, "t": 20, "b": 24},
         legend={
             "font": {"color": COLORS["text"]},
             "orientation": "h",
-            "yanchor": "top",
-            "y": -0.05,
+            "yanchor": "bottom",
+            "y": 0.02,
             "xanchor": "center",
             "x": 0.5,
         },
@@ -987,7 +1011,11 @@ def render_tags(
         return
 
     try:
-        tags = query_df(input_path, tag_breakdown_query(where, tag_key), params)
+        tags = query_df(
+            input_path,
+            tag_breakdown_query(where),
+            params + (tag_key, tag_key, tag_key),
+        )
     except duckdb.Error as exc:
         st.error(f"Could not read resource_tags for tag '{tag_key}': {exc}")
         return
@@ -1021,12 +1049,28 @@ def render_tags(
         "water": COLORS["water"],
     }[metric]
 
-    tags = tags.copy()
     tags["tag_value_label"] = tags["tag_value"].fillna("(missing)").replace("", "(empty)")
     tags = tags.sort_values(metric_column, ascending=False)
+    chart_tags = tags
+    if len(tags) > MAX_TAG_CHART_ROWS:
+        top_rows = tags.head(MAX_TAG_CHART_ROWS - 1)
+        other_values = tags.iloc[MAX_TAG_CHART_ROWS - 1 :]
+        other_row = {column: None for column in tags.columns}
+        other_row["tag_value"] = "(other)"
+        other_row["tag_value_label"] = f"Other ({len(other_values)} values)"
+        for column in [
+            "total_emissions_kg",
+            "energy_kwh",
+            "total_cost",
+            "water_usage_l",
+            "operational_kg",
+            "embodied_kg",
+        ]:
+            other_row[column] = other_values[column].sum()
+        chart_tags = pd.concat([top_rows, pd.DataFrame([other_row])], ignore_index=True)
 
     fig = px.bar(
-        tags,
+        chart_tags,
         x=metric_column,
         y="tag_value_label",
         orientation="h",
@@ -1034,8 +1078,15 @@ def render_tags(
         labels={metric_column: metric_label, "tag_value_label": "Tag value"},
     )
     fig.update_traces(marker={"line": {"color": COLORS["surface"], "width": 1}})
-    fig.update_yaxes(categoryorder="array", categoryarray=list(reversed(tags["tag_value_label"])))
-    styled_fig = style_plotly(fig, height=max(420, 38 * len(tags) + 120), legend_y=-0.35)
+    fig.update_yaxes(
+        categoryorder="array",
+        categoryarray=list(reversed(chart_tags["tag_value_label"])),
+    )
+    chart_height = min(
+        MAX_TAG_CHART_HEIGHT,
+        max(420, 38 * len(chart_tags) + 120),
+    )
+    styled_fig = style_plotly(fig, height=chart_height, legend_y=-0.35)
     styled_fig.update_layout(showlegend=False, margin={"l": 180, "r": 28, "t": 34, "b": 64})
     st.plotly_chart(styled_fig, use_container_width=True, config=PLOT_CONFIG)
 
@@ -1082,6 +1133,8 @@ class DashboardData:
     trend: pd.DataFrame
     emitters: pd.DataFrame
     regions: pd.DataFrame
+    where: str
+    params: tuple[object, ...]
 
 
 def render_input_sidebar(args: argparse.Namespace) -> tuple[str, int]:
@@ -1092,9 +1145,10 @@ def render_input_sidebar(args: argparse.Namespace) -> tuple[str, int]:
             value=args.input,
             placeholder="output/ or s3://bucket/prefix/",
         )
-        default_top_n = min(50, max(5, args.top_n))
+        slider_max = max(MAX_TOP_N, int(args.top_n), DEFAULT_TOP_N)
+        default_top_n = max(1, int(args.top_n))
         top_n = st.slider(
-            "Top emitters", min_value=5, max_value=50, value=default_top_n
+            "Top emitters", min_value=1, max_value=slider_max, value=default_top_n
         )
     return input_path, int(top_n)
 
@@ -1137,7 +1191,12 @@ def run_queries(selection: FilterSelection) -> DashboardData:
     )
     regions = query_df(selection.input_path, regional_query(where), params)
     return DashboardData(
-        overview=overview, trend=trend, emitters=emitters, regions=regions
+        overview=overview,
+        trend=trend,
+        emitters=emitters,
+        regions=regions,
+        where=where,
+        params=params,
     )
 
 
@@ -1153,6 +1212,7 @@ def main() -> None:
         st.stop()
 
     try:
+        # Warm cache and surface load errors before the dependent sidebar queries.
         load_connection(input_path)
         periods, regions = get_filter_options(input_path)
         tag_keys = get_tag_keys(input_path)
@@ -1177,7 +1237,6 @@ def main() -> None:
         st.error(f"Dashboard query failed: {exc}")
         st.stop()
 
-    where, params = filter_clause(selected_periods, selected_regions)
     overview_tab, trend_tab, emitters_tab, regions_tab, tags_tab = st.tabs(
         ["Overview", "Trend", "Top emitters", "Regions", "Tags"]
     )
@@ -1190,7 +1249,7 @@ def main() -> None:
     with regions_tab:
         render_regions(data.regions)
     with tags_tab:
-        render_tags(input_path, where, params, tag_key, tag_keys)
+        render_tags(input_path, data.where, data.params, tag_key, tag_keys)
 
 
 if __name__ == "__main__":

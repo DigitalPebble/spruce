@@ -21,6 +21,14 @@
   padding-bottom: 3rem;
 }
 
+@supports selector(:has(*)) {
+  .stApp:has(section[data-testid="stSidebar"][aria-expanded="false"]) .block-container,
+  .stApp:has([data-testid="stExpandSidebarButton"]) .block-container,
+  .stApp:has([data-testid="stSidebarCollapsedControl"]) .block-container {
+    max-width: 1320px;
+  }
+}
+
 header[data-testid="stHeader"] {
   background: var(--spruce-bg);
   border-bottom: 1px solid rgba(212, 209, 202, 0.72);
@@ -40,6 +48,48 @@ header[data-testid="stHeader"] button[data-testid="stBaseButton-header"][kind="h
   color: #ffffff !important;
 }
 
+[data-testid="stMainMenuItem-rerun"],
+[data-testid="stMainMenuItem-autoRerun"],
+[data-testid="stMainMenuItem-clearCache"],
+[data-testid="stMainMenuItem-print"],
+[data-testid="stMainMenuItem-recordScreencast"],
+[data-testid="stMainMenuDivider"],
+[data-testid="stMainMenuPopover"] [class*="e84jzed15"] {
+    display: none !important;
+}
+
+[data-testid="stMainMenuList"] {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+[data-testid="stMainMenuItem-community"] {
+  order: 1;
+}
+
+[data-testid="stMainMenuItem-report"] {
+  order: 2;
+}
+
+[data-testid="stMainMenuItem-about"] {
+  order: 3;
+}
+
+[data-testid="stMainMenuItem-community"] [data-testid="stMainMenuItemLabel"],
+[data-testid="stMainMenuItem-about"] [data-testid="stMainMenuItemLabel"] {
+  font-size: 0 !important;
+}
+
+[data-testid="stMainMenuItem-community"] [data-testid="stMainMenuItemLabel"]::after {
+  content: "Docs";
+  font-size: 0.875rem;
+}
+
+[data-testid="stMainMenuItem-about"] [data-testid="stMainMenuItemLabel"]::after {
+  content: "About SPRUCE";
+  font-size: 0.875rem;
+}
+
 section[data-testid="stSidebar"] {
   background: var(--spruce-sidebar);
   border-right: 1px solid var(--spruce-border);
@@ -53,13 +103,21 @@ section[data-testid="stSidebar"] p {
   color: var(--spruce-text);
 }
 
-button[data-testid="stSidebarCollapseButton"],
-button[data-testid="stSidebarCollapsedControl"] {
+[data-testid="stSidebarCollapseButton"],
+[data-testid="stSidebarCollapsedControl"],
+[data-testid="stExpandSidebarButton"] {
   color: #111111 !important;
 }
 
-button[data-testid="stSidebarCollapseButton"] svg,
-button[data-testid="stSidebarCollapsedControl"] svg {
+[data-testid="stSidebarCollapseButton"] [data-testid="stIconMaterial"],
+[data-testid="stSidebarCollapsedControl"] [data-testid="stIconMaterial"],
+[data-testid="stExpandSidebarButton"] [data-testid="stIconMaterial"] {
+  color: #111111 !important;
+}
+
+[data-testid="stSidebarCollapseButton"] svg,
+[data-testid="stSidebarCollapsedControl"] svg,
+[data-testid="stExpandSidebarButton"] svg {
   stroke: #111111 !important;
   fill: #111111 !important;
 }
