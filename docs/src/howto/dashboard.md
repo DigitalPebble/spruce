@@ -37,6 +37,12 @@ cd reporting
 streamlit run dashboard.py -- --input ../output/
 ```
 
+If `output/synth.parquet` already exists, pass `--force` to overwrite it:
+
+```shell
+python scripts/gen_synthetic.py -o output/synth.parquet --force
+```
+
 ## What it shows
 
 | Section | What it shows |
@@ -51,6 +57,12 @@ Use the sidebar to filter by billing period and region. If `resource_tags` are
 present, choose one tag key to break down emissions by tag value. The cost
 coverage KPI matches `report.py` and is calculated across the full input, not
 only the currently selected filters.
+
+## Screenshots
+
+![SPRUCE dashboard overview](../images/dashboard-overview.png)
+
+![SPRUCE dashboard trend tab](../images/dashboard-trend.png)
 
 ## Customize
 
