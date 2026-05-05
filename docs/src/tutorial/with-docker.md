@@ -28,10 +28,6 @@ assumed to be in a directory called _curs_.
 ```shell
 docker run --rm -v $(pwd):/workspace -w /workspace \
 ghcr.io/digitalpebble/spruce \
-/opt/spark/bin/spark-submit  \
---driver-memory 4g \
---master 'local[*]' \
-/usr/local/lib/spruce.jar \
 -i curs -o output
 ```
 
