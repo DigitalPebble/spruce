@@ -101,6 +101,11 @@ def parse_args() -> argparse.Namespace:
         default=12,
         help="Distinct billing periods, ending 2025-12 (default: 12).",
     )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite the output file if it already exists.",
+    )
     return parser.parse_args()
 
 
@@ -111,6 +116,8 @@ def main() -> None:
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
     if output.exists():
+        if not args.force:
+            sys.exit(f"{output} already exists; pass --force to overwrite it.")
         output.unlink()
 
     products = sql_str_array([s[0] for s in SERVICE_CATALOG])
@@ -158,8 +165,6 @@ def main() -> None:
                     1 + ((i * 13) % {n_accounts}) AS acct_idx,
                     -- sequential month buckets so each month sees full
                     -- rotation of services/regions/accounts -> trend smooth
-                    1 + (i * {months} // {rows}) AS chrono_month_raw,
-                    ({months} - (i * {months} // {rows})) AS month_idx,
                     (i * 23) % 100 AS jitter,
                     1 + (i * {months} // {rows}) AS chrono_month
                 FROM range({rows}) t(i)
@@ -175,7 +180,11 @@ def main() -> None:
                 FROM base
             )
             SELECT
-                ('2025-' || lpad((((13 - month_idx))::VARCHAR), 2, '0'))
+                strftime(
+                    DATE '2025-12-01'
+                        - (({months} - chrono_month) * INTERVAL '1 month'),
+                    '%Y-%m'
+                )
                     AS BILLING_PERIOD,
                 CASE WHEN i % 19 = 0 THEN NULL
                      ELSE {regions_arr}[region_idx] END AS region,
