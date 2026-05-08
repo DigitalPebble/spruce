@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import java.util.Map;
 
 import static com.digitalpebble.spruce.AzureColumn.*;
-import static com.digitalpebble.spruce.CURColumn.USAGE_AMOUNT;
 import static com.digitalpebble.spruce.SpruceColumn.ENERGY_USED;
 
 /**
@@ -49,7 +48,7 @@ public class Networking extends com.digitalpebble.spruce.modules.aws.Networking{
 
         double network_coefficient = 0d;
 
-        if ("InterRegion".equals(transfer_type)) {
+        if ("Inter-Region".equals(transfer_type)) {
             network_coefficient = network_coefficient_inter;
         }
         // TODO detect other types
@@ -59,7 +58,7 @@ public class Networking extends com.digitalpebble.spruce.modules.aws.Networking{
         }
 
         // get the amount of data transferred
-        double amount_gb = USAGE_AMOUNT.getDouble(row);
+        double amount_gb = QUANTITY.getDouble(row);
         double energy_gb = amount_gb * network_coefficient;
 
         enrichedValues.put(ENERGY_USED, energy_gb);
