@@ -7,13 +7,19 @@ flag, defaulting to `AWS`):
 | Provider flag | Resource file              |
 |---------------|----------------------------|
 | `AWS`         | `default-config-aws.json`  |
-| `GOOGLE`      | `default-config-google.json` *(when available)* |
-| `AZURE`       | `default-config-azure.json` *(when available)* |
+| `AZURE`       | `default-config-azure.json` |
 
 The AWS default looks like this:
 
 ```json
 {{#include ../../../src/main/resources/default-config-aws.json}}
+```
+
+The Azure default is a smaller pipeline — it covers networking energy and carbon intensity,
+but does not yet include compute (Boavizta), PUE, Water, or OperationalEmissions modules:
+
+```json
+{{#include ../../../src/main/resources/default-config-azure.json}}
 ```
 
 This determines which modules are used and in what order but also configures their behaviour. For instance, the Networking module uses different coefficients for intra-region, inter-region, and external data transfers, all configurable via the `network_coefficients_kwh_gb` map.
