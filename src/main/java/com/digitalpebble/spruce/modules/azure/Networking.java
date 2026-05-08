@@ -34,7 +34,7 @@ public class Networking extends com.digitalpebble.spruce.modules.aws.Networking{
 
     @Override
     public Column[] columnsNeeded() {
-        return new Column[]{METER_CATEGORY};
+        return new Column[]{METER_CATEGORY, METER_SUBCATEGORY, QUANTITY};
     }
 
     @Override
