@@ -70,7 +70,7 @@ The following modules estimate the energy consumption and embodied emissions of 
 
 Provides an estimate of energy consumption and embodied emissions for LLM inference on **AWS Bedrock**, based on static per-model coefficients from the EcoLogits project. This follows the same pattern as `boavizta.aws.BoaviztAPIstatic`: a static data file bundled in the JAR is loaded at initialisation time, and the module matches Bedrock CUR rows to per-model coefficients to compute energy usage and embodied emissions.
 
-The module reads the model identifier from the `product` map in the CUR row and normalises the token count from `pricing_unit` (handling real-world values such as `1K tokens` or `1M tokens`). It uses the `line_item_usage_type` field to distinguish between input and output tokens, falling back to a ratio split when the usage type is ambiguous.
+The module parses the `line_item_usage_type` field (format: `{REGION}-{ModelKey}-{input|output}-tokens[-batch]`) to extract both the model key and the token type, then normalises the token count from `pricing_unit` (handling real-world values such as `1K tokens` or `1M tokens`). Only output-token rows are scored — the EcoLogits methodology attributes ~all generation cost to the autoregressive output phase, so input-token rows are skipped.
 
 **Output columns**: `operational_energy_kwh` and `embodied_emissions_co2eq_g`.
 

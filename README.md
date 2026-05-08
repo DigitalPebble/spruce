@@ -29,6 +29,10 @@ Have a look at the [methodology section](https://opensourcegreenops.cloud/method
 
 The documentation is at https://opensourcegreenops.cloud/. If you can't wait to try SPRUCE, have a look at the [tutorial for Docker](https://opensourcegreenops.cloud/tutorial/with-docker.html).
 
+To explore enriched output, see
+[Explore the results](https://opensourcegreenops.cloud/tutorial/results.html)
+and [Build a simple dashboard](https://opensourcegreenops.cloud/howto/dashboard.html).
+
 ## License
 Licensed under the Apache License, Version 2.0: http://www.apache.org/licenses/LICENSE-2.0
 

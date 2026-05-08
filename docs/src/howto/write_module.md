@@ -67,7 +67,7 @@ at startup — it will fail fast if a required column is missing from the CUR re
 
 Called once per partition before any rows are processed. Use it to load configuration
 values passed via the JSON config, or to read resource files. The `params` map is
-`null` when no `config` block is present in the JSON.
+an empty map (never `null`) when no `config` block is present in the JSON.
 
 If your module's behaviour depends on the active cloud provider (for instance, if it
 performs region-keyed lookups against a CSV that holds entries for several CSPs),

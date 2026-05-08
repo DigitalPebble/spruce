@@ -4,7 +4,6 @@ package com.digitalpebble.spruce.modules.ecologits;
 
 import com.digitalpebble.spruce.Column;
 import com.digitalpebble.spruce.EnrichmentModule;
-import com.digitalpebble.spruce.Utils;
 import org.apache.spark.sql.Row;
 
 import java.util.Map;
@@ -16,13 +15,13 @@ import static com.digitalpebble.spruce.SpruceColumn.*;
  * Enrichment module estimating energy consumption and embodied emissions
  * for LLM inference on AWS Bedrock.
  * <p>
- * It extracts the model name from the CUR {@code product} map, determines token
- * types (input/output) via {@code line_item_usage_type}, and retrieves coefficients
- * using {@link EcoLogits}. If the usage type is ambiguous, it falls back to
- * a configurable {@code input_token_ratio} (default 0.5).
+ * It extracts the model key and token type from {@code line_item_usage_type}
+ * (format: {@code {REGION}-{ModelKey}-{input|output}-tokens[-batch]}), looks
+ * up the matching {@link EcoLogits} coefficients (per-1k-output-token), and
+ * applies them to the token count derived from {@code usage_amount × pricing_unit}.
  * <p>
- * Usage amounts are normalized to individual tokens based on the {@code pricing_unit}
- * before applying the per-1K-token coefficients.
+ * Coefficients only describe output tokens; input-token rows are ignored
+ * (the EcoLogits methodology attributes ~all generation cost to output tokens).
  */
 public class BedrockEcoLogits implements EnrichmentModule {
 
@@ -30,24 +29,22 @@ public class BedrockEcoLogits implements EnrichmentModule {
 
     private EcoLogits impacts;
 
-    private double inputTokenRatio = 0.5;
-
     @Override
     public void init(Map<String, Object> params) {
-        impacts = new EcoLogits();
-        impacts.load();
-
-        if (params != null) {
-            Number ratio = (Number) params.get("input_token_ratio");
-            if (ratio != null) {
-                inputTokenRatio = ratio.doubleValue();
-            }
+        if (impacts == null) {
+            impacts = new EcoLogits();
+            impacts.load();
         }
+    }
+
+    /** Test hook: inject a pre-built EcoLogits instance before {@link #init(Map)}. */
+    void setEcoLogits(EcoLogits impacts) {
+        this.impacts = impacts;
     }
 
     @Override
     public Column[] columnsNeeded() {
-        return new Column[]{LINE_ITEM_PRODUCT_CODE, PRODUCT, USAGE_AMOUNT, PRICING_UNIT, LINE_ITEM_USAGE_TYPE};
+        return new Column[]{LINE_ITEM_PRODUCT_CODE, USAGE_AMOUNT, PRICING_UNIT, LINE_ITEM_USAGE_TYPE};
     }
 
     @Override
@@ -62,15 +59,16 @@ public class BedrockEcoLogits implements EnrichmentModule {
             return;
         }
 
-        String modelId = Utils.getStringFromProductMap(row, "model", null);
-        if (modelId == null || modelId.isEmpty()) {
-            LOG.warn("BedrockEcoLogits: model key missing or empty in product map");
+        String usageType = LINE_ITEM_USAGE_TYPE.getString(row);
+        String[] parsed = parseUsageType(usageType);
+        if (parsed == null || "input".equals(parsed[1])) {
             return;
         }
 
-        EcoLogits.ModelImpacts modelImpacts = impacts.getImpacts(modelId);
+        String modelKey = parsed[0];
+
+        EcoLogits.ModelImpacts modelImpacts = impacts.getImpacts(modelKey);
         if (modelImpacts == null) {
-            LOG.warn("BedrockEcoLogits: no EcoLogits coefficients found for model '{}'", modelId);
             return;
         }
 
@@ -85,36 +83,44 @@ public class BedrockEcoLogits implements EnrichmentModule {
         double tokenMultiplier = parseTokenMultiplier(PRICING_UNIT.getString(row));
         double totalTokens = usageAmount * tokenMultiplier;
 
-        // Check Input vs Output based on line_item_usage_type
-        boolean isInput = false;
-        boolean isOutput = false;
-
-        String usageType = LINE_ITEM_USAGE_TYPE.getString(row);
-        if (usageType != null) {
-            String lower = usageType.toLowerCase();
-            isInput = lower.contains("input");
-            isOutput = lower.contains("output");
-        }
-
-        double energyKwh;
-        if (isInput && !isOutput) {
-            energyKwh = (totalTokens / 1_000.0) * modelImpacts.getEnergyKwhPer1kInputTokens();
-        } else if (isOutput && !isInput) {
-            energyKwh = (totalTokens / 1_000.0) * modelImpacts.getEnergyKwhPer1kOutputTokens();
-        } else {
-            // Fallback if CUR does not specify, or if the string is ambiguous (contains both)
-            double inputTokens = totalTokens * inputTokenRatio;
-            double outputTokens = totalTokens * (1.0 - inputTokenRatio);
-            energyKwh = (inputTokens / 1_000.0) * modelImpacts.getEnergyKwhPer1kInputTokens()
-                    + (outputTokens / 1_000.0) * modelImpacts.getEnergyKwhPer1kOutputTokens();
-        }
-
-        double embodiedEmissions = (totalTokens / 1_000.0) * modelImpacts.getEmbodiedCo2eGPer1kTokens();
+        double per1k = totalTokens / 1_000.0;
+        double energyKwh = per1k * modelImpacts.getEnergyKwhPer1kOutputTokens();
+        double embodiedEmissions = per1k * modelImpacts.getGwpEmbodiedGPer1kOutputTokens();
 
         enrichedValues.put(ENERGY_USED, energyKwh);
         enrichedValues.put(EMBODIED_EMISSIONS, embodiedEmissions);
 
-        LOG.debug("Bedrock model={} tokens={} energy_kwh={} embodied_g={}", modelId, totalTokens, energyKwh, embodiedEmissions);
+        LOG.debug("Bedrock modelKey={} outputTokens={} energy_kwh={} embodied_g={}",
+                modelKey, totalTokens, energyKwh, embodiedEmissions);
+    }
+
+    /**
+     * Parses {@code line_item_usage_type} with format
+     * {@code {REGION_PREFIX}-{ModelKey}-{input|output}-tokens[-batch]}.
+     *
+     * @return [modelKey, "input"|"output"], or {@code null} if the format is unrecognized
+     */
+    static String[] parseUsageType(String usageType) {
+        if (usageType == null) {
+            return null;
+        }
+        int firstDash = usageType.indexOf('-');
+        if (firstDash < 0) {
+            return null;
+        }
+        String withoutRegion = usageType.substring(firstDash + 1);
+        String lower = withoutRegion.toLowerCase();
+
+        if (lower.endsWith("-output-tokens-batch")) {
+            return new String[]{withoutRegion.substring(0, withoutRegion.length() - "-output-tokens-batch".length()), "output"};
+        } else if (lower.endsWith("-input-tokens-batch")) {
+            return new String[]{withoutRegion.substring(0, withoutRegion.length() - "-input-tokens-batch".length()), "input"};
+        } else if (lower.endsWith("-output-tokens")) {
+            return new String[]{withoutRegion.substring(0, withoutRegion.length() - "-output-tokens".length()), "output"};
+        } else if (lower.endsWith("-input-tokens")) {
+            return new String[]{withoutRegion.substring(0, withoutRegion.length() - "-input-tokens".length()), "input"};
+        }
+        return null;
     }
 
     /**
