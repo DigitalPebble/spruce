@@ -3,7 +3,6 @@
 package com.digitalpebble.spruce.modules.azure;
 
 import com.digitalpebble.spruce.Column;
-import com.digitalpebble.spruce.EnrichmentModule;
 import org.apache.spark.sql.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,12 +15,20 @@ import static com.digitalpebble.spruce.SpruceColumn.ENERGY_USED;
 
 /**
  * Provides an estimate of energy used for networking in and out of data centres.
- * Applies a flat coefficient per Gb
+ * Distinguishes between:
+ *  - Intra-region: 0.001
+ *  - Inter-region: 0.0015
+ *  - External: 0.059
+ *  The coefficients are taken from the Boavizta Cloud Emissions Working Group.
  *
- * @see <a href="https://www.cloudcarbonfootprint.org/docs/methodology#networking">CCF methodology</a>
- * @see <a href="https://azure.microsoft.com/en-us/pricing/details/bandwidth/">Azure documentation</a>
- * @see <a href="https://github.com/cloud-carbon-footprint/cloud-carbon-footprint/blob/9f2cf436e5ad020830977e52c3b0a1719d20a8b9/packages/azure/src/lib/ConsumptionManagement.ts#L546">CCF Implementation</a>
+ *  The relevance and usefulness of attributing emissions for networking based on usage is
+ *  subject for debate as the energy use of networking is pretty constant independently of
+ *  traffic. The consequences of reducing networking are probably negligible but since the
+ *  approach in SPRUCE is attributional, we do the same for networking in order to be consistent.
+ *
+ *  @see <a href="https://azure.microsoft.com/en-us/pricing/details/bandwidth/">Azure documentation</a>
  **/
+
 public class Networking extends com.digitalpebble.spruce.modules.aws.Networking{
 
     private static final Logger LOG = LoggerFactory.getLogger(Networking.class);
