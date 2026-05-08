@@ -24,7 +24,7 @@ class AverageCarbonIntensityTest {
     @BeforeEach
     void setUp() {
         module = new AverageCarbonIntensity();
-        module.init(Map.of());
+        module.init(Map.of(), Provider.AWS);
     }
 
     @Test

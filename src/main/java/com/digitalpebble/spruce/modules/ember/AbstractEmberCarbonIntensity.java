@@ -25,6 +25,21 @@ public abstract class AbstractEmberCarbonIntensity implements EnrichmentModule {
     // keyed by "provider:region" e.g. "aws:us-east-1"
     private final Map<String, Double> intensities = new HashMap<>();
 
+    /** Set via {@link #init(Map, Provider)} — left null on purpose so any call path that
+     *  bypasses provider-aware init fails loudly rather than silently using AWS. */
+    private Provider provider;
+
+    @Override
+    public void init(Map<String, Object> params, Provider provider) {
+        this.provider = provider;
+        init(params);
+    }
+
+    /** Returns the active cloud provider for lookups. */
+    protected Provider getProvider() {
+        return provider;
+    }
+
     @Override
     public void init(Map<String, Object> params) {
         try {
@@ -47,14 +62,6 @@ public abstract class AbstractEmberCarbonIntensity implements EnrichmentModule {
         }
     }
 
-    protected static String providerCode(Provider provider) {
-        return switch (provider) {
-            case AWS -> "aws";
-            case GOOGLE -> "gcp";
-            case AZURE -> "azure";
-        };
-    }
-
     @Override
     public Column[] columnsAdded() {
         return new Column[]{CARBON_INTENSITY};
@@ -65,7 +72,7 @@ public abstract class AbstractEmberCarbonIntensity implements EnrichmentModule {
      * or null if not found.
      */
     protected Double getIntensity(Provider provider, String region) {
-        String key = providerCode(provider) + ":" + region;
+        String key = provider.csvKey + ":" + region;
         Double value = intensities.get(key);
         if (value == null) {
             log.info("No Ember carbon intensity for {} region {}", provider, region);

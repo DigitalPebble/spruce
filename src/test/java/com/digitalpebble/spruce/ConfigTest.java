@@ -19,11 +19,18 @@ public class ConfigTest {
     static class DummyModule implements EnrichmentModule {
         boolean inited = false;
         Map<String, Object> configPassed = null;
+        Provider providerPassed = null;
 
         @Override
         public void init(Map<String, Object> config) {
             inited = true;
             configPassed = config;
+        }
+
+        @Override
+        public void init(Map<String, Object> config, Provider provider) {
+            providerPassed = provider;
+            init(config);
         }
 
         @Override
@@ -52,6 +59,7 @@ public class ConfigTest {
     @Test
     void testConfigureModulesCallsInit() {
         Config config = new Config();
+        config.setProvider(Provider.AWS);
         DummyModule module = new DummyModule();
         config.getModules().add(module);
 
@@ -70,6 +78,68 @@ public class ConfigTest {
         config.configureModules();
         assertTrue(module.inited);
         assertEquals("bar", module.configPassed.get("foo"));
+    }
+
+    @Test
+    void testConfigureModulesPropagatesProvider() {
+        Config config = new Config();
+        config.setProvider(Provider.AZURE);
+        DummyModule module = new DummyModule();
+        config.getModules().add(module);
+
+        try {
+            var configsField = Config.class.getDeclaredField("configs");
+            configsField.setAccessible(true);
+            List<Map<String, Object>> configs = (List<Map<String, Object>>) configsField.get(config);
+            configs.add(new HashMap<>());
+        } catch (Exception e) {
+            fail(e);
+        }
+
+        config.configureModules();
+        assertEquals(Provider.AZURE, module.providerPassed);
+    }
+
+    @Test
+    void testConfigureModulesFailsWhenProviderUnset() {
+        Config config = new Config();
+        config.getModules().add(new DummyModule());
+
+        try {
+            var configsField = Config.class.getDeclaredField("configs");
+            configsField.setAccessible(true);
+            List<Map<String, Object>> configs = (List<Map<String, Object>>) configsField.get(config);
+            configs.add(new HashMap<>());
+        } catch (Exception e) {
+            fail(e);
+        }
+
+        IllegalStateException ex = assertThrows(IllegalStateException.class, config::configureModules);
+        assertTrue(ex.getMessage().contains("Provider"));
+    }
+
+    @Test
+    void testFromJsonFileTagsProvider() throws Exception {
+        String json = """
+        {
+          "modules": [
+            { "className": "com.digitalpebble.spruce.ConfigTest$DummyModule" }
+          ]
+        }
+        """;
+        Path tempFile = Files.createTempFile("config", ".json");
+        Files.writeString(tempFile, json);
+
+        Config conf = Config.fromJsonFile(tempFile, Provider.AZURE);
+        assertEquals(Provider.AZURE, conf.getProvider());
+
+        Files.deleteIfExists(tempFile);
+    }
+
+    @Test
+    void testLoadDefaultTagsProvider() throws Exception {
+        Config conf = Config.loadDefault(Provider.AWS);
+        assertEquals(Provider.AWS, conf.getProvider());
     }
 
     @Test

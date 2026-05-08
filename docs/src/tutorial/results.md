@@ -29,7 +29,7 @@ python report.py -i s3://my-bucket/spruced/ -o report.html
 |---|---|---|
 | `-i / --input` | required | Local directory, glob, or S3 URI |
 | `-o / --output` | stdout | Output file; format inferred from suffix (`.md`, `.html`, `.pdf`) |
-| `--top-tags` | 10 | Maximum number of resource tags offered for interactive breakdown |
+| `-t / --top-tags` | 10 | Maximum number of resource tags offered for interactive breakdown |
 
 ### What it produces
 

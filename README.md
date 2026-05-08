@@ -21,6 +21,7 @@ A typical sequence of stages would be:
 - estimation of energy used
 - application of PUE and other overheads
 - application of carbon intensity factors
+- estimation of water consumption
 
 Have a look at the [methodology section](https://opensourcegreenops.cloud/methodology.html) of our documentation for more details.
 

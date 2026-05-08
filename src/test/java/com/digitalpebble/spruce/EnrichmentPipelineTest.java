@@ -57,6 +57,7 @@ public class EnrichmentPipelineTest {
      */
     private static Config createMockConfig() {
         Config config = new Config();
+        config.setProvider(Provider.AWS);
         DummyModule module = new DummyModule();
         config.getModules().add(module);
 

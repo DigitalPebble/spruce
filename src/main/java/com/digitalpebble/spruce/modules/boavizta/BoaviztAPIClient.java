@@ -86,26 +86,3 @@ public class BoaviztAPIClient {
     }
 }
 
-class Impacts {
-    private final double finalEnergyKWh;
-    private final double embeddedEmissionsGramsCO2eq;
-    private final double abioticDepletionPotentialGramsSbeq;
-
-    public Impacts(double finalEnergyKWh, double embeddedEmissionsGramsCO2eq, double abioticDepletionPotentialKgSbeq) {
-        this.finalEnergyKWh = finalEnergyKWh;
-        this.embeddedEmissionsGramsCO2eq = embeddedEmissionsGramsCO2eq;
-        this.abioticDepletionPotentialGramsSbeq = abioticDepletionPotentialKgSbeq;
-    }
-
-    public double getFinalEnergyKWh() {
-        return finalEnergyKWh;
-    }
-
-    public double getEmbeddedEmissionsGramsCO2eq() {
-        return embeddedEmissionsGramsCO2eq;
-    }
-
-    public double getAbioticDepletionPotentialGramsSbeq() {
-        return abioticDepletionPotentialGramsSbeq;
-    }
-}

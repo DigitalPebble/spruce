@@ -22,12 +22,12 @@ public class SparkJob {
         options.addOption("c", "config", true, "config file");
         options.addRequiredOption("i", "input", true, "input path");
         options.addRequiredOption("o", "output", true, "output path");
-        options.addOption("p", "provider", true, "provider");
+        options.addOption("p", "provider", true, "cloud provider (AWS, GOOGLE, AZURE) — defaults to AWS");
 
         String configPath = null;
         String inputPath = null;
         String outputPath = null;
-        Provider provider = null;
+        Provider provider = Provider.AWS;
 
         try {
             CommandLineParser parser = new DefaultParser();
@@ -42,7 +42,6 @@ public class SparkJob {
                 LOG.error("Invalid provider: '{}'", providerStr);
                 System.exit(3);
             }
-
         } catch (ParseException e) {
             HelpFormatter formatter = new HelpFormatter();
             formatter.printHelp("SparkJob", options);
@@ -69,7 +68,7 @@ public class SparkJob {
         try {
             // explicitly set by user
             if (configPath != null) {
-                config = Config.fromJsonFile(Paths.get(configPath));
+                config = Config.fromJsonFile(Paths.get(configPath), provider);
             } else {
                 // load default config
                 config = Config.loadDefault(provider);

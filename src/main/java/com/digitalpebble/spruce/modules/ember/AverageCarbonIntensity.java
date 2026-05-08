@@ -3,7 +3,6 @@
 package com.digitalpebble.spruce.modules.ember;
 
 import com.digitalpebble.spruce.Column;
-import com.digitalpebble.spruce.Provider;
 import org.apache.spark.sql.Row;
 
 import java.util.Map;
@@ -31,7 +30,7 @@ public class AverageCarbonIntensity extends AbstractEmberCarbonIntensity {
             return;
         }
 
-        Double coeff = getIntensity(Provider.AWS, locationCode);
+        Double coeff = getIntensity(getProvider(), locationCode);
         if (coeff == null) {
             return;
         }

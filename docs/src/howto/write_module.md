@@ -69,6 +69,21 @@ Called once per partition before any rows are processed. Use it to load configur
 values passed via the JSON config, or to read resource files. The `params` map is
 `null` when no `config` block is present in the JSON.
 
+If your module's behaviour depends on the active cloud provider (for instance, if it
+performs region-keyed lookups against a CSV that holds entries for several CSPs),
+override the provider-aware overload instead:
+
+```java
+@Override
+public void init(Map<String, Object> params, Provider provider) {
+    this.provider = provider;
+    init(params);
+}
+```
+
+The default implementation delegates to the single-arg `init(Map)`, so modules that
+don't care about the provider don't need to do anything.
+
 ### `enrich()`
 
 Called once per usage row (tax, discount and fee rows are filtered out by the pipeline).
@@ -111,7 +126,7 @@ repeated lookups across rows in the same partition.
 
 ## Register the module
 
-Modules are registered in a JSON config file. Copy `default-config.json` from the JAR
+Modules are registered in a JSON config file. Copy the per-provider default (e.g. `default-config-aws.json`) from the JAR
 (or from the repository) as a starting point, then add your module:
 
 ```json

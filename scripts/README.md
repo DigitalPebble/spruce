@@ -33,11 +33,13 @@ and merges them into a single `cloud_regions.json`:
 ```json
 {
   "aws":   { "_source": "...", "_license": "...", "_unresolved": [...], "cloud_regions": { "us-east-1": {...}, ... } },
-  "gcp":   { ... },
-  "azure": { ... }
+  "gcp":   { "_source": "...", "_license": "...", "_unresolved": [...], "cloud_regions": { ... } },
+  "azure": { "_source": "...", "_license": "...", "_unresolved": [...], "cloud_regions": { ... } }
 }
 ```
 
+- Every provider object has the same four fields: `_source`, `_license`,
+  `_unresolved`, and `cloud_regions`.
 - Entries whose upstream `cloud_region` is `null` or empty can't be used as
   object keys, so they're parked under `_unresolved` per provider for the
   fix script to handle later.
@@ -53,11 +55,14 @@ Edits `cloud_regions.json` in place to correct known upstream errors:
 - **AWS**: swap `us-west-1` (N. California) and `us-west-2` (Oregon); move
   Auckland out of `ap-east-2` into `ap-southeast-6`; promote Malaysia →
   `ap-southeast-5`, Mexico → `mx-central-1`, Taipei → `ap-east-2` from
-  `_unresolved`.
+  `_unresolved`; fix `us-east-1` coordinates (Washington DC →
+  Ashburn/Loudoun County, VA); fix `cn-northwest-1` coordinates and
+  `metro_area` (Ningxiang/Hunan → Yinchuan/Ningxia); fix `ca-central-1`
+  coordinates (~50 km west of Montréal Island → Montréal).
 - **GCP**: promote Mexico → `northamerica-south1`, Thailand →
   `asia-southeast3` from `_unresolved`.
 - **Azure**: move `eastus` coordinates from Richmond to Ashburn/Sterling
-  (Loudoun County, VA).
+  (Loudoun County, VA) and rename to `"East US (Ashburn)"`.
 
 Remaining `_unresolved` entries are left alone — extend the script when new
 region codes become available.
