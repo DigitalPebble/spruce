@@ -1,7 +1,7 @@
 {
   "modules": [
     {
-      "className": "com.digitalpebble.spruce.modules.RegionExtraction"
+      "className": "com.digitalpebble.spruce.modules.aws.RegionExtraction"
     },
     {
       "className": "com.digitalpebble.spruce.modules.ccf.aws.Storage",

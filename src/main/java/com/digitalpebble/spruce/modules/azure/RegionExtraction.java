@@ -9,11 +9,10 @@ import org.apache.spark.sql.Row;
 import java.util.Map;
 
 import static com.digitalpebble.spruce.AzureColumn.RESOURCE_LOCATION;
-import static com.digitalpebble.spruce.CURColumn.*;
 import static com.digitalpebble.spruce.SpruceColumn.REGION;
 
 /**
- * Extracts the region information from the input and stores it in a SPRUCE column Region
+ * Extracts the region information from the input and normalise it into a SPRUCE column Region
  **/
 public class RegionExtraction implements EnrichmentModule {
 

@@ -32,9 +32,9 @@ public class Networking implements EnrichmentModule {
     private static final Logger LOG = LoggerFactory.getLogger(Networking.class);
 
     // estimated kWh/Gb
-    double network_coefficient_intra = 0.001;
-    double network_coefficient_inter = 0.0015;
-    double network_coefficient_extra = 0.059;
+    public double network_coefficient_intra = 0.001;
+    public double network_coefficient_inter = 0.0015;
+    public double network_coefficient_extra = 0.059;
 
     @Override
     public void init(Map<String, Object> params) {

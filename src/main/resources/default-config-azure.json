@@ -4,7 +4,7 @@
       "className": "com.digitalpebble.spruce.modules.azure.RegionExtraction"
     },
     {
-      "className": "com.digitalpebble.spruce.modules.azure.ccf.Networking",
+      "className": "com.digitalpebble.spruce.modules.azure.Networking",
       "config": {
         "network_coefficient": 0.001
       }

@@ -2,9 +2,10 @@
 
 package com.digitalpebble.spruce;
 
-
 import org.apache.spark.sql.Row;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -121,12 +122,12 @@ public class ConfigTest {
     @Test
     void testFromJsonFileTagsProvider() throws Exception {
         String json = """
-        {
-          "modules": [
-            { "className": "com.digitalpebble.spruce.ConfigTest$DummyModule" }
-          ]
-        }
-        """;
+                {
+                  "modules": [
+                    { "className": "com.digitalpebble.spruce.ConfigTest$DummyModule" }
+                  ]
+                }
+                """;
         Path tempFile = Files.createTempFile("config", ".json");
         Files.writeString(tempFile, json);
 
@@ -145,15 +146,15 @@ public class ConfigTest {
     @Test
     void testFromJsonFileLoadsModules() throws Exception {
         String json = """
-        {
-          "modules": [
-            {
-              "className": "com.digitalpebble.spruce.ConfigTest$DummyModule",
-              "config": { "key": "value" }
-            }
-          ]
-        }
-        """;
+                {
+                  "modules": [
+                    {
+                      "className": "com.digitalpebble.spruce.ConfigTest$DummyModule",
+                      "config": { "key": "value" }
+                    }
+                  ]
+                }
+                """;
         Path tempFile = Files.createTempFile("config", ".json");
         Files.writeString(tempFile, json);
 
@@ -168,15 +169,15 @@ public class ConfigTest {
     @Test
     void testFromJsonFileThrowsOnInvalidClass() throws Exception {
         String json = """
-        {
-          "modules": [
-            {
-              "className": "java.lang.String",
-              "config": {}
-            }
-          ]
-        }
-        """;
+                {
+                  "modules": [
+                    {
+                      "className": "java.lang.String",
+                      "config": {}
+                    }
+                  ]
+                }
+                """;
         Path tempFile = Files.createTempFile("config", ".json");
         Files.writeString(tempFile, json);
 
@@ -189,16 +190,18 @@ public class ConfigTest {
     }
 
     @Test
-        void testLoadDefaultConfig() throws Exception {
-            Config conf = Config.loadDefault();
-            assertNotNull(conf);
-            assertNotNull(conf.getModules());
-            assertFalse(conf.getModules().isEmpty());
-        }
+    void testLoadDefaultConfig() throws Exception {
+        Config conf = Config.loadDefault();
+        assertNotNull(conf);
+        assertNotNull(conf.getModules());
+        assertFalse(conf.getModules().isEmpty());
+    }
 
-    @Test
-    void testLoadDefaultConfigAWS() throws Exception {
-        Config conf = Config.loadDefault(Provider.AWS);
+    @ParameterizedTest
+    @ValueSource(strings = {"AWS", "AZURE"})
+    void testLoadDefaultConfigForProvider(String providerName) throws Exception {
+        Provider provider = Provider.valueOf(providerName);
+        Config conf = Config.loadDefault(provider);
         assertNotNull(conf);
         assertNotNull(conf.getModules());
         assertFalse(conf.getModules().isEmpty());

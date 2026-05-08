@@ -132,7 +132,7 @@ Modules are registered in a JSON config file. Copy the per-provider default (e.g
 ```json
 {
   "modules": [
-    { "className": "com.digitalpebble.spruce.modules.RegionExtraction" },
+    { "className": "com.digitalpebble.spruce.modules.aws.RegionExtraction" },
     { "className": "com.example.spruce.modules.MyServiceEnergy",
       "config": { "coefficient": 0.007 } },
     { "className": "com.digitalpebble.spruce.modules.PUE" },

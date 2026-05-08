@@ -24,8 +24,12 @@ env/
 .coverage
 htmlcov/
 
+*.class
+
 # avoid accidental addition of dirs mentioned in README
 curs/
 output/
+
+site/
 
 docs/book
