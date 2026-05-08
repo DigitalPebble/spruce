@@ -109,11 +109,7 @@ public class SparkJob {
             writer = writer.partitionBy("BILLING_PERIOD");
         }
 
-        if (provider == Provider.AZURE) {
-            writer.csv(outputPath);
-        } else {
-            writer.parquet(outputPath);
-        }
+        writer.parquet(outputPath);
 
         spark.stop();
     }

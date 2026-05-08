@@ -8,6 +8,9 @@
       "config": {
         "network_coefficient": 0.001
       }
+    },
+    {
+      "className": "com.digitalpebble.spruce.modules.ember.AverageCarbonIntensity"
     }
   ]
 }
