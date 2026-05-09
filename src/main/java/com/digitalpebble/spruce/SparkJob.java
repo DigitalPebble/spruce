@@ -55,8 +55,17 @@ public class SparkJob {
 
         spark.conf().set("mapreduce.fileoutputcommitter.marksuccessfuljobs", "false");
 
-        // Read the input Parquet file(s)
-        Dataset<Row> dataframe = spark.read().parquet(inputPath);
+        // Read the input: Parquet for AWS, CSV for AZURE
+        Dataset<Row> dataframe;
+        if (provider == Provider.AZURE) {
+            dataframe = spark.read().option("header", "true").option("inferSchema", "true").csv(inputPath);
+            if (java.util.Arrays.asList(dataframe.columns()).contains(AzureColumn.QUANTITY.getLabel())) {
+                dataframe = dataframe.withColumn(AzureColumn.QUANTITY.getLabel(), 
+                    dataframe.col(AzureColumn.QUANTITY.getLabel()).cast("double"));
+            }
+        } else {
+            dataframe = spark.read().parquet(inputPath);
+        }
 
         // define and configure modules via configuration
         Config config = null;

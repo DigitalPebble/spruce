@@ -101,6 +101,9 @@ Extracts the region information from the input and stores it in a standard locat
 
 **Output column**:  `region`.
 
+**AWS Module**: `com.digitalpebble.spruce.modules.aws.RegionExtraction`
+**Azure Module**: `com.digitalpebble.spruce.modules.azure.RegionExtraction`
+
 ## PUE
 
 Uses the 2024 data published by AWS for [Power Usage Effectiveness](https://sustainability.aboutamazon.com/aws-wue-pue.csv) to rows for which energy usage has been estimated.
@@ -140,6 +143,12 @@ approach in SPRUCE is attributional, we do the same for networking in order to b
 
 **Output column**: `operational_energy_kwh`.
 
+## azure.Networking
+
+Same as above but for Azure.
+
+**Output column**: `operational_energy_kwh`.
+
 ## aws.Serverless
 
 Provides an estimate of energy for the memory and vCPU usage of serverless services like Fargate or EMR.
@@ -165,3 +174,4 @@ These two values can be overridden via configuration (`powerSupplyEfficiency` an
 `operational_emissions_co2eq_g` is equal to `operational_energy_kwh` * `carbon_intensity` * `power_usage_effectiveness` * `powerSupplyEfficiency` * `powerTransmissionLosses`.
 
 **Output columns**: `operational_emissions_co2eq_g`.
+

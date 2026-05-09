@@ -126,13 +126,13 @@ repeated lookups across rows in the same partition.
 
 ## Register the module
 
-Modules are registered in a JSON config file. Copy the per-provider default (e.g. `default-config-aws.json`) from the JAR
+Modules are registered in a JSON config file. Copy the per-provider default (e.g. `default-config-aws.json` or `default-config-azure.json`) from the JAR
 (or from the repository) as a starting point, then add your module:
 
 ```json
 {
   "modules": [
-    { "className": "com.digitalpebble.spruce.modules.RegionExtraction" },
+    { "className": "com.digitalpebble.spruce.modules.aws.RegionExtraction" },
     { "className": "com.example.spruce.modules.MyServiceEnergy",
       "config": { "coefficient": 0.007 } },
     { "className": "com.digitalpebble.spruce.modules.PUE" },

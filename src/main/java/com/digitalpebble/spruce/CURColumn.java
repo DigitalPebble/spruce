@@ -10,7 +10,7 @@ import org.apache.spark.sql.types.MapType;
 import static org.apache.spark.sql.types.DataTypes.*;
 
 /** Columns from CUR reports **/
-public class CURColumn extends Column {
+public class CURColumn extends NativeColumn {
 
     public static CURColumn LINE_ITEM_OPERATION = new CURColumn("line_item_operation", StringType);
     public static CURColumn LINE_ITEM_PRODUCT_CODE = new CURColumn("line_item_product_code", StringType);
@@ -29,36 +29,5 @@ public class CURColumn extends Column {
 
     CURColumn(String l, DataType t) {
         super(l, t);
-    }
-
-    /** Returns the double value for this column in the given row. */
-    public double getDouble(Row r) {
-        return r.getDouble(resolveIndex(r));
-    }
-
-    /**
-     * Returns the String value for this column in the given row.
-     * If optional is true, returns null when the field is not in the schema;
-     * otherwise propagates the exception.
-     */
-    public String getString(Row r, boolean optional) {
-        try {
-            return r.getString(resolveIndex(r));
-        } catch (SparkIllegalArgumentException e) {
-            if (optional) {
-                return null;
-            }
-            throw e;
-        }
-    }
-
-    /** Returns the String value for this column in the given row. */
-    public String getString(Row r) {
-        return getString(r, false);
-    }
-
-    /** Returns true if the value for this column is null in the given row. */
-    public boolean isNullAt(Row r) {
-        return r.isNullAt(resolveIndex(r));
     }
 }

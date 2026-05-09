@@ -1,0 +1,20 @@
+{
+  "modules": [
+    {
+      "className": "com.digitalpebble.spruce.modules.azure.RegionExtraction"
+    },
+    {
+      "className": "com.digitalpebble.spruce.modules.azure.Networking",
+      "config": {
+        "network_coefficients_kwh_gb": {
+          "intra": 0.001,
+          "inter": 0.0015,
+          "extra": 0.059
+        }
+      }
+    },
+    {
+      "className": "com.digitalpebble.spruce.modules.ember.AverageCarbonIntensity"
+    }
+  ]
+}
