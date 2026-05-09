@@ -59,6 +59,10 @@ public class SparkJob {
         Dataset<Row> dataframe;
         if (provider == Provider.AZURE) {
             dataframe = spark.read().option("header", "true").option("inferSchema", "true").csv(inputPath);
+            if (java.util.Arrays.asList(dataframe.columns()).contains(AzureColumn.QUANTITY.getLabel())) {
+                dataframe = dataframe.withColumn(AzureColumn.QUANTITY.getLabel(), 
+                    dataframe.col(AzureColumn.QUANTITY.getLabel()).cast("double"));
+            }
         } else {
             dataframe = spark.read().parquet(inputPath);
         }
