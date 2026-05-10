@@ -1,13 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
-package com.digitalpebble.spruce.modules.boavizta.aws;
+package com.digitalpebble.spruce.modules.boavizta.azure;
 
 import com.digitalpebble.spruce.modules.boavizta.BoaviztAPIClient;
 import com.digitalpebble.spruce.modules.boavizta.Impacts;
 import com.digitalpebble.spruce.modules.boavizta.InstanceTypeUknown;
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,13 +12,13 @@ import java.io.IOException;
 import java.util.Map;
 
 /**
- * AWS-specific Boavizta module backed by a live BoaviztAPI instance. The CUR extraction lives in
- * {@link AbstractBoaviztaAws}; this class only provides the call to the API.
+ * Azure-specific Boavizta module backed by a live BoaviztAPI instance. The extraction lives in
+ * {@link AbstractBoaviztaAzure}; this class only provides the call to the API.
  *
  * <p>Launch the API locally with:
  * <pre>docker run -p 5000:5000 ghcr.io/boavizta/boaviztapi:latest</pre>
  */
-public class BoaviztAPI extends AbstractBoaviztaAws {
+public class BoaviztAPI extends AbstractBoaviztaAzure {
 
     private static final Logger LOG = LoggerFactory.getLogger(BoaviztAPI.class);
 
