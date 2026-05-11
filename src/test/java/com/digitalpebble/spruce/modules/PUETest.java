@@ -3,6 +3,7 @@
 package com.digitalpebble.spruce.modules;
 
 import com.digitalpebble.spruce.Column;
+import com.digitalpebble.spruce.Provider;
 import com.digitalpebble.spruce.SpruceColumn;
 import com.digitalpebble.spruce.Utils;
 import org.apache.spark.sql.Row;
@@ -75,5 +76,18 @@ class PUETest {
         pue.enrich(row, enriched);
 
         assertEquals(expectedPUE, (Double) enriched.get(SpruceColumn.PUE), 0.001, "Failed for region: " + region);
+    }
+
+    @Test
+    void testInitWithProvider() {
+        // Test that the provider-aware init method works
+        PUE pueWithProvider = new PUE();
+        pueWithProvider.init(new HashMap<>(), Provider.AWS);
+        
+        // Test with Azure provider
+        PUE pueAzure = new PUE();
+        pueAzure.init(new HashMap<>(), Provider.AZURE);
+        
+        // Both should initialize without errors
     }
 }
