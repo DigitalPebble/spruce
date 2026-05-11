@@ -34,9 +34,14 @@ class StorageTest {
 
     private static Stream<Arguments> provideStorageRows() {
         return Stream.of(
-                Arguments.of("Storage", "Tables", "LRS Data Stored", "1 GB/Month", 10d, 10d, 3),
-                Arguments.of("Storage", "Tables", "RA-GRS Data Stored", "10 GB/Month", 2d, 20d, 6),
-                Arguments.of("Storage", "Tables", "LRS Data Stored", "1 GB/Month", -5d, -5d, 3)
+                Arguments.of("Storage", "Tables", "LRS Data Stored", "1 GB/Month", 10d, 10d, 3, false),
+                Arguments.of("Storage", "Tables", "RA-GRS Data Stored", "10 GB/Month", 2d, 20d, 6, false),
+                Arguments.of("Storage", "Tables", "LRS Data Stored", "1 TB/Month", 1d, 1024d, 3, false),
+                Arguments.of("Storage", "Tables", "LRS Data Stored", "1 GB/Month", -5d, -5d, 3, false),
+                Arguments.of("Storage", "Premium SSD Managed Disks", "P10 LRS Disk", "1/Month", 2d, 256d, 3, false),
+                Arguments.of("Storage", "Standard SSD Managed Disks", "E2 LRS Disk", "1/Month", 2d, 16d, 3, false),
+                Arguments.of("Storage", "Standard HDD Managed Disks", "S4 LRS Disk", "1/Month", 2d, 64d, 3, true),
+                Arguments.of("Storage", "Premium SSD Managed Disks", "P1 LRS Disk", "100/Month", 1d, 400d, 3, false)
         );
     }
 
@@ -47,16 +52,18 @@ class StorageTest {
                 Arguments.of("Storage", "Tables", "LRS Data Stored", "1M", 10d),
                 Arguments.of("Storage", "Tables", "LRS Data Stored", "1 GB", 10d),
                 Arguments.of("Storage", "Tables", "LRS Data Stored", "10K/Month", 10d),
-                Arguments.of("Storage", "Tables", "Read Operations", "10K", 10d)
+                Arguments.of("Storage", "Tables", "Read Operations", "10K", 10d),
+                Arguments.of("Storage", "Standard SSD Managed Disks", "E4 LRS Disk Operations", "10K", 10d),
+                Arguments.of("Storage", "Standard HDD Managed Disks", "S4 LRS Disk Operations", "10K", 10d)
         );
     }
 
     @ParameterizedTest
     @MethodSource("provideStorageRows")
     void processStorageRows(String meterCategory, String meterSubCategory, String meterName, String unit,
-                            double quantity, double gbMonths, int replication) {
+                            double quantity, double gbMonths, int replication, boolean isHDD) {
         Map<Column, Object> enriched = enrich(row(meterCategory, meterSubCategory, meterName, unit, quantity));
-        double expected = expectedSsd(gbMonths, replication);
+        double expected = expected(gbMonths, replication, isHDD);
         assertEquals(expected, (Double) enriched.get(ENERGY_USED), 0.0001);
     }
 
@@ -79,8 +86,9 @@ class StorageTest {
         return enriched;
     }
 
-    private double expectedSsd(double gbMonths, int replication) {
+    private double expected(double gbMonths, int replication, boolean isHDD) {
+        double coefficient = isHDD ? storage.hdd_gb_coefficient : storage.ssd_gb_coefficient;
         double gbHours = Utils.Conversions.GBMonthsToGBHours(gbMonths);
-        return gbHours / 1000 * storage.ssd_gb_coefficient * replication;
+        return gbHours / 1000 * coefficient * replication;
     }
 }
