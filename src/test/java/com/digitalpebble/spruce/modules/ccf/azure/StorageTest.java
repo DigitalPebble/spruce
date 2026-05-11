@@ -36,7 +36,7 @@ class StorageTest {
         return Stream.of(
                 Arguments.of("Storage", "Tables", "LRS Data Stored", "1 GB/Month", 10d, 10d, 3, false),
                 Arguments.of("Storage", "Tables", "RA-GRS Data Stored", "10 GB/Month", 2d, 20d, 6, false),
-                Arguments.of("Storage", "Tables", "LRS Data Stored", "1 TB/Month", 1d, 1024d, 3, false),
+                Arguments.of("Storage", "Tables", "LRS Data Stored", "1 TB/Month", 1d, 1000d, 3, false),
                 Arguments.of("Storage", "Tables", "LRS Data Stored", "1 GB/Month", -5d, -5d, 3, false),
                 Arguments.of("Storage", "Premium SSD Managed Disks", "P10 LRS Disk", "1/Month", 2d, 256d, 3, false),
                 Arguments.of("Storage", "Standard SSD Managed Disks", "E2 LRS Disk", "1/Month", 2d, 16d, 3, false),

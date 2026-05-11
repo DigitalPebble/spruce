@@ -9,6 +9,7 @@ import org.apache.spark.sql.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -26,49 +27,9 @@ public class Storage implements EnrichmentModule {
     private static final Logger LOG = LoggerFactory.getLogger(Storage.class);
 
     private static final Pattern MANAGED_DISK_PATTERN = Pattern.compile("\\b([PES]\\d{1,2})\\b");
-    private static final Map<String, Integer> SSD_MANAGED_DISKS_STORAGE_GB = Map.ofEntries(
-            Map.entry("P1", 4),
-            Map.entry("P2", 8),
-            Map.entry("P3", 16),
-            Map.entry("P4", 32),
-            Map.entry("P6", 64),
-            Map.entry("P10", 128),
-            Map.entry("P15", 256),
-            Map.entry("P20", 512),
-            Map.entry("P30", 1024),
-            Map.entry("P40", 2048),
-            Map.entry("P50", 4096),
-            Map.entry("P60", 8192),
-            Map.entry("P70", 16384),
-            Map.entry("P80", 32767),
-            Map.entry("E1", 4),
-            Map.entry("E2", 8),
-            Map.entry("E3", 16),
-            Map.entry("E4", 32),
-            Map.entry("E6", 64),
-            Map.entry("E10", 128),
-            Map.entry("E15", 256),
-            Map.entry("E20", 512),
-            Map.entry("E30", 1024),
-            Map.entry("E40", 2048),
-            Map.entry("E50", 4096),
-            Map.entry("E60", 8192),
-            Map.entry("E70", 16384),
-            Map.entry("E80", 32767)
-    );
-    private static final Map<String, Integer> HDD_MANAGED_DISKS_STORAGE_GB = Map.ofEntries(
-            Map.entry("S4", 32),
-            Map.entry("S6", 64),
-            Map.entry("S10", 128),
-            Map.entry("S15", 256),
-            Map.entry("S20", 512),
-            Map.entry("S30", 1024),
-            Map.entry("S40", 2048),
-            Map.entry("S50", 4096),
-            Map.entry("S60", 8192),
-            Map.entry("S70", 16384),
-            Map.entry("S80", 32767)
-    );
+
+    Map<String, Integer> ssdManagedDisksStorageGb;
+    Map<String, Integer> hddManagedDisksStorageGb;
 
     //  0.65 Watt-Hours per Terabyte-Hour for HDD
     double hdd_gb_coefficient = 0.65 / 1024d;
@@ -88,6 +49,14 @@ public class Storage implements EnrichmentModule {
 
         LOG.info("hdd_gb_coefficient: {}", hdd_gb_coefficient);
         LOG.info("ssd_gb_coefficient: {}", ssd_gb_coefficient);
+
+        try {
+            Map<String, Object> map = Utils.loadJSONResources("ccf/azure-storage.json");
+            ssdManagedDisksStorageGb = (Map<String, Integer>) map.get("SSD_MANAGED_DISKS_STORAGE_GB");
+            hddManagedDisksStorageGb = (Map<String, Integer>) map.get("HDD_MANAGED_DISKS_STORAGE_GB");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -147,8 +116,7 @@ public class Storage implements EnrichmentModule {
             return quantity * 100;
         }
         if ("1 TB/Month".equals(unit)) {
-            // Match the existing storage coefficient normalisation: 1 TB = 1024 GB.
-            return quantity * 1024;
+            return quantity * 1000;
         }
         return Double.NaN;
     }
@@ -170,12 +138,12 @@ public class Storage implements EnrichmentModule {
         }
         String diskType = matcher.group(1);
 
-        Integer ssdSize = SSD_MANAGED_DISKS_STORAGE_GB.get(diskType);
+        Integer ssdSize = ssdManagedDisksStorageGb.get(diskType);
         if (ssdSize != null) {
             return new ManagedDisk(ssdSize, false);
         }
 
-        Integer hddSize = HDD_MANAGED_DISKS_STORAGE_GB.get(diskType);
+        Integer hddSize = hddManagedDisksStorageGb.get(diskType);
         if (hddSize != null) {
             return new ManagedDisk(hddSize, true);
         }
