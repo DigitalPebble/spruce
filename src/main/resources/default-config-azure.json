@@ -14,6 +14,12 @@
       }
     },
     {
+      "className": "com.digitalpebble.spruce.modules.PUE",
+      "config": {
+        "default": 1.17
+      }
+    },
+    {
       "className": "com.digitalpebble.spruce.modules.ember.AverageCarbonIntensity"
     }
   ]
