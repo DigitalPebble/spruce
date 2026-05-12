@@ -109,6 +109,12 @@ Extracts the region information from the input and stores it in a standard locat
 Uses the 2024 data published by AWS for [Power Usage Effectiveness](https://sustainability.aboutamazon.com/aws-wue-pue.csv) to rows for which energy usage has been estimated.
 This provides a more accurate and up to date approach than the flat rate approach in the [CCF methodology](https://www.cloudcarbonfootprint.org/docs/methodology/#pue).
 
+The source for Azure is https://datacenters.microsoft.com/sustainability/efficiency/.
+
+The PUE module supports both AWS and Azure providers and loads the appropriate resource file based on the provider:
+- AWS: `aws-pue-wue.csv`
+- Azure: `azure-pue-wue.csv`
+
 **Output column**:  `power_usage_effectiveness`.
 
 ## Water
