@@ -24,6 +24,13 @@
     },
     {
       "className": "com.digitalpebble.spruce.modules.ember.AverageCarbonIntensity"
+    },
+    {
+      "className": "com.digitalpebble.spruce.modules.OperationalEmissions",
+      "config": {
+        "powerSupplyEfficiency": 1.04,
+        "powerTransmissionLosses": 1.08
+      }
     }
   ]
 }
