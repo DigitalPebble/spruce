@@ -10,6 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -28,8 +30,11 @@ public class Storage implements EnrichmentModule {
 
     private static final Pattern MANAGED_DISK_PATTERN = Pattern.compile("\\b([PES]\\d{1,2})\\b");
 
-    Map<String, Integer> ssdManagedDisksStorageGb;
-    Map<String, Integer> hddManagedDisksStorageGb;
+    List<String> dataStoredUsageTypes;
+    Map<String, Integer> storageUsageUnitMultipliers;
+    Map<String, Integer> managedDiskUsageUnitMultipliers;
+    Map<String, Integer> replicationFactors;
+    Map<String, ManagedDisk> managedDisks;
 
     //  0.65 Watt-Hours per Terabyte-Hour for HDD
     double hdd_gb_coefficient = 0.65 / 1024d;
@@ -37,6 +42,7 @@ public class Storage implements EnrichmentModule {
     double ssd_gb_coefficient = 1.2 / 1024d;
 
     @Override
+    @SuppressWarnings("unchecked")
     public void init(Map<String, Object> params) {
         Double coef = (Double) params.get("hdd_coefficient_tb_h");
         if (coef != null) {
@@ -52,8 +58,11 @@ public class Storage implements EnrichmentModule {
 
         try {
             Map<String, Object> map = Utils.loadJSONResources("ccf/azure-storage.json");
-            ssdManagedDisksStorageGb = (Map<String, Integer>) map.get("SSD_MANAGED_DISKS_STORAGE_GB");
-            hddManagedDisksStorageGb = (Map<String, Integer>) map.get("HDD_MANAGED_DISKS_STORAGE_GB");
+            dataStoredUsageTypes = (List<String>) map.get("DATA_STORED_USAGE_TYPES");
+            storageUsageUnitMultipliers = (Map<String, Integer>) map.get("STORAGE_USAGE_UNITS");
+            managedDiskUsageUnitMultipliers = (Map<String, Integer>) map.get("MANAGED_DISK_USAGE_UNITS");
+            replicationFactors = (Map<String, Integer>) map.get("REPLICATION_FACTORS");
+            managedDisks = loadManagedDisks((Map<String, Object>) map.get("MANAGED_DISKS"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -80,75 +89,63 @@ public class Storage implements EnrichmentModule {
         if (meterName == null) {
             return;
         }
+        if (QUANTITY.isNullAt(row)) {
+            return;
+        }
 
+        String meterSubCategory = METER_SUBCATEGORY.getString(row);
         String unit = UNIT_OF_MEASURE.getString(row);
         double quantity = QUANTITY.getDouble(row);
         boolean isHDD = false;
         double gbMonths;
+        int replication;
 
-        if (meterName.contains("Data Stored")) {
+        if (containsAny(dataStoredUsageTypes, meterName)) {
             gbMonths = getGbMonths(quantity, unit);
+            replication = getReplicationFactor(meterName);
         } else {
-            ManagedDisk managedDisk = getManagedDisk(meterName);
+            ManagedDisk managedDisk = getManagedDisk(meterName, meterSubCategory);
             if (managedDisk == null || isDiskOperation(meterName)) {
                 return;
             }
             gbMonths = getManagedDiskGbMonths(quantity, unit, managedDisk.sizeGb());
             isHDD = managedDisk.hdd();
+            replication = managedDisk.replication();
         }
 
         if (Double.isNaN(gbMonths)) {
+            LOG.debug("Storage unit not found for {} {}", meterName, unit);
             return;
         }
 
-        int replication = getReplicationFactor(meterName);
         computeEnergy(gbMonths, isHDD, replication, enrichedValues);
     }
 
     double getGbMonths(double quantity, String unit) {
-        if ("1 GB/Month".equals(unit)) {
-            return quantity;
-        }
-        if ("10 GB/Month".equals(unit)) {
-            return quantity * 10;
-        }
-        if ("100 GB/Month".equals(unit)) {
-            return quantity * 100;
-        }
-        if ("1 TB/Month".equals(unit)) {
-            return quantity * 1000;
+        Integer multiplier = storageUsageUnitMultipliers.get(unit);
+        if (multiplier != null) {
+            return quantity * multiplier;
         }
         return Double.NaN;
     }
 
     double getManagedDiskGbMonths(double quantity, String unit, int diskSizeGb) {
-        if ("1/Month".equals(unit) || "1 /Month".equals(unit)) {
-            return quantity * diskSizeGb;
-        }
-        if ("100/Month".equals(unit) || "100 /Month".equals(unit)) {
-            return quantity * 100 * diskSizeGb;
+        Integer multiplier = managedDiskUsageUnitMultipliers.get(unit);
+        if (multiplier != null) {
+            return quantity * multiplier * diskSizeGb;
         }
         return Double.NaN;
     }
 
-    ManagedDisk getManagedDisk(String meterName) {
+    ManagedDisk getManagedDisk(String meterName, String meterSubCategory) {
+        if (meterSubCategory == null || !meterSubCategory.contains("Managed Disks")) {
+            return null;
+        }
         Matcher matcher = MANAGED_DISK_PATTERN.matcher(meterName);
         if (!matcher.find()) {
             return null;
         }
-        String diskType = matcher.group(1);
-
-        Integer ssdSize = ssdManagedDisksStorageGb.get(diskType);
-        if (ssdSize != null) {
-            return new ManagedDisk(ssdSize, false);
-        }
-
-        Integer hddSize = hddManagedDisksStorageGb.get(diskType);
-        if (hddSize != null) {
-            return new ManagedDisk(hddSize, true);
-        }
-
-        return null;
+        return managedDisks.get(matcher.group(1));
     }
 
     boolean isDiskOperation(String meterName) {
@@ -157,18 +154,19 @@ public class Storage implements EnrichmentModule {
 
     int getReplicationFactor(String meterName) {
         if (meterName == null) {
-            return 1;
+            return replicationFactors.get("DEFAULT");
         }
-        if (getManagedDisk(meterName) != null) {
-            return 3;
-        }
-        if (meterName.contains("GZRS") || meterName.contains("RA-GRS") || meterName.contains("GRS")) {
-            return 6;
+        if (meterName.contains("GZRS")) {
+            return replicationFactors.get("STORAGE_GZRS");
         }
         if (meterName.contains("LRS") || meterName.contains("ZRS")) {
-            return 3;
+            return meterName.contains("LRS") ?
+                    replicationFactors.get("STORAGE_LRS") : replicationFactors.get("STORAGE_ZRS");
         }
-        return 1;
+        if (meterName.contains("RA-GRS") || meterName.contains("GRS")) {
+            return replicationFactors.get("STORAGE_GRS");
+        }
+        return replicationFactors.get("DEFAULT");
     }
 
     private void computeEnergy(double gbMonths, boolean isHDD, int replication, Map<Column, Object> enrichedValues) {
@@ -178,6 +176,32 @@ public class Storage implements EnrichmentModule {
         enrichedValues.put(ENERGY_USED, energyKwh);
     }
 
-    record ManagedDisk(int sizeGb, boolean hdd) {
+    @SuppressWarnings("unchecked")
+    private Map<String, ManagedDisk> loadManagedDisks(Map<String, Object> disks) {
+        Map<String, ManagedDisk> loaded = new HashMap<>();
+        for (Map.Entry<String, Object> entry : disks.entrySet()) {
+            Map<String, Object> values = (Map<String, Object>) entry.getValue();
+            Number capacityGb = (Number) values.get("capacity_gb");
+            String storageType = (String) values.get("storage_type");
+            String replicationFactor = (String) values.get("replication_factor");
+            loaded.put(entry.getKey(), new ManagedDisk(
+                    capacityGb.intValue(),
+                    "HDD".equals(storageType),
+                    replicationFactors.get(replicationFactor)
+            ));
+        }
+        return loaded;
+    }
+
+    record ManagedDisk(int sizeGb, boolean hdd, int replication) {
+    }
+
+    private static boolean containsAny(List<String> values, String candidate) {
+        for (String value : values) {
+            if (candidate.contains(value)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -22,6 +22,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 
 class StorageTest {
 
+    private static final double ONE_HOUR_MONTH_RATIO = 1d / (30d * 24d);
+
     private Storage storage;
     private StructType schema;
 
@@ -36,12 +38,12 @@ class StorageTest {
         return Stream.of(
                 Arguments.of("Storage", "Tables", "LRS Data Stored", "1 GB/Month", 10d, 10d, 3, false),
                 Arguments.of("Storage", "Tables", "RA-GRS Data Stored", "10 GB/Month", 2d, 20d, 6, false),
-                Arguments.of("Storage", "Tables", "LRS Data Stored", "1 TB/Month", 1d, 1000d, 3, false),
+                Arguments.of("Storage", "Tables", "LRS Data Stored", "1 TB/Month", 1d, 1024d, 3, false),
                 Arguments.of("Storage", "Tables", "LRS Data Stored", "1 GB/Month", -5d, -5d, 3, false),
-                Arguments.of("Storage", "Premium SSD Managed Disks", "P10 LRS Disk", "1/Month", 2d, 256d, 3, false),
+                Arguments.of("Storage", "Premium SSD Managed Disks", "P10 LRS Disk", "1/Month",
+                        ONE_HOUR_MONTH_RATIO, 128d * ONE_HOUR_MONTH_RATIO, 3, false),
                 Arguments.of("Storage", "Standard SSD Managed Disks", "E2 LRS Disk", "1/Month", 2d, 16d, 3, false),
-                Arguments.of("Storage", "Standard HDD Managed Disks", "S4 LRS Disk", "1/Month", 2d, 64d, 3, true),
-                Arguments.of("Storage", "Premium SSD Managed Disks", "P1 LRS Disk", "100/Month", 1d, 400d, 3, false)
+                Arguments.of("Storage", "Standard HDD Managed Disks", "S4 LRS Disk", "1/Month", 2d, 64d, 3, true)
         );
     }
 
@@ -54,7 +56,11 @@ class StorageTest {
                 Arguments.of("Storage", "Tables", "LRS Data Stored", "10K/Month", 10d),
                 Arguments.of("Storage", "Tables", "Read Operations", "10K", 10d),
                 Arguments.of("Storage", "Standard SSD Managed Disks", "E4 LRS Disk Operations", "10K", 10d),
-                Arguments.of("Storage", "Standard HDD Managed Disks", "S4 LRS Disk Operations", "10K", 10d)
+                Arguments.of("Storage", "Standard HDD Managed Disks", "S4 LRS Disk Operations", "10K", 10d),
+                Arguments.of("Storage", "Premium SSD Managed Disks", "P99 LRS Disk", "1/Month", 10d),
+                Arguments.of("Storage", "Premium SSD Managed Disks", "P10 LRS Disk", "100/Month", 10d),
+                Arguments.of("Storage", "Premium SSD Managed Disks", null, "1/Month", 10d),
+                Arguments.of("Storage", "Premium SSD Managed Disks", "P10 LRS Disk", "1/Month", null)
         );
     }
 
@@ -70,7 +76,7 @@ class StorageTest {
     @ParameterizedTest
     @MethodSource("provideIgnoredRows")
     void processIgnoredRows(String meterCategory, String meterSubCategory, String meterName, String unit,
-                            double quantity) {
+                            Double quantity) {
         Map<Column, Object> enriched = enrich(row(meterCategory, meterSubCategory, meterName, unit, quantity));
         assertFalse(enriched.containsKey(ENERGY_USED));
     }
