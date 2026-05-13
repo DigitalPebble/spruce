@@ -21,6 +21,9 @@
       }
     },
     {
+      "className": "com.digitalpebble.spruce.modules.boavizta.azure.BoaviztAPIstatic"
+    },
+    {
       "className": "com.digitalpebble.spruce.modules.PUE",
       "config": {
         "default": 1.17

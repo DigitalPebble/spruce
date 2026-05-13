@@ -63,14 +63,18 @@ public class EnrichmentPipeline implements MapPartitionsFunction<Row, Row> {
         };
     }
 
-    /** Returns true if the line item corresponds to a usage, false otherwise **/
-    private boolean usageFilter (Row row){
-        String item_type = LINE_ITEM_TYPE.getString(row, true);
-        if (item_type == null) {
-            // try Azure
-            item_type = AzureColumn.CHARGE_TYPE.getString(row);
+    /**
+     * Returns true if the line item corresponds to a usage, false otherwise
+     **/
+    private boolean usageFilter(Row row) {
+        if (config.getProvider().equals(Provider.AWS)) {
+            String item_type = LINE_ITEM_TYPE.getString(row);
+            // can be Usage (for on demand resources), SavingsPlanCoveredUsage or DiscountedUsage
+            return item_type != null && item_type.endsWith("Usage");
+        } else if (config.getProvider().equals(Provider.AZURE)) {
+            String charge_type = AzureColumn.CHARGE_TYPE.getString(row);
+            return charge_type != null && charge_type.endsWith("Usage");
         }
-        // can be Usage (for on demand resources), SavingsPlanCoveredUsage or DiscountedUsage
-        return item_type != null && item_type.endsWith("Usage");
+        return false;
     }
 }

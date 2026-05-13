@@ -21,7 +21,7 @@ public enum Provider {
     /// Returns the Provider enum constant that matches the given text.
     public static Provider fromString(String text) {
         for (Provider provider : Provider.values()) {
-            if (provider.text.equalsIgnoreCase(text)) {
+            if (provider.name().equalsIgnoreCase(text)) {
                 return provider;
             }
         }

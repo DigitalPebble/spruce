@@ -30,7 +30,7 @@ public class RegionExtraction implements EnrichmentModule {
     public void enrich(Row row, Map<Column, Object> enrichedValues) {
         String locationCode = RESOURCE_LOCATION.getString(row);
         if (locationCode != null) {
-            enrichedValues.put(REGION, locationCode);
+            enrichedValues.put(REGION, locationCode.toLowerCase());
         }
     }
 }
