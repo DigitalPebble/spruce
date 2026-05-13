@@ -4,7 +4,6 @@ package com.digitalpebble.spruce.modules;
 
 import com.digitalpebble.spruce.Column;
 import com.digitalpebble.spruce.Provider;
-import com.digitalpebble.spruce.SpruceColumn;
 import com.digitalpebble.spruce.Utils;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema;
@@ -19,7 +18,7 @@ import java.util.Map;
 import static com.digitalpebble.spruce.SpruceColumn.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-class WaterTest {
+class WaterAWSTest {
 
     private Water water;
     private StructType schema;

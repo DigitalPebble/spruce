@@ -32,6 +32,23 @@ The HDD and SSD coefficients (in Wh per TB-hour) can be overridden via configura
 
 **Output column**:  `operational_energy_kwh`.
 
+### ccf.azure.Storage
+
+Provides an estimate of energy used for Azure storage by applying the same
+Cloud Carbon Footprint storage coefficients used by `ccf.aws.Storage`.
+Service-specific replication factors are applied. Managed disks are estimated
+from their provisioned capacity.
+
+The HDD and SSD coefficients (in Wh per TB-hour) can be overridden via
+configuration using the same keys as `ccf.aws.Storage`:
+
+| Key | Default | Description |
+|---|---|---|
+| `hdd_coefficient_tb_h` | 0.65 | Energy per TB-hour for HDD storage |
+| `ssd_coefficient_tb_h` | 1.2  | Energy per TB-hour for SSD storage |
+
+**Output column**:  `operational_energy_kwh`.
+
 ### ccf.aws.Accelerators
 
 Provides an estimate of energy used by accelerators, following the approach used by the [Cloud Carbon Footprint](https://www.cloudcarbonfootprint.org/) project.
@@ -109,13 +126,19 @@ Extracts the region information from the input and stores it in a standard locat
 Uses the 2024 data published by AWS for [Power Usage Effectiveness](https://sustainability.aboutamazon.com/aws-wue-pue.csv) to rows for which energy usage has been estimated.
 This provides a more accurate and up to date approach than the flat rate approach in the [CCF methodology](https://www.cloudcarbonfootprint.org/docs/methodology/#pue).
 
+The source for Azure is https://datacenters.microsoft.com/sustainability/efficiency/.
+
+The PUE module supports both AWS and Azure providers and loads the appropriate resource file based on the provider:
+- AWS: `aws-pue-wue.csv`
+- Azure: `azure-pue-wue.csv`
+
 **Output column**:  `power_usage_effectiveness`.
 
 ## Water
 
 Estimates water consumption associated with cloud usage, producing three columns:
 
-* **`water_cooling_l`** – the volume of water (in litres) used for **data centre cooling**. Computed as `operational_energy_kwh` × `power_usage_effectiveness` × WUE, where WUE (Water Usage Effectiveness) is the ratio of litres of water consumed for cooling per kWh of IT energy. The per-region WUE values come from the [2024 data published by AWS](https://sustainability.aboutamazon.com/aws-wue-pue.csv).
+* **`water_cooling_l`** – the volume of water (in litres) used for **data centre cooling**. Computed as `operational_energy_kwh` × `power_usage_effectiveness` × WUE, where WUE (Water Usage Effectiveness) is the ratio of litres of water consumed for cooling per kWh of IT energy. The per-region WUE values come from the [2024 data published by AWS](https://sustainability.aboutamazon.com/aws-wue-pue.csv). The source for Azure is https://datacenters.microsoft.com/sustainability/efficiency/.
 
 * **`water_electricity_production_l`** – the volume of water (in litres) consumed during **electricity generation** to power the data centre. Computed as `operational_energy_kwh` × `power_usage_effectiveness` × WCF, where WCF (Water Consumption Factor) represents the litres of water consumed per kWh of electricity generated. The WCF values per electricity grid zone are sourced from the [WRI methodology for calculating water use embedded in purchased electricity](https://www.wri.org/data/dataset-guidance-calculating-water-use-embedded-purchased-electricity).
 

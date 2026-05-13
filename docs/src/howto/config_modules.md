@@ -15,8 +15,8 @@ The AWS default looks like this:
 {{#include ../../../src/main/resources/default-config-aws.json}}
 ```
 
-The Azure default is a smaller pipeline — it covers networking energy and carbon intensity,
-but does not yet include compute (Boavizta), PUE, Water, or OperationalEmissions modules:
+The Azure pipeline is the current focus of our work, with basic services
+currently covered or about to be:
 
 ```json
 {{#include ../../../src/main/resources/default-config-azure.json}}
