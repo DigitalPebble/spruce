@@ -32,6 +32,23 @@ The HDD and SSD coefficients (in Wh per TB-hour) can be overridden via configura
 
 **Output column**:  `operational_energy_kwh`.
 
+### ccf.azure.Storage
+
+Provides an estimate of energy used for Azure storage by applying the same
+Cloud Carbon Footprint storage coefficients used by `ccf.aws.Storage`.
+Service-specific replication factors are applied. Managed disks are estimated
+from their provisioned capacity.
+
+The HDD and SSD coefficients (in Wh per TB-hour) can be overridden via
+configuration using the same keys as `ccf.aws.Storage`:
+
+| Key | Default | Description |
+|---|---|---|
+| `hdd_coefficient_tb_h` | 0.65 | Energy per TB-hour for HDD storage |
+| `ssd_coefficient_tb_h` | 1.2  | Energy per TB-hour for SSD storage |
+
+**Output column**:  `operational_energy_kwh`.
+
 ### ccf.aws.Accelerators
 
 Provides an estimate of energy used by accelerators, following the approach used by the [Cloud Carbon Footprint](https://www.cloudcarbonfootprint.org/) project.
