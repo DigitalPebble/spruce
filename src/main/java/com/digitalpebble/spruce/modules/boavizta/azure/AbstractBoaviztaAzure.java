@@ -37,12 +37,7 @@ abstract class AbstractBoaviztaAzure extends AbstractBoaviztaModule {
 
     @Override
     protected final double getUsageAmount(Row row) {
-        // check unit of measure
-        String unit = UNIT_OF_MEASURE.getString(row);
-        if (!"1 Hour".equals(unit)) {
-            LOG.info(String.format("Unexpected Unit of Measure: %s", unit));
-            return 0.0;
-        }
+        // TODO when more units of measure are supported, normalise value accordingly
         return QUANTITY.getDouble(row);
     }
 
@@ -50,6 +45,12 @@ abstract class AbstractBoaviztaAzure extends AbstractBoaviztaModule {
     protected final String extractInstanceType(Row row) {
         String meterCategory = METER_CATEGORY.getString(row);
         String meterName = METER_NAME.getString(row);
+
+        String unit = UNIT_OF_MEASURE.getString(row);
+        if (!"1 Hour".equals(unit)) {
+            LOG.info(String.format("Unexpected Unit of Measure: %s", unit));
+            return null;
+        }
 
         if (!"Virtual Machines".equals(meterCategory))
         {
