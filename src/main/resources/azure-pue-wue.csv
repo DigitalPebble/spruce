@@ -1,0 +1,78 @@
+# https://datacenters.microsoft.com/sustainability/efficiency/
+# Name,RegionID,PUE,WUE
+Australia Central (Canberra),australiacentral,1.28,0.25
+Australia Central 2 (Canberra),australiacentral2,1.28,0.25
+Australia Southeast (Melbourne),australiasoutheast,1.28,0.25
+Australia East (Sydney),australiaeast,1.28,0.25
+Austria East (Vienna),austriaeast,1.16,0.03
+Belgium Central,belgiumcentral,1.16,0.03
+Brazil Southeast (Rio),brazilsoutheast,1.16,0.34
+Brazil South (São Paulo),brazilsouth,1.16,0.34
+Canada East (Quebec City),canadaeast,1.16,0.34
+Canada Central (Toronto),canadacentral,1.16,0.34
+Chile Central (Santiago),chilecentral,1.16,0.34
+China North (Beijing),chinanorth,1.28,0.25
+China North 2 (Beijing),chinanorth2,1.28,0.25
+China North 3 (Beijing),chinanorth3,1.28,0.25
+East Asia (Hong Kong),eastasia,1.28,0.25
+China East 3 (Jiangsu),chinaeast3,1.28,0.25
+China East (Shanghai),chinaeast,1.28,0.25
+China East 2 (Shanghai),chinaeast2,1.28,0.25
+Denmark East (Copenhagen),denmarkeast,1.16,0.03
+Finland (Helsinki),finlandcentral,1.16,0.03
+France South (Marseille),francesouth,1.16,0.03
+France Central (Paris),francecentral,1.16,0.03
+Germany North (Berlin),germanynorth,1.16,0.03
+Germany West Central (Frankfurt),germanywestcentral,1.16,0.03
+Greece Central (Athens),greececentral,1.16,0.03
+South India (Chennai),southindia,1.28,0.25
+Southcentral (Hyderabad),indiasouthcentral,1.28,0.25
+West India (Mumbai),westindia,1.28,0.25
+Central India (Pune),centralindia,1.28,0.25
+Indonesia Central (Jakarta),indonesiacentral,1.28,0.25
+North Europe (Dublin),northeurope,1.16,0.03
+Israel Central (Tel Aviv),israelcentral,1.16,0.03
+Italy North (Milan),italynorth,1.16,0.03
+Japan West (Osaka),japanwest,1.28,0.25
+Japan East (Saitama, Tokyo),japaneast,1.28,0.25
+Malaysia West (Kuala Lumpur),malaysiawest,1.28,0.25
+Mexico Central (Querétaro),mexicocentral,1.16,0.34
+West Europe (Amsterdam),westeurope,1.16,0.03
+New Zealand North (Auckland),newzealandnorth,1.28,0.25
+Norway East (Oslo),norwayeast,1.16,0.03
+Norway West (Stavanger),norwaywest,1.16,0.03
+Poland Central (Warsaw),polandcentral,1.16,0.03
+Qatar Central (Doha),qatarcentral,1.16,0.03
+Saudi Arabia East,saudiarabiasouthcentral,1.28,0.25
+Southeast Asia (Singapore),southeastasia,1.28,0.25
+South Africa West (Cape Town),southafricawest,1.16,0.03
+South Africa North (Johannesburg),southafricanorth,1.16,0.03
+Korea South (Busan),koreasouth,1.28,0.25
+Korea Central (Seoul),koreacentral,1.28,0.25
+Spain Central (Madrid),spaincentral,1.16,0.03
+Sweden Central (Gävle),swedencentral,1.16,0.03
+Sweden South (Staffanstorp),swedensouth,1.16,0.03
+Switzerland West (Geneva),switzerlandwest,1.16,0.03
+Switzerland North (Zürich),switzerlandnorth,1.16,0.03
+Taiwan North (Taipei),taiwannorth,1.28,0.25
+UAE Central (Abu Dhabi),uaecentral,1.16,0.03
+UAE North (Dubai),uaenorth,1.16,0.03
+UK West (Cardiff),ukwest,1.16,0.03
+UK South (London),uksouth,1.16,0.03
+East US 3 (Atlanta),eastus3,1.16,0.34
+US Gov Texas,usgovtexas,1.16,0.34
+West Central US (Cheyenne),westcentralus,1.16,0.34
+North Central US (Chicago),northcentralus,1.16,0.34
+Central US (Des Moines),centralus,1.16,0.34
+US DoD Central,usdodwest,1.16,0.34
+West US 2 (Quincy),westus2,1.16,0.34
+US Gov Arizona,usgovarizona,1.16,0.34
+West US 3 (Phoenix),westus3,1.16,0.34
+East US 2 (Richmond),eastus2,1.16,0.34
+US DoD East,usdodeast,1.16,0.34
+East US (Ashburn),eastus,1.16,0.34
+US Sec East,usseceast,1.16,0.34
+South Central US (San Antonio),southcentralus,1.16,0.34
+West US (San Francisco),westus,1.16,0.34
+US Sec West,ussecwest,1.16,0.34
+US Gov Virginia ,usgovvirginia,1.16,0.34

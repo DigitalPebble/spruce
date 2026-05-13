@@ -39,7 +39,8 @@ public class Water implements EnrichmentModule {
 
     private static final Logger log = LoggerFactory.getLogger(Water.class);
 
-    private static final String WUE_CSV = "aws-pue-wue.csv";
+    private static final String AWS_WUE_CSV = "aws-pue-wue.csv";
+    private static final String AZURE_WUE_CSV = "azure-pue-wue.csv";
 
     /** Minimum Aqueduct water stress category to qualify as "under stress". */
     static final int HIGH_STRESS_THRESHOLD = 3;
@@ -55,13 +56,23 @@ public class Water implements EnrichmentModule {
     @Override
     public void init(Map<String, Object> params, Provider provider) {
         this.provider = provider;
-        init(params);
-    }
 
-    @Override
-    public void init(Map<String, Object> params) {
+        String csvResourcePath = AWS_WUE_CSV;
+
+        if (provider != null) {
+            switch (provider) {
+                case AZURE:
+                    csvResourcePath = AZURE_WUE_CSV;
+                    break;
+                case AWS:
+                default:
+                    csvResourcePath = AWS_WUE_CSV;
+                    break;
+            }
+        }
+
         // Load WUE values from column index 3 of the PUE-WUE CSV
-        List<String[]> pueWueRows = Utils.loadCSV(WUE_CSV);
+        List<String[]> pueWueRows = Utils.loadCSV(csvResourcePath);
         for (String[] parts : pueWueRows) {
             if (parts.length >= 4) {
                 String key = parts[1].trim();
@@ -75,7 +86,7 @@ public class Water implements EnrichmentModule {
                         wueExactMatches.put(key, wue);
                     }
                 } catch (NumberFormatException e) {
-                    log.warn("Invalid WUE value in {} for key: {}", WUE_CSV, key);
+                    log.warn("Invalid WUE value in {} for key: {}", csvResourcePath, key);
                 }
             }
         }

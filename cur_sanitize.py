@@ -16,6 +16,34 @@ SENSITIVE_COLUMNS_EXACT = [
     "resource_tags",
     "savings_plan_savings_plan_a_r_n",
     "reservation_reservation_a_r_n",
+    #Azure
+    "AccountOwnerId", 
+    "AccountName", 
+    "SubscriptionId", 
+    "SubscriptionName",
+    "ResourceGroup", 
+    "ResourceId", 
+    "ResourceName", 
+    "InstanceId",
+    "Tags", 
+    "AdditionalInfo", 
+    "ServiceInfo1", 
+    "ServiceInfo2",
+    "BillingAccountId", 
+    "BillingAccountName", 
+    "BillingProfileId", 
+    "BillingProfileName",
+    "InvoiceSectionId", 
+    "InvoiceSectionName", 
+    "CostCenter",
+    "ReservationId", 
+    "ReservationName", 
+    "ProductOrderId", 
+    "ProductOrderName",
+    "CostAllocationRuleName", 
+    "benefitId", 
+    "benefitName"
+
 ]
 
 # Prefix patterns — any column starting with these will be dropped
@@ -35,9 +63,13 @@ def get_sensitive_columns(con, table_name: str) -> list[str]:
     ]
 
     to_drop = set()
+    #Fall back for any case inconsitencies
+    exact_lower = set(c.lower() for c in SENSITIVE_COLUMNS_EXACT)
 
     for col in all_columns:
-        if col in SENSITIVE_COLUMNS_EXACT:
+        if col in SENSITIVE_COLUMNS_EXACT :
+            to_drop.add(col)
+        elif col.lower() in exact_lower:
             to_drop.add(col)
         elif any(col.startswith(prefix) for prefix in SENSITIVE_PREFIXES):
             to_drop.add(col)

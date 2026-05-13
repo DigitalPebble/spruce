@@ -4,6 +4,7 @@ package com.digitalpebble.spruce.modules;
 
 import com.digitalpebble.spruce.Column;
 import com.digitalpebble.spruce.EnrichmentModule;
+import com.digitalpebble.spruce.Provider;
 import com.digitalpebble.spruce.SpruceColumn;
 import com.digitalpebble.spruce.Utils;
 import org.apache.spark.sql.Row;
@@ -20,7 +21,7 @@ import static com.digitalpebble.spruce.SpruceColumn.REGION;
  * Enrichment module that applies a Power Usage Effectiveness (PUE) factor.
  * <p>
  * It attempts to determine the PUE based on the region code ({@link com.digitalpebble.spruce.SpruceColumn#REGION})
- * by looking up values in a CSV resource file ({@code aws-pue-wue.csv}).
+ * by looking up values in a CSV resource file ({@code aws-pue-wue.csv} or {@code azure-pue-wue.csv}).
  * <p>
  * The lookup logic follows this priority:
  * <ol>
@@ -32,14 +33,33 @@ import static com.digitalpebble.spruce.SpruceColumn.REGION;
 public class PUE implements EnrichmentModule {
 
     private double defaultPueValue = 1.15;
-    private static final String CSV_RESOURCE_PATH = "aws-pue-wue.csv";
+    private static final String DEFAULT_CSV_RESOURCE_PATH = "aws-pue-wue.csv";
 
     private final Map<String, Double> exactMatches = new HashMap<>();
     private final Map<Pattern, Double> regexMatches = new HashMap<>();
 
     @Override
     public void init(Map<String, Object> params) {
-        List<String[]> rows = Utils.loadCSV(CSV_RESOURCE_PATH);
+        init(params, Provider.AWS);
+    }
+
+    @Override
+    public void init(Map<String, Object> params, Provider provider) {
+        String csvResourcePath = DEFAULT_CSV_RESOURCE_PATH;
+        
+        if (provider != null) {
+            switch (provider) {
+                case AZURE:
+                    csvResourcePath = "azure-pue-wue.csv";
+                    break;
+                case AWS:
+                default:
+                    csvResourcePath = "aws-pue-wue.csv";
+                    break;
+            }
+        }
+        
+        List<String[]> rows = Utils.loadCSV(csvResourcePath);
 
         for (String[] parts : rows) {
             if (parts.length >= 3) {

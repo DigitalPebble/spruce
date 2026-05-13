@@ -4,6 +4,13 @@
       "className": "com.digitalpebble.spruce.modules.azure.RegionExtraction"
     },
     {
+      "className": "com.digitalpebble.spruce.modules.ccf.azure.Storage",
+      "config": {
+        "hdd_coefficient_tb_h": 0.65,
+        "ssd_coefficient_tb_h": 1.2
+      }
+    },
+    {
       "className": "com.digitalpebble.spruce.modules.azure.Networking",
       "config": {
         "network_coefficients_kwh_gb": {
@@ -14,7 +21,23 @@
       }
     },
     {
+      "className": "com.digitalpebble.spruce.modules.PUE",
+      "config": {
+        "default": 1.17
+      }
+    },
+    {
+      "className": "com.digitalpebble.spruce.modules.Water"
+    },
+    {
       "className": "com.digitalpebble.spruce.modules.ember.AverageCarbonIntensity"
+    },
+    {
+      "className": "com.digitalpebble.spruce.modules.OperationalEmissions",
+      "config": {
+        "powerSupplyEfficiency": 1.04,
+        "powerTransmissionLosses": 1.08
+      }
     }
   ]
 }
