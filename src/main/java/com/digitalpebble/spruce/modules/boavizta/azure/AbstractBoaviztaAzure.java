@@ -46,12 +46,6 @@ abstract class AbstractBoaviztaAzure extends AbstractBoaviztaModule {
         String meterCategory = METER_CATEGORY.getString(row);
         String meterName = METER_NAME.getString(row);
 
-        String unit = UNIT_OF_MEASURE.getString(row);
-        if (!"1 Hour".equals(unit)) {
-            LOG.info(String.format("Unexpected Unit of Measure: %s", unit));
-            return null;
-        }
-
         if (!"Virtual Machines".equals(meterCategory))
         {
             return null;
@@ -59,6 +53,12 @@ abstract class AbstractBoaviztaAzure extends AbstractBoaviztaModule {
 
         if (meterName == null)
         {
+            return null;
+        }
+
+        String unit = UNIT_OF_MEASURE.getString(row);
+        if (!"1 Hour".equals(unit)) {
+            LOG.info(String.format("Unexpected Unit of Measure: %s", unit));
             return null;
         }
 
