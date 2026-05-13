@@ -5,18 +5,20 @@ package com.digitalpebble.spruce.modules.boavizta;
 import com.digitalpebble.spruce.Column;
 import com.digitalpebble.spruce.EnrichmentModule;
 import com.digitalpebble.spruce.Provider;
+import com.digitalpebble.spruce.Utils;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import org.apache.spark.sql.Row;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.digitalpebble.spruce.CURColumn.USAGE_AMOUNT;
-import static com.digitalpebble.spruce.SpruceColumn.EMBODIED_ADP;
-import static com.digitalpebble.spruce.SpruceColumn.EMBODIED_EMISSIONS;
-import static com.digitalpebble.spruce.SpruceColumn.ENERGY_USED;
+import static com.digitalpebble.spruce.SpruceColumn.*;
 
 /**
  * Provider-neutral skeleton for enrichment modules backed by Boavizta data.
@@ -36,17 +38,27 @@ import static com.digitalpebble.spruce.SpruceColumn.ENERGY_USED;
 public abstract class AbstractBoaviztaModule implements EnrichmentModule {
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractBoaviztaModule.class);
-
-    /** Active cloud provider for lookups. Subclasses may seed a sensible default. */
-    protected Provider provider;
-
-    /** Instance types we have already failed to resolve, to avoid repeated lookups. */
+    /**
+     * Instance types we have already failed to resolve, to avoid repeated lookups.
+     */
     protected final Set<String> unknownInstanceTypes = ConcurrentHashMap.newKeySet();
+    /**
+     * Cached impacts map for efficiency
+     */
+    protected Cache<String, @Nullable Impacts> cache = Caffeine.newBuilder().build();
+    /**
+     * Active cloud provider for lookups. Subclasses may seed a sensible default.
+     */
+    protected Provider provider;
 
     @Override
     public void init(Map<String, Object> params, Provider provider) {
         if (provider != null) {
             this.provider = provider;
+        }
+        // Initialize cache if not already done
+        if (cache == null) {
+            cache = Caffeine.newBuilder().build();
         }
         init(params);
     }
@@ -54,6 +66,42 @@ public abstract class AbstractBoaviztaModule implements EnrichmentModule {
     @Override
     public final Column[] columnsAdded() {
         return new Column[]{ENERGY_USED, EMBODIED_EMISSIONS, EMBODIED_ADP};
+    }
+
+    /**
+     * Loads impacts data from a resource file. This method is designed to be called by subclasses
+     * that need to load their specific CSV files. The values are then stored in the cache.
+     *
+     * @param resourceLocation The location of the CSV resource file
+     */
+    public void populateCacheFromStaticFile(String resourceLocation) {
+        synchronized (AbstractBoaviztaModule.class) {
+            if (cache == null) {
+                cache = Caffeine.newBuilder().build();
+            }
+            try {
+                // Load the resource file
+                java.util.List<String> estimates = Utils.loadLinesResources(resourceLocation);
+                // estimates consists of comma separated instance type, usage energy, embodied emissions, adp
+                estimates.forEach(line -> {
+                    if (line.startsWith("#") || line.trim().isEmpty()) {
+                        return;
+                    }
+                    String[] parts = line.split(",");
+                    if (parts.length == 4) {
+                        String instanceType = parts[0].trim();
+                        double energyUsed = Double.parseDouble(parts[1].trim());
+                        double embodied = Double.parseDouble(parts[2].trim());
+                        double adp = Double.parseDouble(parts[3].trim());
+                        cache.put(instanceType, new Impacts(energyUsed, embodied, adp));
+                    } else {
+                        throw new RuntimeException("Invalid estimates mapping line: " + line);
+                    }
+                });
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     /**
@@ -68,6 +116,11 @@ public abstract class AbstractBoaviztaModule implements EnrichmentModule {
      */
     protected abstract Impacts lookupImpacts(String instanceType);
 
+    /**
+     * Return the usage amount based on the provider's specific field
+     */
+    protected abstract double getUsageAmount(Row row);
+
     @Override
     public final void enrich(Row row, Map<Column, Object> enrichedValues) {
         String instanceType = extractInstanceType(row);
@@ -78,14 +131,22 @@ public abstract class AbstractBoaviztaModule implements EnrichmentModule {
             return;
         }
 
-        Impacts impacts = lookupImpacts(instanceType);
+        // check in cache (static variants will have put them there from the start)
+        Impacts impacts = cache.getIfPresent(instanceType);
+        // get from API
+        if (impacts == null) {
+            impacts = lookupImpacts(instanceType);
+            if (impacts != null) {
+                cache.put(instanceType, impacts);
+            }
+        }
         if (impacts == null) {
             LOG.info("Unknown instance type {}", instanceType);
             unknownInstanceTypes.add(instanceType);
             return;
         }
 
-        double amount = USAGE_AMOUNT.getDouble(row);
+        double amount = getUsageAmount(row);
         enrichedValues.put(ENERGY_USED, impacts.getFinalEnergyKWh() * amount);
         enrichedValues.put(EMBODIED_EMISSIONS, impacts.getEmbeddedEmissionsGramsCO2eq() * amount);
         enrichedValues.put(EMBODIED_ADP, impacts.getAbioticDepletionPotentialGramsSbeq() * amount);

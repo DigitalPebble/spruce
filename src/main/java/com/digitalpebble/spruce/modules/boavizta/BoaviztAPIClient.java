@@ -20,7 +20,7 @@ import java.util.Map;
  */
 public class BoaviztAPIClient {
 
-    private static final String URLPattern = "%s/v1/cloud/instance?provider=aws&instance_type=%s&verbose=false&duration=1&criteria=gwp&criteria=adp&criteria=fe";
+    private static final String URLPattern = "%s/v1/cloud/instance?provider=%s&instance_type=%s&verbose=false&duration=1&criteria=gwp&criteria=adp&criteria=fe";
     // Conversion factor from megajoules (MJ) to kilowatt-hours (kWh)
     private static final double MJtoKWh = 0.277778;
     private static final ObjectMapper objectMapper = new ObjectMapper();
@@ -50,7 +50,7 @@ public class BoaviztAPIClient {
             throw new IllegalArgumentException("Instance type cannot be null, empty, or whitespace only");
         }
 
-        final String url = String.format(URLPattern, address, instanceType);
+        final String url = String.format(URLPattern, address, p.csvKey, instanceType);
 
         Request request = new Request.Builder()
                 .url(url)

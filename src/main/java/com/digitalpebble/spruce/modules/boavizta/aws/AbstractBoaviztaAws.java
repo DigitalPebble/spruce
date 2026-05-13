@@ -38,6 +38,11 @@ abstract class AbstractBoaviztaAws extends AbstractBoaviztaModule {
     }
 
     @Override
+    protected final double getUsageAmount(Row row) {
+        return USAGE_AMOUNT.getDouble(row);
+    }
+
+    @Override
     protected final String extractInstanceType(Row row) {
         String instanceType = PRODUCT_INSTANCE_TYPE.getString(row);
         if (instanceType == null) {
