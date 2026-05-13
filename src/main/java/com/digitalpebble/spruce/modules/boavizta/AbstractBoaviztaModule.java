@@ -142,6 +142,7 @@ public abstract class AbstractBoaviztaModule implements EnrichmentModule {
             return;
         }
 
+        // TODO this is an AWS specific field - it has no place here
         double amount = USAGE_AMOUNT.getDouble(row);
         enrichedValues.put(ENERGY_USED, impacts.getFinalEnergyKWh() * amount);
         enrichedValues.put(EMBODIED_EMISSIONS, impacts.getEmbeddedEmissionsGramsCO2eq() * amount);

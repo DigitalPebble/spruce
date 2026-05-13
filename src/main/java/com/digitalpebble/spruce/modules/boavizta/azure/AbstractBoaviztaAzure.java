@@ -7,7 +7,7 @@ import com.digitalpebble.spruce.Provider;
 import com.digitalpebble.spruce.modules.boavizta.AbstractBoaviztaModule;
 import org.apache.spark.sql.Row;
 
-import static com.digitalpebble.spruce.CURColumn.*;
+import static com.digitalpebble.spruce.AzureColumn.*;
 
 /**
  * Azure-specific extraction of the Boavizta instance type from a row.
@@ -17,8 +17,8 @@ import static com.digitalpebble.spruce.CURColumn.*;
 abstract class AbstractBoaviztaAzure extends AbstractBoaviztaModule {
 
     private static final Column[] COLUMNS_NEEDED = new Column[]{
-// TODO
-};
+            METER_CATEGORY, METER_NAME, UNIT_OF_MEASURE, QUANTITY
+    };
 
     AbstractBoaviztaAzure() {
         // The class is AZURE-specific by definition; default the provider so callers that bypass
@@ -33,7 +33,30 @@ abstract class AbstractBoaviztaAzure extends AbstractBoaviztaModule {
 
     @Override
     protected final String extractInstanceType(Row row) {
-        // TODO extraction logic
-        return null;
+        String meterCategory = METER_CATEGORY.getString(row);
+        String meterName = METER_NAME.getString(row);
+
+        if (!"Virtual Machines".equals(meterCategory))
+        {
+            return null;
+        }
+
+        if (meterName == null)
+        {
+            return null;
+        }
+
+        // If the meter name contains a slash (e.g. "D11 v2/DS11 v2") take the second
+        // part as requested (whatever comes after the first '/'). Trim then
+        // normalise by lowercasing and replacing spaces with underscores.
+        meterName = meterName.trim();
+        String[] parts = meterName.split("/", 2);
+        if (parts.length > 1) {
+            meterName = parts[1].trim();
+        }
+
+        meterName = meterName.toLowerCase().replace(' ', '_');
+
+        return meterName;
     }
 }

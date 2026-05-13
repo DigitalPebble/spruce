@@ -58,10 +58,12 @@ public class SparkJob {
         // Read the input: Parquet for AWS, CSV for AZURE
         Dataset<Row> dataframe;
         if (provider == Provider.AZURE) {
-            dataframe = spark.read().option("header", "true").option("inferSchema", "true").csv(inputPath);
+            dataframe = spark.read().option("header", "true").option("inferSchema", "true")
+                    .option("quote", "\"")
+                    .option("escape", "\"").csv(inputPath);
             if (java.util.Arrays.asList(dataframe.columns()).contains(AzureColumn.QUANTITY.getLabel())) {
-                dataframe = dataframe.withColumn(AzureColumn.QUANTITY.getLabel(), 
-                    dataframe.col(AzureColumn.QUANTITY.getLabel()).cast("double"));
+                dataframe = dataframe.withColumn(AzureColumn.QUANTITY.getLabel(),
+                        dataframe.col(AzureColumn.QUANTITY.getLabel()).cast("double"));
             }
         } else {
             dataframe = spark.read().parquet(inputPath);
@@ -81,8 +83,6 @@ public class SparkJob {
             LOG.error(e.getMessage());
             System.exit(1);
         }
-
-        final boolean hasBillingPeriods = !dataframe.schema().getFieldIndex("BILLING_PERIOD").isEmpty();
 
         for (EnrichmentModule module : config.getModules()) {
             // check that the data contains the columns needed by this module
@@ -109,6 +109,7 @@ public class SparkJob {
         // Write the result as Parquet, with one subdirectory per billing period, similar to the input
         DataFrameWriter<Row> writer = enriched.write().mode("overwrite");
 
+        final boolean hasBillingPeriods = !dataframe.schema().getFieldIndex("BILLING_PERIOD").isEmpty();
         if (hasBillingPeriods) {
             writer = writer.partitionBy("BILLING_PERIOD");
         }
