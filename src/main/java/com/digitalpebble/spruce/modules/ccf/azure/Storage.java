@@ -29,6 +29,8 @@ public class Storage implements EnrichmentModule {
     private static final Logger LOG = LoggerFactory.getLogger(Storage.class);
 
     private static final Pattern MANAGED_DISK_PATTERN = Pattern.compile("\\b([PES]\\d{1,2})\\b");
+    private static final double HOURS_PER_AZURE_PRICING_MONTH = 30d * 24d;
+    private static final String MANAGED_DISK_REPLICATION_FACTOR = "STORAGE_DISKS";
 
     List<String> dataStoredUsageTypes;
     Map<String, Integer> storageUsageUnitMultipliers;
@@ -97,28 +99,36 @@ public class Storage implements EnrichmentModule {
         String unit = UNIT_OF_MEASURE.getString(row);
         double quantity = QUANTITY.getDouble(row);
         boolean isHDD = false;
-        double gbMonths;
+        double gbHours;
         int replication;
 
+        // Generic storage capacity meters already report GB-month or TB-month usage.
+        // Managed Disks report a fraction of a provisioned disk-month, so resolve the
+        // disk SKU first and use its provisioned capacity rather than used disk space.
         if (containsAny(dataStoredUsageTypes, meterName)) {
-            gbMonths = getGbMonths(quantity, unit);
+            double gbMonths = getGbMonths(quantity, unit);
+            if (Double.isNaN(gbMonths)) {
+                LOG.debug("Storage unit not found for {} {}", meterName, unit);
+                return;
+            }
+            gbHours = Utils.Conversions.GBMonthsToGBHours(gbMonths);
             replication = getReplicationFactor(meterName);
         } else {
             ManagedDisk managedDisk = getManagedDisk(meterName, meterSubCategory);
             if (managedDisk == null || isDiskOperation(meterName)) {
                 return;
             }
-            gbMonths = getManagedDiskGbMonths(quantity, unit, managedDisk.sizeGb());
+            gbHours = getManagedDiskGbHours(quantity, unit, managedDisk.sizeGb());
             isHDD = managedDisk.hdd();
-            replication = managedDisk.replication();
+            replication = replicationFactors.get(MANAGED_DISK_REPLICATION_FACTOR);
         }
 
-        if (Double.isNaN(gbMonths)) {
+        if (Double.isNaN(gbHours)) {
             LOG.debug("Storage unit not found for {} {}", meterName, unit);
             return;
         }
 
-        computeEnergy(gbMonths, isHDD, replication, enrichedValues);
+        computeEnergy(gbHours, isHDD, replication, enrichedValues);
     }
 
     double getGbMonths(double quantity, String unit) {
@@ -129,10 +139,10 @@ public class Storage implements EnrichmentModule {
         return Double.NaN;
     }
 
-    double getManagedDiskGbMonths(double quantity, String unit, int diskSizeGb) {
+    double getManagedDiskGbHours(double quantity, String unit, int diskSizeGb) {
         Integer multiplier = managedDiskUsageUnitMultipliers.get(unit);
         if (multiplier != null) {
-            return quantity * multiplier * diskSizeGb;
+            return quantity * multiplier * diskSizeGb * HOURS_PER_AZURE_PRICING_MONTH;
         }
         return Double.NaN;
     }
@@ -169,9 +179,8 @@ public class Storage implements EnrichmentModule {
         return replicationFactors.get("DEFAULT");
     }
 
-    private void computeEnergy(double gbMonths, boolean isHDD, int replication, Map<Column, Object> enrichedValues) {
+    private void computeEnergy(double gbHours, boolean isHDD, int replication, Map<Column, Object> enrichedValues) {
         double coefficient = isHDD ? hdd_gb_coefficient : ssd_gb_coefficient;
-        double gbHours = Utils.Conversions.GBMonthsToGBHours(gbMonths);
         double energyKwh = gbHours / 1000 * coefficient * replication;
         enrichedValues.put(ENERGY_USED, energyKwh);
     }
@@ -183,17 +192,15 @@ public class Storage implements EnrichmentModule {
             Map<String, Object> values = (Map<String, Object>) entry.getValue();
             Number capacityGb = (Number) values.get("capacity_gb");
             String storageType = (String) values.get("storage_type");
-            String replicationFactor = (String) values.get("replication_factor");
             loaded.put(entry.getKey(), new ManagedDisk(
                     capacityGb.intValue(),
-                    "HDD".equals(storageType),
-                    replicationFactors.get(replicationFactor)
+                    "HDD".equals(storageType)
             ));
         }
         return loaded;
     }
 
-    record ManagedDisk(int sizeGb, boolean hdd, int replication) {
+    record ManagedDisk(int sizeGb, boolean hdd) {
     }
 
     private static boolean containsAny(List<String> values, String candidate) {

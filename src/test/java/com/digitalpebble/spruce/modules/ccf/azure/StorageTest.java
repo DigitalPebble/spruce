@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 class StorageTest {
 
     private static final double ONE_HOUR_MONTH_RATIO = 1d / (30d * 24d);
+    private static final double AZURE_PRICING_MONTH_HOURS = 30d * 24d;
 
     private Storage storage;
     private StructType schema;
@@ -36,14 +37,20 @@ class StorageTest {
 
     private static Stream<Arguments> provideStorageRows() {
         return Stream.of(
-                Arguments.of("Storage", "Tables", "LRS Data Stored", "1 GB/Month", 10d, 10d, 3, false),
-                Arguments.of("Storage", "Tables", "RA-GRS Data Stored", "10 GB/Month", 2d, 20d, 6, false),
-                Arguments.of("Storage", "Tables", "LRS Data Stored", "1 TB/Month", 1d, 1024d, 3, false),
-                Arguments.of("Storage", "Tables", "LRS Data Stored", "1 GB/Month", -5d, -5d, 3, false),
+                Arguments.of("Storage", "Tables", "LRS Data Stored", "1 GB/Month",
+                        10d, Utils.Conversions.GBMonthsToGBHours(10d), 3, false),
+                Arguments.of("Storage", "Tables", "RA-GRS Data Stored", "10 GB/Month",
+                        2d, Utils.Conversions.GBMonthsToGBHours(20d), 6, false),
+                Arguments.of("Storage", "Tables", "LRS Data Stored", "1 TB/Month",
+                        1d, Utils.Conversions.GBMonthsToGBHours(1024d), 3, false),
+                Arguments.of("Storage", "Tables", "LRS Data Stored", "1 GB/Month",
+                        -5d, Utils.Conversions.GBMonthsToGBHours(-5d), 3, false),
                 Arguments.of("Storage", "Premium SSD Managed Disks", "P10 LRS Disk", "1/Month",
-                        ONE_HOUR_MONTH_RATIO, 128d * ONE_HOUR_MONTH_RATIO, 3, false),
-                Arguments.of("Storage", "Standard SSD Managed Disks", "E2 LRS Disk", "1/Month", 2d, 16d, 3, false),
-                Arguments.of("Storage", "Standard HDD Managed Disks", "S4 LRS Disk", "1/Month", 2d, 64d, 3, true)
+                        ONE_HOUR_MONTH_RATIO, 128d, 3, false),
+                Arguments.of("Storage", "Standard SSD Managed Disks", "E2 LRS Disk", "1/Month",
+                        2d, 2d * 8d * AZURE_PRICING_MONTH_HOURS, 3, false),
+                Arguments.of("Storage", "Standard HDD Managed Disks", "S4 LRS Disk", "1/Month",
+                        2d, 2d * 32d * AZURE_PRICING_MONTH_HOURS, 3, true)
         );
     }
 
@@ -67,9 +74,9 @@ class StorageTest {
     @ParameterizedTest
     @MethodSource("provideStorageRows")
     void processStorageRows(String meterCategory, String meterSubCategory, String meterName, String unit,
-                            double quantity, double gbMonths, int replication, boolean isHDD) {
+                            double quantity, double gbHours, int replication, boolean isHDD) {
         Map<Column, Object> enriched = enrich(row(meterCategory, meterSubCategory, meterName, unit, quantity));
-        double expected = expected(gbMonths, replication, isHDD);
+        double expected = expected(gbHours, replication, isHDD);
         assertEquals(expected, (Double) enriched.get(ENERGY_USED), 0.0001);
     }
 
@@ -92,9 +99,8 @@ class StorageTest {
         return enriched;
     }
 
-    private double expected(double gbMonths, int replication, boolean isHDD) {
+    private double expected(double gbHours, int replication, boolean isHDD) {
         double coefficient = isHDD ? storage.hdd_gb_coefficient : storage.ssd_gb_coefficient;
-        double gbHours = Utils.Conversions.GBMonthsToGBHours(gbMonths);
         return gbHours / 1000 * coefficient * replication;
     }
 }
