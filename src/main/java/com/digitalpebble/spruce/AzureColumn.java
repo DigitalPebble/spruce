@@ -14,6 +14,8 @@ public class AzureColumn extends NativeColumn {
     public static AzureColumn RESOURCE_LOCATION = new AzureColumn("ResourceLocation", StringType);
     public static AzureColumn METER_CATEGORY = new AzureColumn("MeterCategory", StringType);
     public static AzureColumn METER_SUBCATEGORY = new AzureColumn("MeterSubCategory", StringType);
+    public static AzureColumn METER_NAME = new AzureColumn("MeterName", StringType);
+    public static AzureColumn UNIT_OF_MEASURE = new AzureColumn("UnitOfMeasure", StringType);
     public static AzureColumn QUANTITY = new AzureColumn("Quantity", DoubleType);
 
     AzureColumn(String l, DataType t) {

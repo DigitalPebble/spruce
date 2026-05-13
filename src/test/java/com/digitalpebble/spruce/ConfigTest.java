@@ -206,4 +206,11 @@ public class ConfigTest {
         assertNotNull(conf.getModules());
         assertFalse(conf.getModules().isEmpty());
     }
+
+    @Test
+    void testAzureDefaultConfigIncludesStorage() throws Exception {
+        Config conf = Config.loadDefault(Provider.AZURE);
+        assertTrue(conf.getModules().stream()
+                .anyMatch(module -> module instanceof com.digitalpebble.spruce.modules.ccf.azure.Storage));
+    }
 }
