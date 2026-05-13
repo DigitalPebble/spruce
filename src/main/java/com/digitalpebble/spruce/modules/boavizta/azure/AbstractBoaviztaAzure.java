@@ -6,6 +6,8 @@ import com.digitalpebble.spruce.Column;
 import com.digitalpebble.spruce.Provider;
 import com.digitalpebble.spruce.modules.boavizta.AbstractBoaviztaModule;
 import org.apache.spark.sql.Row;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.digitalpebble.spruce.AzureColumn.*;
 
@@ -15,6 +17,8 @@ import static com.digitalpebble.spruce.AzureColumn.*;
  * <p>Subclasses only need to plug in the lookup variant via {@link #lookupImpacts(String)}.
  */
 abstract class AbstractBoaviztaAzure extends AbstractBoaviztaModule {
+
+    private static final Logger LOG = LoggerFactory.getLogger(AbstractBoaviztaAzure.class);
 
     private static final Column[] COLUMNS_NEEDED = new Column[]{
             METER_CATEGORY, METER_NAME, UNIT_OF_MEASURE, QUANTITY
@@ -29,6 +33,17 @@ abstract class AbstractBoaviztaAzure extends AbstractBoaviztaModule {
     @Override
     public final Column[] columnsNeeded() {
         return COLUMNS_NEEDED;
+    }
+
+    @Override
+    protected final double getUsageAmount(Row row) {
+        // check unit of measure
+        String unit = UNIT_OF_MEASURE.getString(row);
+        if (!"1 Hour".equals(unit)) {
+            LOG.info(String.format("Unexpected Unit of Measure: %s", unit));
+            return 0.0;
+        }
+        return QUANTITY.getDouble(row);
     }
 
     @Override

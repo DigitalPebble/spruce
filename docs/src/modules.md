@@ -79,6 +79,18 @@ Similar to the previous module but does not get the information from an instance
 
 **Output columns**: `operational_energy_kwh`, `embodied_emissions_co2eq_g` and `embodied_adp_sbeq_g`.
 
+### boavizta.azure.BoaviztAPI
+
+Similar to the AWS equivalent but for Azure.
+
+**Output columns**: `operational_energy_kwh`, `embodied_emissions_co2eq_g` and `embodied_adp_sbeq_g`.
+
+### boavizta.azure.BoaviztAPIstatic
+
+Similar to the AWS equivalent but for Azure.
+
+**Output columns**: `operational_energy_kwh`, `embodied_emissions_co2eq_g` and `embodied_adp_sbeq_g`.
+
 ## EcoLogits
 
 The following modules estimate the energy consumption and embodied emissions of LLM inference using static coefficients derived from the [EcoLogits](https://ecologits.ai/) project.

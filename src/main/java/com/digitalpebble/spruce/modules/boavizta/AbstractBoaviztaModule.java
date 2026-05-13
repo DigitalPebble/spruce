@@ -18,7 +18,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.digitalpebble.spruce.CURColumn.USAGE_AMOUNT;
 import static com.digitalpebble.spruce.SpruceColumn.*;
 
 /**
@@ -117,6 +116,11 @@ public abstract class AbstractBoaviztaModule implements EnrichmentModule {
      */
     protected abstract Impacts lookupImpacts(String instanceType);
 
+    /**
+     * Return the usage amount based on the provider's specific field
+     */
+    protected abstract double getUsageAmount(Row row);
+
     @Override
     public final void enrich(Row row, Map<Column, Object> enrichedValues) {
         String instanceType = extractInstanceType(row);
@@ -142,8 +146,7 @@ public abstract class AbstractBoaviztaModule implements EnrichmentModule {
             return;
         }
 
-        // TODO this is an AWS specific field - it has no place here
-        double amount = USAGE_AMOUNT.getDouble(row);
+        double amount = getUsageAmount(row);
         enrichedValues.put(ENERGY_USED, impacts.getFinalEnergyKWh() * amount);
         enrichedValues.put(EMBODIED_EMISSIONS, impacts.getEmbeddedEmissionsGramsCO2eq() * amount);
         enrichedValues.put(EMBODIED_ADP, impacts.getAbioticDepletionPotentialGramsSbeq() * amount);
