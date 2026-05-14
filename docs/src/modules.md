@@ -133,24 +133,28 @@ Extracts the region information from the input and stores it in a standard locat
 **AWS Module**: `com.digitalpebble.spruce.modules.aws.RegionExtraction`
 **Azure Module**: `com.digitalpebble.spruce.modules.azure.RegionExtraction`
 
-## PUE
+## PWUE
 
-Uses the 2024 data published by AWS for [Power Usage Effectiveness](https://sustainability.aboutamazon.com/aws-wue-pue.csv) to rows for which energy usage has been estimated.
-This provides a more accurate and up to date approach than the flat rate approach in the [CCF methodology](https://www.cloudcarbonfootprint.org/docs/methodology/#pue).
+Loads and stores both **Power Usage Effectiveness (PUE)** and **Water Usage Effectiveness (WUE)** factors from a single CSV resource file. This module replaces the previous separate PUE module and centralizes the loading of these efficiency factors.
 
-The source for Azure is https://datacenters.microsoft.com/sustainability/efficiency/.
+The module uses the 2024 data published by AWS for [Power Usage Effectiveness](https://sustainability.aboutamazon.com/aws-wue-pue.csv) and the corresponding WUE values. For Azure, the source is https://datacenters.microsoft.com/sustainability/efficiency/.
 
-The PUE module supports both AWS and Azure providers and loads the appropriate resource file based on the provider:
+The PWUE module supports both AWS and Azure providers and loads the appropriate resource file based on the provider:
 - AWS: `aws-pue-wue.csv`
 - Azure: `azure-pue-wue.csv`
 
-**Output column**:  `power_usage_effectiveness`.
+The lookup logic follows this priority:
+1. Exact region match (e.g., "us-east-1")
+2. Regex pattern match (e.g., "us-.+")
+3. Default configured value (fallback to 1.15 for PUE, null for WUE)
+
+**Output columns**:  `power_usage_effectiveness` and `water_usage_effectiveness`.
 
 ## Water
 
 Estimates water consumption associated with cloud usage, producing three columns:
 
-* **`water_cooling_l`** – the volume of water (in litres) used for **data centre cooling**. Computed as `operational_energy_kwh` × `power_usage_effectiveness` × WUE, where WUE (Water Usage Effectiveness) is the ratio of litres of water consumed for cooling per kWh of IT energy. The per-region WUE values come from the [2024 data published by AWS](https://sustainability.aboutamazon.com/aws-wue-pue.csv). The source for Azure is https://datacenters.microsoft.com/sustainability/efficiency/.
+* **`water_cooling_l`** – the volume of water (in litres) used for **data centre cooling**. Computed as `operational_energy_kwh` × `power_usage_effectiveness` × WUE, where WUE (Water Usage Effectiveness) is the ratio of litres of water consumed for cooling per kWh of IT energy. The per-region WUE values are loaded by the [PWUE module](#pwue) from the [2024 data published by AWS](https://sustainability.aboutamazon.com/aws-wue-pue.csv). The source for Azure is https://datacenters.microsoft.com/sustainability/efficiency/.
 
 * **`water_electricity_production_l`** – the volume of water (in litres) consumed during **electricity generation** to power the data centre. Computed as `operational_energy_kwh` × `power_usage_effectiveness` × WCF, where WCF (Water Consumption Factor) represents the litres of water consumed per kWh of electricity generated. The WCF values per electricity grid zone are sourced from the [WRI methodology for calculating water use embedded in purchased electricity](https://www.wri.org/data/dataset-guidance-calculating-water-use-embedded-purchased-electricity).
 

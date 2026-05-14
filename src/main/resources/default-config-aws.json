@@ -41,7 +41,7 @@
       "className": "com.digitalpebble.spruce.modules.ecologits.BedrockEcoLogits"
     },
     {
-      "className": "com.digitalpebble.spruce.modules.PUE",
+      "className": "com.digitalpebble.spruce.modules.PWUE",
       "config": {
         "default": 1.15
       }

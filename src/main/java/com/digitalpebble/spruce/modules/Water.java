@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import static com.digitalpebble.spruce.SpruceColumn.*;
 
@@ -39,15 +38,8 @@ public class Water implements EnrichmentModule {
 
     private static final Logger log = LoggerFactory.getLogger(Water.class);
 
-    private static final String AWS_WUE_CSV = "aws-pue-wue.csv";
-    private static final String AZURE_WUE_CSV = "azure-pue-wue.csv";
-
     /** Minimum Aqueduct water stress category to qualify as "under stress". */
     static final int HIGH_STRESS_THRESHOLD = 3;
-
-    // WUE lookup by AWS region (exact and regex, same logic as PUE)
-    private final Map<String, Double> wueExactMatches = new HashMap<>();
-    private final Map<Pattern, Double> wueRegexMatches = new HashMap<>();
 
     /** Set via {@link #init(Map, Provider)} — left null on purpose so any call path that
      *  bypasses provider-aware init fails loudly rather than silently using AWS. */
@@ -56,45 +48,11 @@ public class Water implements EnrichmentModule {
     @Override
     public void init(Map<String, Object> params, Provider provider) {
         this.provider = provider;
-
-        String csvResourcePath = AWS_WUE_CSV;
-
-        if (provider != null) {
-            switch (provider) {
-                case AZURE:
-                    csvResourcePath = AZURE_WUE_CSV;
-                    break;
-                case AWS:
-                default:
-                    csvResourcePath = AWS_WUE_CSV;
-                    break;
-            }
-        }
-
-        // Load WUE values from column index 3 of the PUE-WUE CSV
-        List<String[]> pueWueRows = Utils.loadCSV(csvResourcePath);
-        for (String[] parts : pueWueRows) {
-            if (parts.length >= 4) {
-                String key = parts[1].trim();
-                String wueStr = parts[3].trim();
-                if (wueStr.isEmpty()) continue;
-                try {
-                    double wue = Double.parseDouble(wueStr);
-                    if (key.contains(".") || key.contains("+") || key.contains("*")) {
-                        wueRegexMatches.put(Pattern.compile(key), wue);
-                    } else {
-                        wueExactMatches.put(key, wue);
-                    }
-                } catch (NumberFormatException e) {
-                    log.warn("Invalid WUE value in {} for key: {}", csvResourcePath, key);
-                }
-            }
-        }
     }
 
     @Override
     public Column[] columnsNeeded() {
-        return new Column[]{ENERGY_USED, PUE, REGION};
+        return new Column[]{ENERGY_USED, PUE, WUE, REGION};
     }
 
     @Override
@@ -117,9 +75,9 @@ public class Water implements EnrichmentModule {
 
         // Water from cooling (WUE)
         double waterCooling = 0;
-        Double wue = getWueForRegion(region);
-        if (wue != null) {
-            waterCooling = totalEnergy * wue;
+        Double wueVal = WUE.getDouble(enrichedValues);
+        if (wueVal != null) {
+            waterCooling = totalEnergy * wueVal;
             enrichedValues.put(WATER_COOLING, waterCooling);
         }
 
@@ -138,19 +96,7 @@ public class Water implements EnrichmentModule {
         }
     }
 
-    private Double getWueForRegion(String region) {
-        if (wueExactMatches.containsKey(region)) {
-            return wueExactMatches.get(region);
-        }
 
-        for (Map.Entry<Pattern, Double> entry : wueRegexMatches.entrySet()) {
-            if (entry.getKey().matcher(region).matches()) {
-                return entry.getValue();
-            }
-        }
-
-        return null;
-    }
 
     /**
      * Provides water statistics per cloud region.
