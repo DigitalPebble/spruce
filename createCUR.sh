@@ -7,6 +7,19 @@ read -p "Enter bucket name: " bucket
 
 read -p  "Enter prefix: " prefix
 
+while true; do
+    read -p "Enter time granularity [HOURLY/DAILY/MONTHLY] (default: HOURLY): " time_granularity
+    time_granularity=${time_granularity:-HOURLY}
+    case "$time_granularity" in
+        HOURLY|DAILY|MONTHLY)
+            break
+            ;;
+        *)
+            echo "Invalid time granularity. Please enter HOURLY, DAILY, or MONTHLY."
+            ;;
+    esac
+done
+
 echo "Generating dataexport-definition.json"
 cat <<EOT > dataexport-definition.json
 {
@@ -17,7 +30,7 @@ cat <<EOT > dataexport-definition.json
                 "INCLUDE_MANUAL_DISCOUNT_COMPATIBILITY": "FALSE",
                 "INCLUDE_RESOURCES": "TRUE",
                 "INCLUDE_SPLIT_COST_ALLOCATION_DATA": "FALSE",
-                "TIME_GRANULARITY": "HOURLY"
+                "TIME_GRANULARITY": "${time_granularity}"
             }
         }
     },
@@ -35,7 +48,7 @@ cat <<EOT > dataexport-definition.json
             "S3Region": "${region}"
         }
     },
-    "Name": "CURv2-dataexport",
+    "Name": "CURv2-${time_granularity}",
     "RefreshCadence": {
         "Frequency": "SYNCHRONOUS"
     }
