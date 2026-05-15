@@ -289,7 +289,7 @@ def build_recommendations(coverage_pct, uncovered_rows, regional_rows, billing_r
 # HTML post-processing
 # ---------------------------------------------------------------------------
 
-_LOGO_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logo.png")
+_LOGO_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../logo.png")
 
 
 def _inject_logo(html):
