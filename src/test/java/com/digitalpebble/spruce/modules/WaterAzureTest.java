@@ -45,6 +45,7 @@ class WaterAzureTest {
         Map<Column, Object> enriched = new HashMap<>();
         enriched.put(ENERGY_USED, 100d);
         enriched.put(PUE, 1.16); // Typical Azure PUE value
+        enriched.put(WUE, 0.34); // Azure WUE value for eastus
         enriched.put(REGION, "eastus"); // Azure region
         
         // Process with Water module
@@ -65,6 +66,7 @@ class WaterAzureTest {
         Map<Column, Object> enriched = new HashMap<>();
         enriched.put(ENERGY_USED, 50d);
         enriched.put(PUE, 1.16); // Typical Azure PUE value
+        enriched.put(WUE, 0.03); // Azure region with WUE = 0.03
         enriched.put(REGION, "westeurope"); // Azure region with WUE = 0.03
         
         water.enrich(row, enriched);
@@ -115,6 +117,7 @@ class WaterAzureTest {
             Map<Column, Object> enriched = new HashMap<>();
             enriched.put(ENERGY_USED, 100d);
             enriched.put(PUE, 1.16); // Consistent PUE value for testing
+            enriched.put(WUE, expectedWUE); // Add the expected WUE value
             enriched.put(REGION, region);
             
             water.enrich(row, enriched);

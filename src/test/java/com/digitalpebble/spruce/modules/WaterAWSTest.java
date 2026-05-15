@@ -63,6 +63,7 @@ class WaterAWSTest {
         Map<Column, Object> enriched = new HashMap<>();
         enriched.put(ENERGY_USED, 100d);
         enriched.put(PUE, 1.15);
+        enriched.put(WUE, 0.12);
         enriched.put(REGION, "us-east-1");
         water.enrich(row, enriched);
 
@@ -78,6 +79,7 @@ class WaterAWSTest {
         Map<Column, Object> enriched = new HashMap<>();
         enriched.put(ENERGY_USED, 100d);
         enriched.put(PUE, 1.14);
+        enriched.put(WUE, 0.13);
         enriched.put(REGION, "us-gov-west-1");
         water.enrich(row, enriched);
 
@@ -93,6 +95,7 @@ class WaterAWSTest {
         Map<Column, Object> enriched = new HashMap<>();
         enriched.put(ENERGY_USED, 100d);
         enriched.put(PUE, 1.15);
+        enriched.put(WUE, 0.12);
         enriched.put(REGION, "us-east-1");
         water.enrich(row, enriched);
 
@@ -119,6 +122,7 @@ class WaterAWSTest {
         Row row = emptyRow();
         Map<Column, Object> enriched = new HashMap<>();
         enriched.put(ENERGY_USED, 100d);
+        enriched.put(WUE, 0.12);
         enriched.put(REGION, "us-east-1");
         // No PUE set
         water.enrich(row, enriched);
@@ -136,16 +140,18 @@ class WaterAWSTest {
         // WUE matches regex ap-.+ = 0.98, WCF = 3.4368 (India, wcf.csv)
         // waterCooling = 100 * 1.42 * 0.98 = 139.16
         // waterEnergy = 100 * 1.42 * 3.4368 = 488.03
-        // stress = 139.16 + 488.03 = 627.19
+        // waterCooling = 100 * 1.42 * 2.75 = 390.5 (ap-south-2 has WUE=2.75, but ap-south-1 doesn't have WUE, so no cooling water)
+        // stress = 0 + 488.03 = 488.03
         Row row = emptyRow();
         Map<Column, Object> enriched = new HashMap<>();
         enriched.put(ENERGY_USED, 100d);
         enriched.put(PUE, 1.42);
+        // ap-south-1 doesn't have WUE in the CSV, so no WUE value
         enriched.put(REGION, "ap-south-1");
         water.enrich(row, enriched);
 
         assertTrue(enriched.containsKey(WATER_STRESS));
-        assertEquals(627.19, (Double) enriched.get(WATER_STRESS), 0.01);
+        assertEquals(488.03, (Double) enriched.get(WATER_STRESS), 0.01);
     }
 
     @Test
@@ -157,6 +163,8 @@ class WaterAWSTest {
         Row row = emptyRow();
         Map<Column, Object> enriched = new HashMap<>();
         enriched.put(ENERGY_USED, 100d);
+        enriched.put(PUE, 1.0);
+        enriched.put(WUE, 0.12);
         enriched.put(REGION, "ap-southeast-2");
         water.enrich(row, enriched);
 
@@ -173,6 +181,7 @@ class WaterAWSTest {
         Map<Column, Object> enriched = new HashMap<>();
         enriched.put(ENERGY_USED, 100d);
         enriched.put(PUE, 1.15);
+        enriched.put(WUE, 0.12);
         enriched.put(REGION, "us-east-1");
         water.enrich(row, enriched);
 
