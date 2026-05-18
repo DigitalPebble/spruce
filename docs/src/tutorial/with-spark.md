@@ -1,4 +1,4 @@
-# Quick start using Apache Spark
+# Quick start using Apache Spark⚡
 
 Instead of using a container, you can run SPRUCE directly on [Apache Spark](https://spark.apache.org/) either locally or on a cluster.
 

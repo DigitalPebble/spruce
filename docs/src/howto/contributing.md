@@ -1,7 +1,6 @@
-# Contributing to Spruce
-============================
+# Contribute to SPRUCE
 
-Thank you for your intention to contribute to Spruce. As an open-source community, we highly appreciate contributions to our project.
+Thank you for your intention to contribute to SPRUCE. As an open-source community, we highly appreciate contributions to our project.
 
 To make the process smooth for the project *committers* (those who review and accept changes) and *contributors* (those who propose new changes via pull requests), there are a few rules to follow.
 
