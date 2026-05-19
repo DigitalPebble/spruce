@@ -1,4 +1,4 @@
-# Modules configuration
+# Configure the modules
 
 The enrichment modules are configured in a per-provider JSON file bundled in the JAR.
 The file used at runtime is selected from the cloud provider (`-p / --provider` CLI
@@ -11,15 +11,15 @@ flag, defaulting to `AWS`):
 
 The AWS default looks like this:
 
-```json
-{{#include ../../../src/main/resources/default-config-aws.json}}
+``` title="default-config-aws.json"
+--8<-- "../../../src/main/resources/default-config-aws.json"
 ```
 
 The Azure pipeline is the current focus of our work, with basic services
 currently covered or about to be:
 
-```json
-{{#include ../../../src/main/resources/default-config-azure.json}}
+``` title="default-config-azure.json"
+--8<-- "../../../src/main/resources/default-config-azure.json"
 ```
 
 This determines which modules are used and in what order but also configures their behaviour. For instance, the Networking module uses different coefficients for intra-region, inter-region, and external data transfers, all configurable via the `network_coefficients_kwh_gb` map.

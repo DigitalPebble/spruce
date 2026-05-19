@@ -1,4 +1,4 @@
-# Explore the results
+# Explore the results 🔎
 
 ## Interactive dashboard
 
