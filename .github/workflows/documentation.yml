@@ -5,6 +5,7 @@ on:
       - main
     paths:
       - 'docs/**'
+      - '.github/workflows/documentation.yml'
 
 permissions:
   contents: read
