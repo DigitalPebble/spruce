@@ -320,15 +320,15 @@ logo = "images/logo.png"
 scheme = "default"
 toggle.icon = "lucide/sun"
 toggle.name = "Switch to dark mode"
-primary = "green"
-accent = "green"
+primary = "light green"
+accent = "light green"
 
 [[project.theme.palette]]
 scheme = "slate"
 toggle.icon = "lucide/moon"
 toggle.name = "Switch to light mode"
-primary = "green"
-accent = "green"
+primary = "light green"
+accent = "light green"
 
 # ----------------------------------------------------------------------------
 # The "extra" section contains miscellaneous settings.
