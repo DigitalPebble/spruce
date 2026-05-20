@@ -192,7 +192,12 @@ def load_connection(input_path: str) -> duckdb.DuckDBPyConnection:
         con.execute("LOAD httpfs")
         con.execute("CREATE SECRET (TYPE s3, PROVIDER credential_chain)")
 
-    create_dashboard_view(con, parquet_path)
+    try:
+        create_dashboard_view(con, parquet_path)
+    except Exception as exc:
+        con.close()
+        raise ValueError(f"Failed to create dashboard view from parquet data: {exc}")
+    
     return con
 
 
@@ -224,6 +229,14 @@ def get_filter_options(input_path: str) -> tuple[list[str], list[str]]:
 @st.cache_data(show_spinner=False, ttl=QUERY_CACHE_TTL_SECONDS)
 def get_tag_keys(input_path: str) -> list[str]:
     try:
+        # Check if resource_tags column exists first
+        con = load_connection(input_path)
+        columns = con.execute("SELECT column_name FROM information_schema.columns WHERE table_name = 'cur'").fetchall()
+        column_names = [str(row[0]) for row in columns]
+        
+        if 'resource_tags' not in column_names:
+            return []
+        
         return (
             query_df(
                 input_path,
@@ -239,11 +252,6 @@ def get_tag_keys(input_path: str) -> list[str]:
             .tolist()
         )
     except duckdb.Error as exc:
-        st.warning(
-            "Could not read `resource_tags` as a MAP. SPRUCE-enriched parquet "
-            "exposes tags as `MAP<VARCHAR,VARCHAR>`; raw CUR 2.0 exports use "
-            f"`array<struct<key,value>>` and require conversion. Underlying error: {exc}"
-        )
         return []
 
 
@@ -559,7 +567,8 @@ def tag_breakdown_query(where: str) -> str:
                 2
             ) AS water_usage_l
         FROM filtered
-        WHERE resource_tags[?] IS NOT NULL
+        WHERE resource_tags IS NOT NULL
+          AND resource_tags[?] IS NOT NULL
           AND resource_tags[?] != ''
         GROUP BY 1
         ORDER BY total_emissions_kg DESC NULLS LAST
@@ -713,7 +722,7 @@ def render_table(
 
     st.dataframe(
         table,
-        use_container_width=True,
+        width=1000,
         hide_index=True,
         column_config=column_config,
     )
@@ -813,7 +822,7 @@ def render_trend(trend: pd.DataFrame) -> None:
 
     st.plotly_chart(
         line_area_chart(trend, "energy_kwh", "Energy", "kWh", COLORS["energy"], 410),
-        use_container_width=True,
+        width=1000,
         config=PLOT_CONFIG,
     )
     st.plotly_chart(
@@ -825,12 +834,12 @@ def render_trend(trend: pd.DataFrame) -> None:
             COLORS["emissions"],
             410,
         ),
-        use_container_width=True,
+        width=1000,
         config=PLOT_CONFIG,
     )
     st.plotly_chart(
         line_area_chart(trend, "water_usage_l", "Water", "L", COLORS["water"], 410),
-        use_container_width=True,
+        width=1000,
         config=PLOT_CONFIG,
     )
 
@@ -956,7 +965,7 @@ def render_regions(regions: pd.DataFrame) -> None:
             "x": 0.5,
         },
     )
-    st.plotly_chart(fig, use_container_width=True, config=PLOT_CONFIG)
+    st.plotly_chart(fig, width=1000, config=PLOT_CONFIG)
 
     region_cards = []
     for _, row in regions.iterrows():
@@ -1024,6 +1033,11 @@ def render_tags(
         st.info("No non-empty values found for the selected tag and filters.")
         return
 
+    # Handle case where all tag values are null/empty after filtering
+    if tags['tag_value'].isna().all() or (tags['tag_value'] == '').all():
+        st.info("All tag values for the selected tag are empty or missing.")
+        return
+
     metric = st.radio(
         "Metric",
         ["emissions", "energy", "cost", "water"],
@@ -1088,7 +1102,7 @@ def render_tags(
     )
     styled_fig = style_plotly(fig, height=chart_height, legend_y=-0.35)
     styled_fig.update_layout(showlegend=False, margin={"l": 180, "r": 28, "t": 34, "b": 64})
-    st.plotly_chart(styled_fig, use_container_width=True, config=PLOT_CONFIG)
+    st.plotly_chart(styled_fig, width=1000, config=PLOT_CONFIG)
 
     render_table(
         tags,
@@ -1172,9 +1186,13 @@ def render_filters_sidebar(
             placeholder="All regions",
             help="Leave empty to include all regions.",
         )
-        tag_key = st.selectbox(
-            "Resource tag", [""] + tag_keys, format_func=lambda x: x or "None"
-        )
+        if tag_keys:
+            tag_key = st.selectbox(
+                "Resource tag", [""] + tag_keys, format_func=lambda x: x or "None"
+            )
+        else:
+            st.info("No resource tags available in the data.")
+            tag_key = ""
     return selected_periods, selected_regions, tag_key
 
 
@@ -1237,19 +1255,23 @@ def main() -> None:
         st.error(f"Dashboard query failed: {exc}")
         st.stop()
 
-    overview_tab, trend_tab, emitters_tab, regions_tab, tags_tab = st.tabs(
-        ["Overview", "Trend", "Top emitters", "Regions", "Tags"]
-    )
-    with overview_tab:
+    tabs = ["Overview", "Trend", "Top emitters", "Regions"]
+    if tag_keys:
+        tabs.append("Tags")
+    
+    tab_containers = st.tabs(tabs)
+    
+    with tab_containers[0]:
         render_overview(data.overview)
-    with trend_tab:
+    with tab_containers[1]:
         render_trend(data.trend)
-    with emitters_tab:
+    with tab_containers[2]:
         render_top_emitters(data.emitters)
-    with regions_tab:
+    with tab_containers[3]:
         render_regions(data.regions)
-    with tags_tab:
-        render_tags(input_path, data.where, data.params, tag_key, tag_keys)
+    if len(tab_containers) > 4:
+        with tab_containers[4]:
+            render_tags(input_path, data.where, data.params, tag_key, tag_keys)
 
 
 if __name__ == "__main__":
