@@ -722,7 +722,7 @@ def render_table(
 
     st.dataframe(
         table,
-        width=1000,
+        width="stretch",
         hide_index=True,
         column_config=column_config,
     )
@@ -822,7 +822,7 @@ def render_trend(trend: pd.DataFrame) -> None:
 
     st.plotly_chart(
         line_area_chart(trend, "energy_kwh", "Energy", "kWh", COLORS["energy"], 410),
-        width=1000,
+        width="stretch",
         config=PLOT_CONFIG,
     )
     st.plotly_chart(
@@ -834,12 +834,12 @@ def render_trend(trend: pd.DataFrame) -> None:
             COLORS["emissions"],
             410,
         ),
-        width=1000,
+        width="stretch",
         config=PLOT_CONFIG,
     )
     st.plotly_chart(
         line_area_chart(trend, "water_usage_l", "Water", "L", COLORS["water"], 410),
-        width=1000,
+        width="stretch",
         config=PLOT_CONFIG,
     )
 
@@ -965,7 +965,7 @@ def render_regions(regions: pd.DataFrame) -> None:
             "x": 0.5,
         },
     )
-    st.plotly_chart(fig, width=1000, config=PLOT_CONFIG)
+    st.plotly_chart(fig, width="stretch", config=PLOT_CONFIG)
 
     region_cards = []
     for _, row in regions.iterrows():
@@ -1102,7 +1102,7 @@ def render_tags(
     )
     styled_fig = style_plotly(fig, height=chart_height, legend_y=-0.35)
     styled_fig.update_layout(showlegend=False, margin={"l": 180, "r": 28, "t": 34, "b": 64})
-    st.plotly_chart(styled_fig, width=1000, config=PLOT_CONFIG)
+    st.plotly_chart(styled_fig, width="stretch", config=PLOT_CONFIG)
 
     render_table(
         tags,
