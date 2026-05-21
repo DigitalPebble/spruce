@@ -95,6 +95,8 @@ docs_dir = "src"
 
 [project.extra.version]
 provider = "mike"
+default = "latest"
+alias = true
 
 # ----------------------------------------------------------------------------
 # Section for configuring theme options
