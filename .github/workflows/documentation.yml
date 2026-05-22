@@ -3,8 +3,8 @@ on:
   push:
     branches:
       - main
-    tags:
-      - '*.*'
+  release:
+    types: [published]
   workflow_dispatch:
 
 permissions:
@@ -32,9 +32,9 @@ jobs:
       - name: Deploy dev version from main
         if: github.ref == 'refs/heads/main'
         run: cd docs && mike deploy --push --update-aliases dev
-      - name: Deploy released version from tag
-        if: github.ref_type == 'tag'
+      - name: Deploy released version from release tag
+        if: github.event_name == 'release' && !github.event.release.prerelease
         run: |
           cd docs
-          mike deploy --push --update-aliases "${GITHUB_REF_NAME}" latest
+          mike deploy --push --update-aliases "${{ github.event.release.tag_name }}" latest
           mike set-default --push latest
