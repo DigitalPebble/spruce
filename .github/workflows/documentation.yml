@@ -3,31 +3,38 @@ on:
   push:
     branches:
       - main
-    paths:
-      - 'docs/**'
-      - '.github/workflows/documentation.yml'
+  release:
+    types: [published]
+  workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
+
+concurrency:
+  group: gh-pages
+  cancel-in-progress: false
 
 jobs:
   deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/configure-pages@v6
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v6
         with:
           python-version: 3.x
-      - run: pip install zensical
-      - run: cd docs && zensical build --clean
-      - uses: actions/upload-pages-artifact@v5
-        with:
-          path: docs/site
-      - uses: actions/deploy-pages@v5
-        id: deployment
+      - run: pip install zensical "mike @ git+https://github.com/squidfunk/mike.git"
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+      - name: Deploy dev version from main
+        if: github.ref == 'refs/heads/main'
+        run: cd docs && mike deploy --push --update-aliases dev
+      - name: Deploy released version from release tag
+        if: github.event_name == 'release' && !github.event.release.prerelease
+        run: |
+          cd docs
+          mike deploy --push --update-aliases "${{ github.event.release.tag_name }}" latest
+          mike set-default --push latest
