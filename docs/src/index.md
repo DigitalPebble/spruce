@@ -25,11 +25,12 @@ SPRUCE handles CUR reports from AWS and partially supports Azure. However, most 
 splits the enrichment of the data into configurable stages.
 
 A typical sequence of stages would be:
-- estimation of embodied emissions from the hardware
-- estimation of energy used
-- estimation of water consumption
-- application of PUE / WUE and other overheads
-- application of carbon intensity factors
+
+- Estimation of embodied emissions from the hardware
+- Estimation of energy used
+- Estimation of water consumption
+- Application of PUE / WUE and other overheads
+- Application of carbon intensity factors
 
 Have a look at the [methodology section](methodology.md) for more details.
 
@@ -42,4 +43,4 @@ The code of the project is in our [GitHub repo](https://github.com/DigitalPebble
 
 ## Support
 Do you need help with SPRUCE? Want some bespoke work, training or a workshop? We at [DigitalPebble](https://digitalpebble.com/), provide consulting services for SPRUCE. 
-Send us an email at _spruce@digitalpebble.com_!
+Send us an email at _spruce@digitalpebble.com_.

@@ -11,7 +11,7 @@ SPRUCE is part of a growing ecosystem of open source tools focused on measuring 
 ### Similarities
 
 - Both tools estimate the carbon footprint of cloud usage
-- Both support AWS (as well as GCP and Azure for CCF)
+- Both support AWS and Azure (as well as GCP for CCF)
 - Both use comparable methodologies for calculating operational emissions
 - Both are open source and transparent about their calculation methods
 - SPRUCE implements several modules based on CCF's methodology (see [Cloud Carbon Footprint modules](modules.md#cloud-carbon-footprint))
@@ -29,18 +29,19 @@ SPRUCE is part of a growing ecosystem of open source tools focused on measuring 
 | **Output**             | Enriched Parquet/CSV files for custom analytics and visualization    | Pre-built dashboard and recommendations               |
 | **Embodied Carbon**    | Includes embodied emissions via Boavizta integration                 | Limited embodied carbon estimates                     |
 | **Scalability**        | Designed for large-scale data processing with Apache Spark           | Suitable for smaller to medium deployments            |
-| **Carbon Intensity**   | Uses Ember average data                                             | Default factors outdated                              |
+| **Carbon Intensity**   | Uses Ember average data                                              | Default factors outdated                              |
 | **Maintenance Status** | Actively maintained with regular updates                             | No longer actively maintained                         |
 | **Complexity**         | Easy to run on Docker                                                | Challenging to set up                                 |
 
 ### When to Choose SPRUCE
 
 - You want to combine GreenOps and FinOps data in a single workflow
-- You need to process large volumes of historical CUR data
-- You prefer to keep your usage data within your own infrastructure
+- You need to process large volumes of historical usage data
 - You want to build custom dashboards and reports with tools like DuckDB, Tableau, or PowerBI
 - You need fine-grained control over the calculation methodology through configurable modules
 - You want access to data at the lowest-possible granularity and control what gets displayed and how
+- You want data for recent services and models
+- You want to have water as an environmental impact
 
 ## CloudScanner
 
@@ -66,7 +67,7 @@ SPRUCE is part of a growing ecosystem of open source tools focused on measuring 
 | **Integration**     | Enriches existing billing data for FinOps alignment              | Standalone tool for environmental assessment          |
 | **Scalability**     | Designed for large-scale historical data processing              | Suitable for periodic resource audits                 |
 | **Output**          | Enriched reports in Parquet/CSV for custom analytics             | Prometheus metrics and Grafana dashboard              |
-| **Accuracy**        | Uses Ember intensity factors                                        | Uses outdated factors from BoaviztAPI                 |
+| **Accuracy**        | Uses Ember intensity factors                                     | Uses outdated factors from BoaviztAPI                 |
 
 ### When to Choose SPRUCE
 
