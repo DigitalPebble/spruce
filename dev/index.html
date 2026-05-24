@@ -1118,12 +1118,14 @@ place makes it easier to expose your costs and impacts side by side.</p>
 <h2 id="how-it-works">How it works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h2>
 <p><strong>SPRUCE</strong> uses <a href="https://spark.apache.org/">Apache Spark®</a> to read and write the usage reports (typically in Parquet format) in a scalable way and, thanks to its modular approach,
 splits the enrichment of the data into configurable stages.</p>
-<p>A typical sequence of stages would be:
-- estimation of embodied emissions from the hardware
-- estimation of energy used
-- estimation of water consumption
-- application of PUE / WUE and other overheads
-- application of carbon intensity factors</p>
+<p>A typical sequence of stages would be:</p>
+<ul>
+<li>Estimation of embodied emissions from the hardware</li>
+<li>Estimation of energy used</li>
+<li>Estimation of water consumption</li>
+<li>Application of PUE / WUE and other overheads</li>
+<li>Application of carbon intensity factors</li>
+</ul>
 <p>Have a look at the <a href="methodology/">methodology section</a> for more details.</p>
 <p>One of the benefits of using Apache Spark is that you can use <a href="howto/emr/">EMR on AWS</a> to enrich
 the CURs at scale without having to export or expose any of your data.</p>
@@ -1131,7 +1133,7 @@ the CURs at scale without having to export or expose any of your data.</p>
 <p><strong>SPRUCE</strong> is licensed under the <a href="https://www.apache.org/licenses/LICENSE-2.0">Apache License, Version 2.0</a>.</p>
 <h2 id="support">Support<a class="headerlink" href="#support" title="Permanent link">&para;</a></h2>
 <p>Do you need help with SPRUCE? Want some bespoke work, training or a workshop? We at <a href="https://digitalpebble.com/">DigitalPebble</a>, provide consulting services for SPRUCE. 
-Send us an email at <em>spruce@digitalpebble.com</em>!</p>
+Send us an email at <em>spruce@digitalpebble.com</em>.</p>
 
 
 
