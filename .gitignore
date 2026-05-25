@@ -32,4 +32,6 @@ output/
 
 site/
 
-docs/book
+docs/site
+
+scripts/.aqueduct_cache/
