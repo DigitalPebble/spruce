@@ -1,0 +1,1927 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Estimate the environmental impact of your cloud usage.">
+      
+      
+        <meta name="author" content="DigitalPebble Ltd">
+      
+      
+        <link rel="canonical" href="https://opensourcegreenops.cloud/1.1/modules/">
+      
+      
+        <link rel="prev" href="../methodology/">
+      
+      
+        <link rel="next" href="../comparison/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="zensical-0.0.43">
+    
+    
+      
+        <title>Enrichment modules - SPRUCE documentation</title>
+      
+    
+    
+      
+        
+      
+      <link rel="stylesheet" href="../assets/stylesheets/modern/main.fba56155.min.css">
+      
+        
+          
+        
+        <link rel="stylesheet" href="../assets/stylesheets/modern/palette.dfe2e883.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,500,500i,700,700i%7CJetBrains+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_scope.pathname.endsWith("/")||(__md_scope=new URL(__md_scope.pathname+"/",location)),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,_=__md_scope)=>JSON.parse(t.getItem(_.pathname+"."+e)),__md_set=(e,t,_=localStorage,a=__md_scope)=>{try{_.setItem(a.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="light-green" data-md-color-accent="light-green">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer" aria-label="Navigation"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#enrichment-modules" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="./.." title="SPRUCE documentation" class="md-header__button md-logo" aria-label="SPRUCE documentation" data-md-component="logo">
+      
+  <img src="../images/logo.png" alt="SPRUCE documentation">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer" aria-label="Navigation">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-menu" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            SPRUCE documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Enrichment modules
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="none" data-md-color-scheme="default" data-md-color-primary="light-green" data-md-color-accent="light-green"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="none" data-md-color-scheme="slate" data-md-color-primary="light-green" data-md-color-accent="light-green"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-moon" viewBox="0 0 24 24"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search" aria-label="Search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog" aria-label="Search">
+  <button type="button" class="md-search__button">
+    Search
+  </button>
+</div>
+      
+    
+    <div class="md-header__source">
+      
+        <a href="https://github.com/digitalpebble/spruce" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      
+    </div>
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="./.." title="SPRUCE documentation" class="md-nav__button md-logo" aria-label="SPRUCE documentation" data-md-component="logo">
+      
+  <img src="../images/logo.png" alt="SPRUCE documentation">
+
+    </a>
+    SPRUCE documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/digitalpebble/spruce" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="./.." class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Introduction
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Introduction
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Tutorials 🚀
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Tutorials 🚀
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/with-docker/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Quick start using Docker 🐳
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/with-spark/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Quick start using Apache Spark⚡
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/results/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Explore the results 🔎
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Explanations 📚
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Explanations 📚
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../methodology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Methodology
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Enrichment modules
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="././" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Enrichment modules
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#cloud-carbon-footprint" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Cloud Carbon Footprint
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Cloud Carbon Footprint">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ccfawsstorage" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        ccf.aws.Storage
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ccfazurestorage" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        ccf.azure.Storage
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ccfawsaccelerators" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        ccf.aws.Accelerators
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#boavizta" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Boavizta
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Boavizta">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#boaviztaawsboaviztapi" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        boavizta.aws.BoaviztAPI
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#boaviztaawsboaviztapistatic" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        boavizta.aws.BoaviztAPIstatic
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#boaviztaazureboaviztapi" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        boavizta.azure.BoaviztAPI
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#boaviztaazureboaviztapistatic" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        boavizta.azure.BoaviztAPIstatic
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ecologits" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        EcoLogits
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="EcoLogits">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ecologitsbedrockecologits" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        ecologits.BedrockEcoLogits
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#emberaveragecarbonintensity" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        ember.AverageCarbonIntensity
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloud-region-metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Cloud region metadata
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#regionextraction" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        RegionExtraction
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pwue" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        PWUE
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#water" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Water
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#awsnetworking" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        aws.Networking
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#azurenetworking" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        azure.Networking
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#awsserverless" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        aws.Serverless
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#operationalemissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        OperationalEmissions
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../comparison/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Comparison with other open source tools
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  How-to 💡
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  How-to 💡
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../howto/generate_cur/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Generate CUR reports
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../howto/emr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Run SPRUCE on AWS EMR Serverless
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../howto/s3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Read / write to S3
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../howto/config_modules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Configure the modules
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../howto/write_module/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Write a New Module
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../howto/config_logging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Configure logging
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../howto/splits/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Split Impact Allocation Data
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../howto/dashboard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Build a simple dashboard
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../howto/contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Contribute to SPRUCE
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Resources
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Resources
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../resources/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Resources
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  
+                    
+                    
+                    
+                      
+                    
+                    
+                      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+                      <div class="md-sidebar-button__wrapper">
+                        <label class="md-sidebar-button" for="__toc"></label>
+                      </div>
+                    
+                  
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#cloud-carbon-footprint" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Cloud Carbon Footprint
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Cloud Carbon Footprint">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ccfawsstorage" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        ccf.aws.Storage
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ccfazurestorage" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        ccf.azure.Storage
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ccfawsaccelerators" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        ccf.aws.Accelerators
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#boavizta" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Boavizta
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Boavizta">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#boaviztaawsboaviztapi" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        boavizta.aws.BoaviztAPI
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#boaviztaawsboaviztapistatic" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        boavizta.aws.BoaviztAPIstatic
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#boaviztaazureboaviztapi" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        boavizta.azure.BoaviztAPI
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#boaviztaazureboaviztapistatic" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        boavizta.azure.BoaviztAPIstatic
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ecologits" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        EcoLogits
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="EcoLogits">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ecologitsbedrockecologits" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        ecologits.BedrockEcoLogits
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#emberaveragecarbonintensity" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        ember.AverageCarbonIntensity
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloud-region-metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Cloud region metadata
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#regionextraction" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        RegionExtraction
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pwue" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        PWUE
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#water" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Water
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#awsnetworking" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        aws.Networking
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#azurenetworking" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        azure.Networking
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#awsserverless" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        aws.Serverless
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#operationalemissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        OperationalEmissions
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+  
+  
+
+
+<h1 id="enrichment-modules">Enrichment modules<a class="headerlink" href="#enrichment-modules" title="Permanent link">&para;</a></h1>
+<p>SPRUCE generates its estimates by chaining <strong>EnrichmentModules</strong>.
+An <code>EnrichmentModule</code> is the unit of extension in SPRUCE. Each module reads columns from
+the CUR input row and/or from values set by earlier modules, then writes its results into a
+shared map. The pipeline materialises one output row per CUR row at the end, avoiding
+per-module row copies.</p>
+<p>For instance, the <a href="https://github.com/DigitalPebble/spruce/blob/main/src/main/java/com/digitalpebble/spruce/modules/ember/AverageCarbonIntensity.java">AverageCarbonIntensity.java</a> module applies average carbon intensity factors to energy estimates based on the region in order to generate <em>operational emissions</em>.</p>
+<p>The list of columns generated by the modules can be found in the <a href="https://github.com/DigitalPebble/spruce/blob/main/src/main/java/com/digitalpebble/spruce/SpruceColumn.java">SpruceColumn</a> class.</p>
+<p>The enrichment modules are listed and configured in a configuration file, one per cloud provider. If no configuration is specified, SPRUCE uses the bundled default for the active provider (e.g. <a href="https://github.com/DigitalPebble/spruce/blob/main/src/main/resources/default-config-aws.json"><code>default-config-aws.json</code></a> for AWS).
+See <a href="../howto/config_modules/">Configure the modules</a> for instructions on how to modify the enrichment modules.</p>
+<h2 id="cloud-carbon-footprint">Cloud Carbon Footprint<a class="headerlink" href="#cloud-carbon-footprint" title="Permanent link">&para;</a></h2>
+<p>The following modules implement the heuristics from the <a href="https://www.cloudcarbonfootprint.org/">Cloud Carbon Footprint</a> project.</p>
+<h3 id="ccfawsstorage">ccf.aws.Storage<a class="headerlink" href="#ccfawsstorage" title="Permanent link">&para;</a></h3>
+<p>Provides an estimate of energy used for storage by applying a flat coefficient per Gb, following the approach used by the <a href="https://www.cloudcarbonfootprint.org/">Cloud Carbon Footprint</a> project.
+Service-specific replication factors are applied.
+See <a href="https://www.cloudcarbonfootprint.org/docs/methodology#storage">methodology</a> for more details.</p>
+<p>The HDD and SSD coefficients (in Wh per TB-hour) can be overridden via configuration:</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>hdd_coefficient_tb_h</code></td>
+<td>0.65</td>
+<td>Energy per TB-hour for HDD storage</td>
+</tr>
+<tr>
+<td><code>ssd_coefficient_tb_h</code></td>
+<td>1.2</td>
+<td>Energy per TB-hour for SSD storage</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Output column</strong>:  <code>operational_energy_kwh</code>.</p>
+<h3 id="ccfazurestorage">ccf.azure.Storage<a class="headerlink" href="#ccfazurestorage" title="Permanent link">&para;</a></h3>
+<p>Provides an estimate of energy used for Azure storage by applying the same
+Cloud Carbon Footprint storage coefficients used by <code>ccf.aws.Storage</code>.
+Service-specific replication factors are applied. Managed disks are estimated
+from their provisioned capacity.</p>
+<p>The HDD and SSD coefficients (in Wh per TB-hour) can be overridden via
+configuration using the same keys as <code>ccf.aws.Storage</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>hdd_coefficient_tb_h</code></td>
+<td>0.65</td>
+<td>Energy per TB-hour for HDD storage</td>
+</tr>
+<tr>
+<td><code>ssd_coefficient_tb_h</code></td>
+<td>1.2</td>
+<td>Energy per TB-hour for SSD storage</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Output column</strong>:  <code>operational_energy_kwh</code>.</p>
+<h3 id="ccfawsaccelerators">ccf.aws.Accelerators<a class="headerlink" href="#ccfawsaccelerators" title="Permanent link">&para;</a></h3>
+<p>Provides an estimate of energy used by accelerators, following the approach used by the <a href="https://www.cloudcarbonfootprint.org/">Cloud Carbon Footprint</a> project.
+See <a href="https://www.cloudcarbonfootprint.org/docs/methodology/#graphic-processing-units-gpus">methodology</a> for more details.</p>
+<p><strong>Output column</strong>:  <code>operational_energy_kwh</code>.</p>
+<h2 id="boavizta">Boavizta<a class="headerlink" href="#boavizta" title="Permanent link">&para;</a></h2>
+<p>The following modules make use of the <a href="https://doc.api.boavizta.org">BoaviztAPI</a>.</p>
+<h3 id="boaviztaawsboaviztapi">boavizta.aws.BoaviztAPI<a class="headerlink" href="#boaviztaawsboaviztapi" title="Permanent link">&para;</a></h3>
+<p>Provides an estimate of <a href="https://www.eea.europa.eu/en/analysis/indicators/primary-and-final-energy-consumption">final energy</a> used for computation (EC2, OpenSearch, RDS) as well as the related embodied emissions using the <a href="https://doc.api.boavizta.org/">BoaviztAPI</a>.</p>
+<p><strong>Output columns</strong>: <code>operational_energy_kwh</code>, <code>embodied_emissions_co2eq_g</code> and <code>embodied_adp_sbeq_g</code>.</p>
+<p>From <a href="https://doc.api.boavizta.org/Explanations/impacts/">https://doc.api.boavizta.org/Explanations/impacts/</a></p>
+<p><strong>Abiotic Depletion Potential (ADP)</strong> is an environmental impact indicator. This category corresponds to mineral and resources used and is, in this sense, mainly influenced by the rate of resources extracted. The effect of this consumption on their depletion is estimated according to their availability stock at a global scale. This impact category is divided into two components: a material component and a fossil fuels component (we use a version of ADP which include both).
+This impact is expressed in grams of antimony equivalent (gSbeq).</p>
+<p><strong>Source</strong>: <a href="https://www.sciencedirect.com/topics/engineering/abiotic-depletion-potential">sciencedirect</a></p>
+<h3 id="boaviztaawsboaviztapistatic">boavizta.aws.BoaviztAPIstatic<a class="headerlink" href="#boaviztaawsboaviztapistatic" title="Permanent link">&para;</a></h3>
+<p>Similar to the previous module but does not get the information from an instance of the BoaviztAPI but from a static file generated from it. This makes it simpler to use SPRUCE.</p>
+<p><strong>Output columns</strong>: <code>operational_energy_kwh</code>, <code>embodied_emissions_co2eq_g</code> and <code>embodied_adp_sbeq_g</code>.</p>
+<h3 id="boaviztaazureboaviztapi">boavizta.azure.BoaviztAPI<a class="headerlink" href="#boaviztaazureboaviztapi" title="Permanent link">&para;</a></h3>
+<p>Similar to the AWS equivalent but for Azure.</p>
+<p><strong>Output columns</strong>: <code>operational_energy_kwh</code>, <code>embodied_emissions_co2eq_g</code> and <code>embodied_adp_sbeq_g</code>.</p>
+<h3 id="boaviztaazureboaviztapistatic">boavizta.azure.BoaviztAPIstatic<a class="headerlink" href="#boaviztaazureboaviztapistatic" title="Permanent link">&para;</a></h3>
+<p>Similar to the AWS equivalent but for Azure.</p>
+<p><strong>Output columns</strong>: <code>operational_energy_kwh</code>, <code>embodied_emissions_co2eq_g</code> and <code>embodied_adp_sbeq_g</code>.</p>
+<h2 id="ecologits">EcoLogits<a class="headerlink" href="#ecologits" title="Permanent link">&para;</a></h2>
+<p>The following modules estimate the energy consumption and embodied emissions of LLM inference using static coefficients derived from the <a href="https://ecologits.ai/">EcoLogits</a> project.</p>
+<h3 id="ecologitsbedrockecologits">ecologits.BedrockEcoLogits<a class="headerlink" href="#ecologitsbedrockecologits" title="Permanent link">&para;</a></h3>
+<p>Provides an estimate of energy consumption and embodied emissions for LLM inference on <strong>AWS Bedrock</strong>, based on static per-model coefficients from the EcoLogits project. This follows the same pattern as <code>boavizta.aws.BoaviztAPIstatic</code>: a static data file bundled in the JAR is loaded at initialisation time, and the module matches Bedrock CUR rows to per-model coefficients to compute energy usage and embodied emissions.</p>
+<p>The module parses the <code>line_item_usage_type</code> field (format: <code>{REGION}-{ModelKey}-{input|output}-tokens[-batch]</code>) to extract both the model key and the token type, then normalises the token count from <code>pricing_unit</code> (handling real-world values such as <code>1K tokens</code> or <code>1M tokens</code>). Only output-token rows are scored — the EcoLogits methodology attributes ~all generation cost to the autoregressive output phase, so input-token rows are skipped.</p>
+<p><strong>Output columns</strong>: <code>operational_energy_kwh</code> and <code>embodied_emissions_co2eq_g</code>.</p>
+<blockquote>
+<p><strong>Batch size assumption:</strong> EcoLogits hardcodes a batch size of <code>B=64</code> concurrent requests. The resulting coefficients are a mid-batch estimate — they underestimate energy for low-traffic scenarios and overestimate it for high-throughput batch inference (e.g. Bedrock Batch mode). Making <code>B</code> dynamic requires provider telemetry not available in billing data.</p>
+</blockquote>
+<h2 id="emberaveragecarbonintensity">ember.AverageCarbonIntensity<a class="headerlink" href="#emberaveragecarbonintensity" title="Permanent link">&para;</a></h2>
+<p>Adds average carbon intensity factors derived from <a href="https://ember-energy.org/">Ember</a>'s electricity data, distributed under the <a href="https://ember-energy.org/creative-commons/">Creative Commons Attribution Licence (CC-BY-4.0)</a>.
+Values are keyed directly by cloud provider and region (e.g. <code>aws:us-east-1</code>). For regions in countries with sub-national data (currently the US and India), the carbon intensity is taken from the Ember value for the state hosting the data centre; otherwise the country-level Ember value is used.</p>
+<p>The data is loaded from <code>src/main/resources/ember/ember_co2_intensity.csv</code>, which is generated from <a href="#cloud-region-metadata"><code>cloud_regions.json</code></a> — see the scripts under <a href="https://github.com/DigitalPebble/spruce/tree/main/scripts"><code>scripts/</code></a> and the dedicated <a href="https://github.com/DigitalPebble/spruce/blob/main/scripts/README.md">README</a> for how to refresh it.</p>
+<p><strong>Output column</strong>: <code>carbon_intensity</code>.</p>
+<h2 id="cloud-region-metadata">Cloud region metadata<a class="headerlink" href="#cloud-region-metadata" title="Permanent link">&para;</a></h2>
+<p>SPRUCE ships with <code>src/main/resources/cloud_regions.json</code>, a single JSON file
+listing the AWS, GCP, and Azure cloud regions together with their location
+(country, metro area, latitude/longitude), service status, and number of
+availability zones. It is the canonical source for the region-to-location
+mapping used by other modules and resource files (e.g. <code>ember.AverageCarbonIntensity</code>).</p>
+<p>The file is produced in two steps by scripts under <a href="https://github.com/DigitalPebble/spruce/tree/main/scripts"><code>scripts/</code></a>, see <a href="https://github.com/DigitalPebble/spruce/blob/main/scripts/README.md"><code>scripts/README.md</code></a> for the full usage details.</p>
+<h2 id="regionextraction">RegionExtraction<a class="headerlink" href="#regionextraction" title="Permanent link">&para;</a></h2>
+<p>Extracts the region information from the input and stores it in a standard location.</p>
+<p><strong>Output column</strong>:  <code>region</code>.</p>
+<p><strong>AWS Module</strong>: <code>com.digitalpebble.spruce.modules.aws.RegionExtraction</code>
+<strong>Azure Module</strong>: <code>com.digitalpebble.spruce.modules.azure.RegionExtraction</code></p>
+<h2 id="pwue">PWUE<a class="headerlink" href="#pwue" title="Permanent link">&para;</a></h2>
+<p>Loads and stores both <strong>Power Usage Effectiveness (PUE)</strong> and <strong>Water Usage Effectiveness (WUE)</strong> factors from a single CSV resource file. This module replaces the previous separate PUE module and centralizes the loading of these efficiency factors.</p>
+<p>The module uses the 2024 data published by AWS for <a href="https://sustainability.aboutamazon.com/aws-wue-pue.csv">Power Usage Effectiveness</a> and the corresponding WUE values. For Azure, the source is <a href="https://datacenters.microsoft.com/sustainability/efficiency/">https://datacenters.microsoft.com/sustainability/efficiency/</a>.</p>
+<p>The PWUE module supports both AWS and Azure providers and loads the appropriate resource file based on the provider:
+- AWS: <code>aws-pue-wue.csv</code>
+- Azure: <code>azure-pue-wue.csv</code></p>
+<p>The lookup logic follows this priority:
+1. Exact region match (e.g., "us-east-1")
+2. Regex pattern match (e.g., "us-.+")
+3. Default configured value (fallback to 1.15 for PUE, null for WUE)</p>
+<p><strong>Output columns</strong>:  <code>power_usage_effectiveness</code> and <code>water_usage_effectiveness</code>.</p>
+<h2 id="water">Water<a class="headerlink" href="#water" title="Permanent link">&para;</a></h2>
+<p>Estimates water consumption associated with cloud usage, producing three columns:</p>
+<ul>
+<li>
+<p><strong><code>water_cooling_l</code></strong> – the volume of water (in litres) used for <strong>data centre cooling</strong>. Computed as <code>operational_energy_kwh</code> × <code>power_usage_effectiveness</code> × WUE, where WUE (Water Usage Effectiveness) is the ratio of litres of water consumed for cooling per kWh of IT energy. The per-region WUE values are loaded by the <a href="#pwue">PWUE module</a> from the <a href="https://sustainability.aboutamazon.com/aws-wue-pue.csv">2024 data published by AWS</a>. The source for Azure is <a href="https://datacenters.microsoft.com/sustainability/efficiency/">https://datacenters.microsoft.com/sustainability/efficiency/</a>.</p>
+</li>
+<li>
+<p><strong><code>water_electricity_production_l</code></strong> – the volume of water (in litres) consumed during <strong>electricity generation</strong> to power the data centre. Computed as <code>operational_energy_kwh</code> × <code>power_usage_effectiveness</code> × WCF, where WCF (Water Consumption Factor) represents the litres of water consumed per kWh of electricity generated. The WCF values per electricity grid zone are sourced from the <a href="https://www.wri.org/data/dataset-guidance-calculating-water-use-embedded-purchased-electricity">WRI methodology for calculating water use embedded in purchased electricity</a>.</p>
+</li>
+<li>
+<p><strong><code>water_consumption_stress_area_l</code></strong> – the total water consumption (<code>water_cooling_l</code> + <code>water_electricity_production_l</code>) attributed to regions under <strong>high or extremely high water stress</strong> (Aqueduct 4.0 baseline water stress category ≥ 3). This field is only populated when the electricity grid zone for the region has a water stress category of 3 (High) or 4 (Extremely High); it is absent otherwise. Water stress categories are derived from the <a href="https://www.wri.org/data/aqueduct-global-maps-40">WRI Aqueduct 4.0</a> dataset.
+  The World Resource Institute's Aqueduct tool is licensed through Creative Commons. The data has been extracted and mapped to cloud provider region codes.</p>
+</li>
+</ul>
+<p><strong>Output columns</strong>: <code>water_cooling_l</code>, <code>water_electricity_production_l</code>, and <code>water_consumption_stress_area_l</code>.</p>
+<h2 id="awsnetworking">aws.Networking<a class="headerlink" href="#awsnetworking" title="Permanent link">&para;</a></h2>
+<p>Provides an estimate of energy used for networking in and out of data centres. The module distinguishes between three transfer types with separate coefficients (in kWh/Gb):</p>
+<table>
+<thead>
+<tr>
+<th>Transfer type</th>
+<th>Key</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Intra-region</td>
+<td><code>intra</code></td>
+<td>0.001</td>
+<td>Traffic within the same region</td>
+</tr>
+<tr>
+<td>Inter-region</td>
+<td><code>inter</code></td>
+<td>0.0015</td>
+<td>Traffic between AWS regions</td>
+</tr>
+<tr>
+<td>External</td>
+<td><code>extra</code></td>
+<td>0.059</td>
+<td>Traffic to/from the internet (AWS Inbound / Outbound)</td>
+</tr>
+</tbody>
+</table>
+<p>The coefficients are taken from the Boavizta Cloud Emissions Working Group and can be overridden via the <code>network_coefficients_kwh_gb</code> configuration map.</p>
+<p>The relevance and usefulness of attributing emissions for networking based on usage is
+subject for debate as the energy use of networking is pretty constant independently of
+traffic. The consequences of reducing networking are probably negligible but since the
+approach in SPRUCE is attributional, we do the same for networking in order to be consistent.</p>
+<p><strong>Output column</strong>: <code>operational_energy_kwh</code>.</p>
+<h2 id="azurenetworking">azure.Networking<a class="headerlink" href="#azurenetworking" title="Permanent link">&para;</a></h2>
+<p>Same as above but for Azure.</p>
+<p><strong>Output column</strong>: <code>operational_energy_kwh</code>.</p>
+<h2 id="awsserverless">aws.Serverless<a class="headerlink" href="#awsserverless" title="Permanent link">&para;</a></h2>
+<p>Provides an estimate of energy for the memory and vCPU usage of serverless services like Fargate or EMR.
+The default coefficients are taken from the <a href="https://tailpipe.ai/methodology/serverless-explained/">Tailpipe methodology</a> and can be overridden via configuration:</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>memory_coefficient_kwh</code></td>
+<td>0.0000598</td>
+<td>kWh per GB of memory</td>
+</tr>
+<tr>
+<td><code>arm_cpu_coefficient_kwh</code></td>
+<td>0.00191015625</td>
+<td>kWh per vCPU (ARM)</td>
+</tr>
+<tr>
+<td><code>x86_cpu_coefficient_kwh</code></td>
+<td>0.0088121875</td>
+<td>kWh per vCPU (x86)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Output column</strong>:  <code>operational_energy_kwh</code>.</p>
+<h2 id="operationalemissions">OperationalEmissions<a class="headerlink" href="#operationalemissions" title="Permanent link">&para;</a></h2>
+<p>Computes operational emissions based on the energy usage, average carbon intensity factors and <code>power_usage_effectiveness</code> estimated by the preceding modules, based on the <code>region</code>. It also accounts for two additional overheads:</p>
+<ul>
+<li><strong>Power Supply Efficiency</strong>: The power lost between the data centre mains electricity and the server (default <code>1.04</code>).</li>
+<li><strong>Power Transmission Losses</strong>: The power lost between the power station and the data centre mains electricity (default <code>1.08</code>).</li>
+</ul>
+<p>These two values can be overridden via configuration (<code>powerSupplyEfficiency</code> and <code>powerTransmissionLosses</code>).</p>
+<p><code>operational_emissions_co2eq_g</code> is equal to <code>operational_energy_kwh</code> * <code>carbon_intensity</code> * <code>power_usage_effectiveness</code> * <code>powerSupplyEfficiency</code> * <code>powerTransmissionLosses</code>.</p>
+<p><strong>Output columns</strong>: <code>operational_emissions_co2eq_g</code>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-circle-arrow-up" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16 12-4-4-4 4M12 16V8"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../methodology/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Methodology">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7M19 12H5"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Methodology
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../comparison/" class="md-footer__link md-footer__link--next" aria-label="Next: Comparison with other open source tools">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Comparison with other open source tools
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 DigitalPebble Ltd
+
+    </div>
+  
+  
+    Made with
+    <a href="https://zensical.org/" target="_blank" rel="noopener">
+      Zensical
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate":null,"base":"..","features":["announce.dismiss","content.code.annotate","content.code.copy","content.code.select","content.footnote.tooltips","content.tabs.link","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight"],"search":"../assets/javascripts/workers/search.e2d2d235.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"alias":true,"default":"latest","provider":"mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.6e5f0216.min.js"></script>
+      
+    
+  </body>
+</html>
