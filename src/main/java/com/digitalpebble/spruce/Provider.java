@@ -7,7 +7,8 @@ public enum Provider {
 
     AWS("Amazon Web Services", "aws"),
     GOOGLE("Google Cloud", "gcp"),
-    AZURE("Microsoft Azure", "azure");
+    AZURE("Microsoft Azure", "azure"),
+    FOCUS("FOCUS", "focus");
 
     private final String text;
     /** Short lowercase key used in resource CSV files (e.g. water-stress.csv, wcf.csv). */
