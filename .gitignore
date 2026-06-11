@@ -35,3 +35,4 @@ site/
 docs/site
 
 scripts/.aqueduct_cache/
+scripts/.geocode_cache
