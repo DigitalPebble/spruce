@@ -17,7 +17,7 @@ import static com.digitalpebble.spruce.SpruceColumn.*;
 
 public class SKU implements EnrichmentModule {
 
-    private Map<String, double[]> impacts_per_sku = new HashMap<String, double[]>();
+    private final Map<String, double[]> impacts_per_sku = new HashMap<String, double[]>();
 
     private static void populateMapFromCSV(String resourceFileName, Map<String, double[]> map) throws IOException {
         // Use the class loader to get the resource as an InputStream

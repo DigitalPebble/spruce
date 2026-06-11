@@ -1,0 +1,10 @@
+{
+  "modules": [
+    {
+      "className": "com.digitalpebble.spruce.modules.focus.RegionExtraction"
+    },
+    {
+      "className": "com.digitalpebble.spruce.modules.focus.SKU"
+    }
+  ]
+}

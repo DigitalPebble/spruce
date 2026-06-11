@@ -22,7 +22,7 @@ public class SparkJob {
         options.addOption("c", "config", true, "config file");
         options.addRequiredOption("i", "input", true, "input path");
         options.addRequiredOption("o", "output", true, "output path");
-        options.addOption("p", "provider", true, "cloud provider (AWS, GOOGLE, AZURE) — defaults to AWS");
+        options.addOption("p", "provider", true, "cloud provider (AWS, GOOGLE, AZURE, FOCUS) — defaults to AWS");
 
         String configPath = null;
         String inputPath = null;
