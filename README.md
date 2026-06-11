@@ -55,6 +55,7 @@ Licensed under the Apache License, Version 2.0: http://www.apache.org/licenses/L
 We welcome contributions to the project, see [CONTRIBUTING.md](CONTRIBUTING.md) for instructions on how to do so. Contributions are not only about code: by testing the project on your data, talking about it or asking questions, you will be contributing too!
 
 ## Support
-Do you need help with SPRUCE? Want some bespoke work, training or a workshop? We at [DigitalPebble](https://digitalpebble.com/), provide consulting services for SPRUCE. 
-Send us an email at _spruce@digitalpebble.com_!
+Do you need help with SPRUCE? Want some bespoke work, training or a workshop? Would you like someone to run it for you on your data?
+
+[DigitalPebble](https://digitalpebble.com/) provide consulting services for SPRUCE, send us an email at _spruce@digitalpebble.com_.
 
