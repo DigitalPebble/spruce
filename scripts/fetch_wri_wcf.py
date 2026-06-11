@@ -269,7 +269,7 @@ def main():
         PROJECT_ROOT, "src", "main", "resources", "wcf.csv"
     )
     geocache_path = os.environ.get(
-        "GEOCACHE", os.path.join(os.path.dirname(output_path), "geocode_cache.tsv")
+        "GEOCACHE", os.path.join(SCRIPT_DIR, ".geocode_cache")
     )
     cache_dir = os.path.join(SCRIPT_DIR, ".aqueduct_cache")
     os.makedirs(cache_dir, exist_ok=True)

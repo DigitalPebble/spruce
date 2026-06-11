@@ -39,7 +39,7 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 URL="https://files.ember-energy.org/public-downloads/yearly_full_release_long_format.csv"
 CLOUD_REGIONS="${1:-cloud_regions.json}"
 OUTPUT="${2:-$PROJECT_ROOT/src/main/resources/ember/ember_co2_intensity.csv}"
-GEO_CACHE="${EMBER_GEOCACHE:-./geocode_cache.tsv}"
+GEO_CACHE="${EMBER_GEOCACHE:-$SCRIPT_DIR/.geocode_cache}"
 NOMINATIM_UA="ember-cloud-region-script/1.0"
 
 # Sub-national sources: "country_name|url|iso_3166-2_prefix". The prefix is
