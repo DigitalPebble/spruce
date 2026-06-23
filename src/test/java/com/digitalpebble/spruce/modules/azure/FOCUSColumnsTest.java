@@ -6,6 +6,9 @@ import com.digitalpebble.spruce.Column;
 import com.digitalpebble.spruce.Utils;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema;
+import org.apache.spark.sql.types.DataTypes;
+import org.apache.spark.sql.types.Metadata;
+import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 import org.junit.jupiter.api.Test;
 
@@ -73,6 +76,25 @@ public class FOCUSColumnsTest {
     }
 
     @Test
+    void regionIdFallsBackToResourceLocation() {
+        StructType withLocation = new StructType(new StructField[]{
+                new StructField("CostInBillingCurrency", DataTypes.DoubleType, true, Metadata.empty()),
+                new StructField("MeterCategory", DataTypes.StringType, true, Metadata.empty()),
+                new StructField("ChargeType", DataTypes.StringType, true, Metadata.empty()),
+                new StructField("SubscriptionId", DataTypes.StringType, true, Metadata.empty()),
+                new StructField("Date", DataTypes.StringType, true, Metadata.empty()),
+                new StructField("ResourceLocation", DataTypes.StringType, true, Metadata.empty())
+        });
+        Row row = new GenericRowWithSchema(
+                new Object[]{1.0, "Storage", "Usage", "sub-123", "2026-06-23", "EastUS"}, withLocation);
+        Map<Column, Object> enriched = new HashMap<>();
+
+        module.enrich(row, enriched);
+
+        assertEquals("eastus", enriched.get(REGION_ID));
+    }
+
+    @Test
     void nullCostProducesNoBilledCost() {
         Row row = generateRow(null, "Storage", "Usage", "sub-123", "2026-06-23");
         Map<Column, Object> enriched = new HashMap<>();
@@ -107,7 +129,6 @@ public class FOCUSColumnsTest {
     void declaresAddedColumns() {
         assertTrue(java.util.Arrays.asList(module.columnsAdded()).contains(BILLED_COST));
         assertTrue(java.util.Arrays.asList(module.columnsAdded()).contains(CHARGE_PERIOD_END));
-        // pass-through columns are not added by the module
         assertFalse(java.util.Arrays.asList(module.columnsAdded())
                 .contains(com.digitalpebble.spruce.FOCUSColumn.TAGS));
         assertFalse(java.util.Arrays.asList(module.columnsAdded())
