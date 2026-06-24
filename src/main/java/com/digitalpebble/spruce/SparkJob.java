@@ -65,6 +65,10 @@ public class SparkJob {
                 dataframe = dataframe.withColumn(AzureColumn.QUANTITY.getLabel(),
                         dataframe.col(AzureColumn.QUANTITY.getLabel()).cast("double"));
             }
+            if (java.util.Arrays.asList(dataframe.columns()).contains(AzureColumn.COST_IN_BILLING_CURRENCY.getLabel())) {
+                dataframe = dataframe.withColumn(AzureColumn.COST_IN_BILLING_CURRENCY.getLabel(),
+                        dataframe.col(AzureColumn.COST_IN_BILLING_CURRENCY.getLabel()).cast("double"));
+            }
         } else {
             dataframe = spark.read().parquet(inputPath);
         }
