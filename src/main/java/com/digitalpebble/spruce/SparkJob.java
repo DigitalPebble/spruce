@@ -61,9 +61,14 @@ public class SparkJob {
             dataframe = spark.read().option("header", "true").option("inferSchema", "true")
                     .option("quote", "\"")
                     .option("escape", "\"").csv(inputPath);
-            if (java.util.Arrays.asList(dataframe.columns()).contains(AzureColumn.QUANTITY.getLabel())) {
-                dataframe = dataframe.withColumn(AzureColumn.QUANTITY.getLabel(),
-                        dataframe.col(AzureColumn.QUANTITY.getLabel()).cast("double"));
+            // inferSchema may read numeric columns as strings; force them to double
+            AzureColumn[] numericColumns = {AzureColumn.QUANTITY, AzureColumn.COST_IN_BILLING_CURRENCY};
+            java.util.List<String> columns = java.util.Arrays.asList(dataframe.columns());
+            for (AzureColumn column : numericColumns) {
+                if (columns.contains(column.getLabel())) {
+                    dataframe = dataframe.withColumn(column.getLabel(),
+                            dataframe.col(column.getLabel()).cast("double"));
+                }
             }
         } else {
             dataframe = spark.read().parquet(inputPath);
