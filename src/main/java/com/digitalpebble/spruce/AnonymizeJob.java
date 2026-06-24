@@ -11,7 +11,7 @@ import java.util.*;
 
 /**
  * Spark job to anonymize CUR reports by keeping only known columns.
- * Known columns are those defined in CURColumn, AzureColumn, SpruceColumn, and FOCUSColumn
+ * Known columns are those defined in CURColumn, AzureColumn, SpruceColumn, and FinOpsColumn
  * classes, plus any additional columns specified by the user.
  * Input format is determined by provider: Parquet for AWS/GOOGLE, CSV for AZURE.
  * Output is always written as Parquet.
@@ -71,7 +71,7 @@ public class AnonymizeJob {
         Set<String> whitelist = new HashSet<>();
         whitelist.addAll(getColumnLabels(CURColumn.class));
         whitelist.addAll(getColumnLabels(SpruceColumn.class));
-        whitelist.addAll(getColumnLabels(FOCUSColumn.class));
+        whitelist.addAll(getColumnLabels(FinOpsColumn.class));
 
         if (provider == Provider.AZURE) {
             whitelist.addAll(getColumnLabels(AzureColumn.class));

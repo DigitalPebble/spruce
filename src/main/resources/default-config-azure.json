@@ -43,7 +43,7 @@
       }
     },
     {
-      "className": "com.digitalpebble.spruce.modules.azure.FOCUSColumns"
+      "className": "com.digitalpebble.spruce.modules.azure.FinOpsColumns"
     }
   ]
 }

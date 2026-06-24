@@ -215,7 +215,7 @@ These two values can be overridden via configuration (`powerSupplyEfficiency` an
 **Output columns**: `operational_emissions_co2eq_g`.
 
 
-## azure.FOCUSColumns
+## azure.FinOpsColumns
 
 Bridges Azure-native billing columns to provider-neutral [FOCUS](https://focus.finops.org/) (FinOps Open Cost & Usage Specification) columns, so the reporting scripts and dashboard can consume Azure-enriched data with the same column names as other providers. Runs last in the Azure pipeline, after `region` has been set by [RegionExtraction](#regionextraction).
 
@@ -233,4 +233,4 @@ Columns that already carry a FOCUS-compatible name in the Azure input (`BillingC
 
 **Output columns**: `BilledCost`, `RegionId`, `ServiceName`, `ChargeCategory`, `SubAccountId`, `ChargePeriodStart`, `ChargePeriodEnd`.
 
-**Azure Module**: `com.digitalpebble.spruce.modules.azure.FOCUSColumns`
+**Azure Module**: `com.digitalpebble.spruce.modules.azure.FinOpsColumns`
