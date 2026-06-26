@@ -3,6 +3,7 @@
 ## Talks
 - **"SPRUCE it up! Open Source GreenOps at scale"** at [BerlinBuzzwords - June 8th 2026](https://2026.berlinbuzzwords.de/session/spruce-it-up-open-source-greenops-at-scale/)
     - [video](https://www.youtube.com/watch?v=GeeUHrGden0)
+    - [slides](https://program.berlinbuzzwords.de/media/bbuzz26/submissions/BGDMFD/resources/jnioche-SPRUCE-BBu_Im8KBQS.pdf)
 
 - **"SPRUCE - an open-source enrichment platform for GreenOps"** at [Boavizta meetup - February 13th 2026](https://boavizta.org/en)
     - [YT](https://youtu.be/xW1EwKX70p0)
