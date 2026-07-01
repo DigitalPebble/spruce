@@ -229,6 +229,46 @@ section[data-testid="stSidebar"] p {
   overflow-wrap: anywhere;
 }
 
+.spruce-equiv {
+  background: var(--spruce-surface);
+  border: 1px solid var(--spruce-border);
+  border-radius: 8px;
+  box-shadow: var(--spruce-shadow);
+  padding: 0.9rem 1.18rem;
+  margin: -0.55rem 0 1.4rem;
+}
+
+.spruce-equiv-title {
+  color: var(--spruce-muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.5rem;
+}
+
+.spruce-equiv-row {
+  display: flex;
+  gap: 0.6rem;
+  padding: 0.22rem 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: var(--spruce-text);
+}
+
+.spruce-equiv-metric {
+  color: var(--spruce-muted);
+  min-width: 92px;
+  font-weight: 600;
+}
+
+.spruce-equiv-items {
+  overflow-wrap: anywhere;
+}
+
+.spruce-equiv-note {
+  color: var(--spruce-muted);
+}
+
 .spruce-table {
   width: 100%;
   border-collapse: separate;

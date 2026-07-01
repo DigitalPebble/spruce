@@ -26,6 +26,8 @@ except ImportError as exc:
         f"({exc})"
     )
 
+import equivalences
+
 DEFAULT_TOP_N = 10
 MAX_TOP_N = 50
 MAX_TAG_CHART_ROWS = 40
@@ -797,6 +799,46 @@ def line_area_chart(
 # ---------------------------------------------------------------------------
 
 
+def equivalence_item_html(item: equivalences.Equivalence) -> str:
+    quantity = html.escape(equivalences.format_quantity(item.quantity))
+    text = f"<strong>{quantity}</strong> {html.escape(item.unit)}"
+    if item.note:
+        text += f" <span class='spruce-equiv-note'>({html.escape(item.note)})</span>"
+    return text
+
+
+EQUIV_METRIC_COLORS = {
+    "Emissions": COLORS["emissions"],
+    "Energy": COLORS["energy"],
+    "Water": COLORS["water"],
+}
+
+
+def render_equivalences(row: pd.Series) -> None:
+    groups = equivalences.overview_equivalences(
+        row["total_emissions_kg"], row["energy_kwh"], row["water_l"]
+    )
+    rows = []
+    for group in groups:
+        color = EQUIV_METRIC_COLORS.get(group.metric, COLORS["muted"])
+        items = " &middot; ".join(
+            equivalence_item_html(item) for item in group.items
+        )
+        rows.append(
+            "<div class='spruce-equiv-row'>"
+            f"<span class='spruce-equiv-metric' style='color:{color}'>"
+            f"{html.escape(group.metric)}</span>"
+            f"<span class='spruce-equiv-items'>&asymp; {items}</span>"
+            "</div>"
+        )
+    render_html(
+        "<div class='spruce-equiv'>"
+        "<div class='spruce-equiv-title'>In everyday terms</div>"
+        f"{''.join(rows)}"
+        "</div>"
+    )
+
+
 def render_overview(overview: pd.DataFrame) -> None:
     if overview.empty:
         st.info("No data available for the current filters.")
@@ -813,6 +855,7 @@ def render_overview(overview: pd.DataFrame) -> None:
             ("Coverage (dataset-wide)", metric_value(row["coverage_pct"], " %"), ""),
         ]
     )
+    render_equivalences(row)
 
 
 def render_trend(trend: pd.DataFrame) -> None:
