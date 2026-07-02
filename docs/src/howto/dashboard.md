@@ -59,9 +59,11 @@ coverage KPI matches `report.py` and is calculated across the full input, not
 only the currently selected filters.
 
 The "In everyday terms" block under the overview cards converts the emissions,
-energy, and water totals into human-readable equivalences. Conversion factors
-are documented, order-of-magnitude figures; edit them in
-`reporting/equivalences.py` to change the references or add more comparisons.
+energy, and water totals into human-readable equivalences. The sidebar
+"Equivalence style" selector switches the comparison set (Everyday, Tech, or
+Nature). Conversion factors are documented, order-of-magnitude figures; edit
+them in `reporting/equivalences.py` to change the references or add more
+comparisons.
 
 ## Screenshots
 
