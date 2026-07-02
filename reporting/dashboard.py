@@ -799,14 +799,6 @@ def line_area_chart(
 # ---------------------------------------------------------------------------
 
 
-def equivalence_item_html(item: equivalences.Equivalence) -> str:
-    quantity = html.escape(equivalences.format_quantity(item.quantity))
-    text = f"<strong>{quantity}</strong> {html.escape(item.unit)}"
-    if item.note:
-        text += f" <span class='spruce-equiv-note'>({html.escape(item.note)})</span>"
-    return text
-
-
 EQUIV_METRIC_COLORS = {
     "Emissions": COLORS["emissions"],
     "Energy": COLORS["energy"],
@@ -814,32 +806,51 @@ EQUIV_METRIC_COLORS = {
 }
 
 
-def render_equivalences(row: pd.Series) -> None:
-    groups = equivalences.overview_equivalences(
-        row["total_emissions_kg"], row["energy_kwh"], row["water_l"]
+def equivalence_item_html(item: equivalences.Equivalence) -> str:
+    quantity = html.escape(equivalences.format_quantity(item.quantity))
+    note_html = (
+        f"<div class='spruce-equiv-note'>{html.escape(item.note)}</div>"
+        if item.note
+        else ""
     )
-    rows = []
+    return f"""
+        <div class="spruce-equiv-item">
+            <span class="spruce-equiv-icon">{item.icon}</span>
+            <div>
+                <div class="spruce-equiv-num">{quantity}</div>
+                <div class="spruce-equiv-label">{html.escape(item.unit)}</div>
+                {note_html}
+            </div>
+        </div>
+    """
+
+
+def render_equivalences(row: pd.Series, flavor: str) -> None:
+    groups = equivalences.overview_equivalences(
+        row["total_emissions_kg"], row["energy_kwh"], row["water_l"], flavor
+    )
+    cards = []
     for group in groups:
         color = EQUIV_METRIC_COLORS.get(group.metric, COLORS["muted"])
-        items = " &middot; ".join(
-            equivalence_item_html(item) for item in group.items
-        )
-        rows.append(
-            "<div class='spruce-equiv-row'>"
-            f"<span class='spruce-equiv-metric' style='color:{color}'>"
-            f"{html.escape(group.metric)}</span>"
-            f"<span class='spruce-equiv-items'>&asymp; {items}</span>"
-            "</div>"
+        items = "".join(equivalence_item_html(item) for item in group.items)
+        cards.append(
+            f"""
+            <div class="spruce-card spruce-equiv-card">
+                <div class="spruce-card-label">
+                    <span class="spruce-equiv-dot" style="background:{color}"></span>
+                    {html.escape(group.metric)}
+                </div>
+                {items}
+            </div>
+            """
         )
     render_html(
-        "<div class='spruce-equiv'>"
         "<div class='spruce-equiv-title'>In everyday terms</div>"
-        f"{''.join(rows)}"
-        "</div>"
+        f"<div class='spruce-card-grid'>{''.join(cards)}</div>"
     )
 
 
-def render_overview(overview: pd.DataFrame) -> None:
+def render_overview(overview: pd.DataFrame, equiv_flavor: str) -> None:
     if overview.empty:
         st.info("No data available for the current filters.")
         return
@@ -855,7 +866,7 @@ def render_overview(overview: pd.DataFrame) -> None:
             ("Coverage (dataset-wide)", metric_value(row["coverage_pct"], " %"), ""),
         ]
     )
-    render_equivalences(row)
+    render_equivalences(row, equiv_flavor)
 
 
 def render_trend(trend: pd.DataFrame) -> None:
@@ -1239,6 +1250,15 @@ def render_filters_sidebar(
     return selected_periods, selected_regions, tag_key
 
 
+def render_equivalence_sidebar() -> str:
+    with st.sidebar:
+        return st.selectbox(
+            "Equivalence style",
+            equivalences.FLAVORS,
+            help="Comparison set used for the overview equivalences.",
+        )
+
+
 def run_queries(selection: FilterSelection) -> DashboardData:
     where, params = filter_clause(
         list(selection.selected_periods), list(selection.selected_regions)
@@ -1284,6 +1304,7 @@ def main() -> None:
     selected_periods, selected_regions, tag_key = render_filters_sidebar(
         periods, regions, tag_keys
     )
+    equiv_flavor = render_equivalence_sidebar()
     selection = FilterSelection(
         input_path=input_path,
         selected_periods=tuple(selected_periods),
@@ -1305,7 +1326,7 @@ def main() -> None:
     tab_containers = st.tabs(tabs)
     
     with tab_containers[0]:
-        render_overview(data.overview)
+        render_overview(data.overview, equiv_flavor)
     with tab_containers[1]:
         render_trend(data.trend)
     with tab_containers[2]:
