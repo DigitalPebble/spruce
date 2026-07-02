@@ -229,6 +229,62 @@ section[data-testid="stSidebar"] p {
   overflow-wrap: anywhere;
 }
 
+.spruce-equiv-title {
+  color: var(--spruce-muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: -0.35rem 0 0.6rem;
+}
+
+.spruce-equiv-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.spruce-equiv-dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  margin-right: 0.35rem;
+  vertical-align: baseline;
+}
+
+.spruce-equiv-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+}
+
+.spruce-equiv-icon {
+  flex: 0 0 2rem;
+  font-size: 1.35rem;
+  line-height: 1.3;
+  text-align: center;
+}
+
+.spruce-equiv-num {
+  color: var(--spruce-text);
+  font-size: 1.18rem;
+  font-weight: 720;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.spruce-equiv-label {
+  color: var(--spruce-muted);
+  font-size: 0.8rem;
+  line-height: 1.3;
+}
+
+.spruce-equiv-note {
+  color: var(--spruce-muted);
+  font-size: 0.72rem;
+  line-height: 1.3;
+}
+
 .spruce-table {
   width: 100%;
   border-collapse: separate;
