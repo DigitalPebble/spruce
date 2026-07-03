@@ -15,6 +15,8 @@ try:
 except ImportError:
     sys.exit("duckdb is required — run: pip install -r requirements-report.txt")
 
+import equivalences
+
 
 # ---------------------------------------------------------------------------
 # Markdown helpers
@@ -450,6 +452,32 @@ def main():
         "Summary by Billing Period",
         md_table(billing_with_total, ["BILLING_PERIOD", "energy_kwh", "operational_kg", "embodied_kg", "water_usage_l"])
     ))
+
+    # Everyday equivalences (same conversions as the dashboard overview)
+    if billing_rows:
+        total_energy = sum(r[1] for r in billing_rows if r[1] is not None)
+        total_emissions = (
+            sum(r[2] for r in billing_rows if r[2] is not None)
+            + sum(r[3] for r in billing_rows if r[3] is not None)
+        )
+        total_water = sum(r[4] for r in billing_rows if r[4] is not None)
+        equiv_lines = []
+        for group in equivalences.overview_equivalences(
+            total_emissions, total_energy, total_water
+        ):
+            comparisons = " / ".join(
+                f"{equivalences.format_quantity(item.quantity)} {item.unit}"
+                + (f" ({item.note})" if item.note else "")
+                for item in group.items
+            )
+            equiv_lines.append(f"- **{group.metric}** ≈ {comparisons}")
+        equiv_body = (
+            "\n".join(equiv_lines)
+            + "\n\nConversion factors are order-of-magnitude figures meant to "
+            "build intuition, not precise accounting:\n\n"
+            + md_table(list(equivalences.FACTOR_TABLE), ["Comparison", "Factor", "Source"])
+        )
+        parts.append(section("In Everyday Terms", equiv_body))
 
     # Top emitters
     parts.append(section(
