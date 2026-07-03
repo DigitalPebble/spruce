@@ -58,6 +58,9 @@
         "powerSupplyEfficiency": 1.04,
         "powerTransmissionLosses": 1.08
       }
+    },
+    {
+      "className": "com.digitalpebble.spruce.modules.aws.FinOpsColumns"
     }
   ]
 }

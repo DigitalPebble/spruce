@@ -28,7 +28,7 @@ public class CURColumn extends NativeColumn {
     public static CURColumn PRODUCT_SERVICE_CODE = new CURColumn("product_servicecode", StringType);
     public static CURColumn USAGE_AMOUNT = new CURColumn("line_item_usage_amount", DoubleType);
 
-    CURColumn(String l, DataType t) {
+    public CURColumn(String l, DataType t) {
         super(l, t);
     }
 }

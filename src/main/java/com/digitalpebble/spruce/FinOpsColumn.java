@@ -30,6 +30,7 @@ public class FinOpsColumn extends Column {
     public static FinOpsColumn CHARGE_PERIOD_START = new FinOpsColumn("ChargePeriodStart", StringType);
     public static FinOpsColumn CHARGE_PERIOD_END = new FinOpsColumn("ChargePeriodEnd", StringType);
     public static FinOpsColumn TAGS = new FinOpsColumn("Tags", StringType);
+    public static FinOpsColumn LIST_COST = new FinOpsColumn("ListCost", DoubleType);
 
     private FinOpsColumn(String l, DataType t) {
         super(l, t);
