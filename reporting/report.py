@@ -471,11 +471,14 @@ def main():
                 for item in group.items
             )
             equiv_lines.append(f"- **{group.metric}** ≈ {comparisons}")
+        source_links = ", ".join(
+            f"[{name}]({url})" for name, url in equivalences.SOURCES
+        )
         equiv_body = (
             "\n".join(equiv_lines)
-            + "\n\nConversion factors are order-of-magnitude figures meant to "
-            "build intuition, not precise accounting:\n\n"
-            + md_table(list(equivalences.FACTOR_TABLE), ["Comparison", "Factor", "Source"])
+            + "\n\n_Order-of-magnitude conversion factors — sources: "
+            + source_links
+            + "._\n"
         )
         parts.append(section("In Everyday Terms", equiv_body))
 

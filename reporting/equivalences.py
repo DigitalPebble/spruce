@@ -52,40 +52,25 @@ L_PER_SQM_RAIN_YEAR = 750.0
 # slot (car km, homes, pools) stays fixed so totals remain comparable.
 FLAVORS = ("Everyday", "Tech", "Nature")
 
-# User-facing factor table: (comparison, factor, source). Values reference the
-# constants above so the displayed factors cannot drift from the conversions.
-FACTOR_TABLE = (
-    ("km in a family car", f"{CO2_KG_PER_CAR_KM} kg CO2e/km", "UK DEFRA/BEIS 2023"),
-    (f"flight ({FLIGHT_ROUTE})", f"{CO2_KG_PER_FLIGHT:.0f} kg CO2e", "atmosfair/ICAO"),
+# Pointers to the origins of the conversion factors (CCF-style). The full
+# factor table lives in the documentation methodology page.
+SOURCES = (
     (
-        "hour of video streaming",
-        f"{CO2_KG_PER_STREAMING_HOUR * 1000:.0f} g CO2e",
-        "IEA 2020 global average",
+        "DEFRA",
+        "https://www.gov.uk/government/collections/"
+        "government-conversion-factors-for-company-reporting",
     ),
+    ("atmosfair", "https://www.atmosfair.de/en/offset/flight/"),
     (
-        "tree-year of CO2 absorption",
-        f"{CO2_KG_PER_TREE_YEAR:.0f} kg CO2",
-        "EPA/Arbor Day",
+        "IEA",
+        "https://www.iea.org/commentaries/"
+        "the-carbon-footprint-of-streaming-video-fact-checking-the-headlines",
     ),
+    ("EPA", "https://www.epa.gov/energy/greenhouse-gas-equivalencies-calculator"),
     (
-        "home powered for a year",
-        f"{KWH_PER_HOUSEHOLD_YEAR:.0f} kWh",
-        "Eurostat EU average",
-    ),
-    ("cup of tea boiled", f"{KWH_PER_CUP_OF_TEA} kWh", "electric kettle, ~0.25 L"),
-    (
-        "smartphone charge",
-        f"{KWH_PER_PHONE_CHARGE} kWh",
-        "EPA GHG equivalences",
-    ),
-    ("solar-panel day", f"{KWH_PER_SOLAR_PANEL_DAY} kWh", "~400 W rooftop panel"),
-    ("Olympic swimming pool", f"{L_PER_OLYMPIC_POOL:,.0f} L", "2,500 m3 volume"),
-    ("bathtub filled", f"{L_PER_BATHTUB:.0f} L", "typical domestic tub"),
-    ("washing machine cycle", f"{L_PER_WASHING_CYCLE:.0f} L", "modern front loader"),
-    (
-        "m²-year of rainfall",
-        f"{L_PER_SQM_RAIN_YEAR:.0f} L",
-        "~715 mm global land average",
+        "Eurostat",
+        "https://ec.europa.eu/eurostat/statistics-explained/index.php"
+        "?title=Energy_consumption_in_households",
     ),
 )
 

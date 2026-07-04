@@ -844,20 +844,17 @@ def render_equivalences(row: pd.Series, flavor: str) -> None:
             </div>
             """
         )
+    source_links = " · ".join(
+        f"<a href='{url}' target='_blank' rel='noopener'>{html.escape(name)}</a>"
+        for name, url in equivalences.SOURCES
+    )
     render_html(
         "<div class='spruce-equiv-title'>In everyday terms</div>"
         f"<div class='spruce-card-grid'>{''.join(cards)}</div>"
+        "<div class='spruce-equiv-sources'>"
+        f"Sources: {source_links}"
+        "</div>"
     )
-    with st.expander("Conversion factors and sources"):
-        st.markdown(
-            "Order-of-magnitude figures meant to build intuition, not precise "
-            "accounting.\n\n"
-            + "| Comparison | Factor | Source |\n|---|---|---|\n"
-            + "\n".join(
-                f"| {label} | {factor} | {source} |"
-                for label, factor, source in equivalences.FACTOR_TABLE
-            )
-        )
 
 
 def render_overview(overview: pd.DataFrame, equiv_flavor: str) -> None:
