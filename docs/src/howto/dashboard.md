@@ -47,7 +47,7 @@ python scripts/gen_synthetic.py -o output/synth.parquet --force
 
 | Section | What it shows |
 |---|---|
-| Overview | Total usage cost, energy, operational emissions, embodied emissions, water usage, and cost coverage for the full input |
+| Overview | Total usage cost, energy, operational emissions, embodied emissions, water usage, and cost coverage for the full input, plus everyday equivalences (car km, flights, home-years, cups of tea, pools, baths) |
 | Trend | Separate energy, total emissions, and water charts by billing period |
 | Top emitters | Sorted top product/service/operation combinations as a table-first view |
 | Regions | Emissions share by region, plus regional KPI cards and detail table |
@@ -57,6 +57,13 @@ Use the sidebar to filter by billing period and region. If `resource_tags` are
 present, choose one tag key to break down emissions by tag value. The cost
 coverage KPI matches `report.py` and is calculated across the full input, not
 only the currently selected filters.
+
+The "In everyday terms" block under the overview cards converts the emissions,
+energy, and water totals into human-readable equivalences. The sidebar
+"Equivalence style" selector switches the comparison set (Everyday, Tech, or
+Nature). Conversion factors are documented, order-of-magnitude figures; edit
+them in `reporting/equivalences.py` to change the references or add more
+comparisons.
 
 ## Screenshots
 
