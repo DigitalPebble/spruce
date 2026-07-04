@@ -524,6 +524,23 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Methodology
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="././" class="md-nav__link md-nav__link--active">
         
   
@@ -539,6 +556,37 @@
   
 
       </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#everyday-equivalences" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Everyday equivalences
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -1031,6 +1079,11 @@
                       
                     
                     
+                      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+                      <div class="md-sidebar-button__wrapper">
+                        <label class="md-sidebar-button" for="__toc"></label>
+                      </div>
+                    
                   
                   <div class="md-sidebar__inner">
                     
@@ -1042,6 +1095,25 @@
   
     
   
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#everyday-equivalences" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Everyday equivalences
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
   
 </nav>
                   </div>
@@ -1098,6 +1170,79 @@
 <dd>total water consumption attributed to regions under high or extremely high water stress.</dd>
 </dl>
 <p>See the <a href="../modules/">enrichment modules</a> page for details on how each estimate is computed.</p>
+<h2 id="everyday-equivalences">Everyday equivalences<a class="headerlink" href="#everyday-equivalences" title="Permanent link">&para;</a></h2>
+<p>The dashboard and the static report translate the emissions, energy, and water totals into everyday comparisons ("In everyday terms"). These conversions use documented, order-of-magnitude factors meant to build intuition, not precise accounting. The factors live in <code>reporting/equivalences.py</code>; the table below lists them with their sources.</p>
+<table>
+<thead>
+<tr>
+<th>Comparison</th>
+<th>Factor</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>km in a family car</td>
+<td>0.17 kg CO2e/km</td>
+<td><a href="https://www.gov.uk/government/collections/government-conversion-factors-for-company-reporting">UK DEFRA/BEIS 2023 conversion factors</a></td>
+</tr>
+<tr>
+<td>flight (London → New York, one-way economy)</td>
+<td>500 kg CO2e</td>
+<td><a href="https://www.atmosfair.de/en/offset/flight/">atmosfair flight calculator</a></td>
+</tr>
+<tr>
+<td>hour of video streaming</td>
+<td>36 g CO2e</td>
+<td><a href="https://www.iea.org/commentaries/the-carbon-footprint-of-streaming-video-fact-checking-the-headlines">IEA, The carbon footprint of streaming video</a></td>
+</tr>
+<tr>
+<td>tree-year of CO2 absorption</td>
+<td>21 kg CO2</td>
+<td><a href="https://www.epa.gov/energy/greenhouse-gas-equivalencies-calculator">EPA Greenhouse Gas Equivalencies Calculator</a></td>
+</tr>
+<tr>
+<td>home powered for a year</td>
+<td>3,500 kWh</td>
+<td><a href="https://ec.europa.eu/eurostat/statistics-explained/index.php?title=Energy_consumption_in_households">Eurostat, Energy consumption in households</a></td>
+</tr>
+<tr>
+<td>cup of tea boiled</td>
+<td>0.03 kWh</td>
+<td>typical electric kettle, ~0.25 L</td>
+</tr>
+<tr>
+<td>smartphone charge</td>
+<td>0.012 kWh</td>
+<td><a href="https://www.epa.gov/energy/greenhouse-gas-equivalencies-calculator">EPA Greenhouse Gas Equivalencies Calculator</a></td>
+</tr>
+<tr>
+<td>solar-panel day</td>
+<td>1.5 kWh</td>
+<td>typical ~400 W rooftop panel</td>
+</tr>
+<tr>
+<td>Olympic swimming pool</td>
+<td>2,500,000 L</td>
+<td>2,500 m³ nominal volume</td>
+</tr>
+<tr>
+<td>bathtub filled</td>
+<td>150 L</td>
+<td>typical domestic tub</td>
+</tr>
+<tr>
+<td>washing machine cycle</td>
+<td>50 L</td>
+<td>typical modern front loader</td>
+</tr>
+<tr>
+<td>m²-year of rainfall</td>
+<td>750 L</td>
+<td>~715 mm global land average</td>
+</tr>
+</tbody>
+</table>
 
 
 

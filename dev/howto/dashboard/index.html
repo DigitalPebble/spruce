@@ -1286,7 +1286,7 @@ chain, matching the pattern used by <code>report.py</code>.</p>
 <tbody>
 <tr>
 <td>Overview</td>
-<td>Total usage cost, energy, operational emissions, embodied emissions, water usage, and cost coverage for the full input</td>
+<td>Total usage cost, energy, operational emissions, embodied emissions, water usage, and cost coverage for the full input, plus everyday equivalences (car km, flights, home-years, cups of tea, pools, baths)</td>
 </tr>
 <tr>
 <td>Trend</td>
@@ -1310,6 +1310,12 @@ chain, matching the pattern used by <code>report.py</code>.</p>
 present, choose one tag key to break down emissions by tag value. The cost
 coverage KPI matches <code>report.py</code> and is calculated across the full input, not
 only the currently selected filters.</p>
+<p>The "In everyday terms" block under the overview cards converts the emissions,
+energy, and water totals into human-readable equivalences. The sidebar
+"Equivalence style" selector switches the comparison set (Everyday, Tech, or
+Nature). Conversion factors are documented, order-of-magnitude figures; edit
+them in <code>reporting/equivalences.py</code> to change the references or add more
+comparisons.</p>
 <h2 id="screenshots">Screenshots<a class="headerlink" href="#screenshots" title="Permanent link">&para;</a></h2>
 <p><img alt="SPRUCE dashboard overview" src="../../images/dashboard-overview.png" /></p>
 <p><img alt="SPRUCE dashboard trend tab" src="../../images/dashboard-trend.png" /></p>
