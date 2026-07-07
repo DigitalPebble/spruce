@@ -43,6 +43,26 @@
       "quantity": 8,
       "type": "NVIDIA_A100"
     },
+    "p5.4xlarge": {
+      "quantity": 1,
+      "type": "NVIDIA_H100"
+    },
+    "p5.48xlarge": {
+      "quantity": 8,
+      "type": "NVIDIA_H100"
+    },
+    "p5e.48xlarge": {
+      "quantity": 8,
+      "type": "NVIDIA_H200"
+    },
+    "p5en.48xlarge": {
+      "quantity": 8,
+      "type": "NVIDIA_H200"
+    },
+    "p6-b200.48xlarge": {
+      "quantity": 8,
+      "type": "NVIDIA_B200"
+    },
     "g2.2xlarge": {
       "quantity": 1,
       "type": "NVIDIA_K520"
@@ -94,6 +114,14 @@
     "g4dn.metal": {
       "quantity": 8,
       "type": "NVIDIA_T4"
+    },
+    "g4ad.xlarge": {
+      "quantity": 1,
+      "type": "AMD_RADEON_PRO_V520"
+    },
+    "g4ad.2xlarge": {
+      "quantity": 1,
+      "type": "AMD_RADEON_PRO_V520"
     },
     "g4ad.4xlarge": {
       "quantity": 1,
@@ -274,6 +302,21 @@
     "NVIDIA_A100": {
       "min": 46,
       "max": 407
+    },
+    "NVIDIA_H100": {
+      "source": "https://www.nvidia.com/en-us/data-center/h100/ (SXM TDP; min is an idle estimate)",
+      "min": 60,
+      "max": 700
+    },
+    "NVIDIA_H200": {
+      "source": "https://www.nvidia.com/en-us/data-center/h200/ (SXM TDP; min is an idle estimate)",
+      "min": 60,
+      "max": 700
+    },
+    "NVIDIA_B200": {
+      "source": "https://www.nvidia.com/en-us/data-center/dgx-b200/ (TDP; min is an idle estimate)",
+      "min": 100,
+      "max": 1000
     },
     "NVIDIA_TESLA_P4": {
       "min": 9,
