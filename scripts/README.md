@@ -200,6 +200,31 @@ Usage: `./fetch_aqueduct_water_stress.py [cloud_regions.json] [output.csv]`
 Environment variables:
 - `GEOCACHE` — override the geocode cache path (default `<output_dir>/geocode_cache.tsv`).
 
+## GPU data
+
+### `compare_gpu_accelerators_boavizta.py`
+
+Compares the GPU data used by the `Accelerators` module
+(`src/main/resources/ccf/accelerators.json`, derived from Cloud Carbon
+Footprint) with the data from BoaviztAPI: instance type coverage, GPU
+count and model per instance type, use-phase electricity, and embodied gwp
+(live API vs the bundled `src/main/resources/boavizta/instanceTypes.csv`).
+
+By default it queries the public instance at <https://api.boavizta.org>. The
+script sends ~1200 requests, so for repeated runs (or to pin the version
+being compared) prefer a local instance:
+
+```sh
+docker run --rm -p 5000:5000 ghcr.io/boavizta/boaviztapi:2.3.0
+python3 scripts/compare_gpu_accelerators_boavizta.py --api http://localhost:5000
+```
+
+Run it from the project root when a new BoaviztAPI version comes out to check
+whether GPU use-phase power is implemented (as of 2.3.0 it is not — the
+Accelerators module remains the only source of GPU electricity) and whether
+the bundled `instanceTypes.csv` needs regenerating with
+`com.digitalpebble.spruce.modules.boavizta.APITester`.
+
 ## Requirements
 
 - `bash` 4+
