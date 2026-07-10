@@ -67,6 +67,11 @@ public class EnrichmentPipeline implements MapPartitionsFunction<Row, Row> {
      * Returns true if the line item corresponds to a usage, false otherwise
      **/
     private boolean usageFilter(Row row) {
+        if (config.getReportFormat() == ReportFormat.FOCUS) {
+            // standard FOCUS values: Usage, Purchase, Tax, Credit, Adjustment
+            String charge_category = FOCUSColumn.CHARGE_CATEGORY.getString(row);
+            return "Usage".equals(charge_category);
+        }
         if (config.getProvider().equals(Provider.AWS)) {
             String item_type = LINE_ITEM_TYPE.getString(row);
             // can be Usage (for on demand resources), SavingsPlanCoveredUsage or DiscountedUsage

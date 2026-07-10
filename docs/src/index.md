@@ -17,7 +17,7 @@ SPRUCE is built around the idea that actionable GreenOps requires the same granu
 - **Your data stays yours** — running on EMR means your CUR data never leaves your AWS environment.
 - **Actively maintained** — unlike Cloud Carbon Footprint, which has been abandoned, SPRUCE is under active development.
 
-SPRUCE handles CUR reports from AWS and partially supports Azure. However, most of the cost from a typical usage already gets estimates.
+SPRUCE handles CUR reports from AWS and partially supports Azure, both in the legacy EA/MCA cost details format and in [FOCUS 1.0](https://focus.finops.org/) format. However, most of the cost from a typical usage already gets estimates.
 
 ## How it works
 

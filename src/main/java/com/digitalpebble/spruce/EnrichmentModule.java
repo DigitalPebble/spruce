@@ -22,6 +22,15 @@ public interface EnrichmentModule extends Serializable {
     default void init(Map<String, Object> params){}
 
     /**
+     * Called by the {@link Config} as soon as the report format is known — at configuration load
+     * time, before {@link #columnsNeeded()} is used for schema validation and long before
+     * {@link #init(Map)}. Modules whose input column bindings depend on the format (e.g. legacy
+     * Azure {@code MeterCategory} vs FOCUS {@code x_SkuMeterCategory}) override this; the default
+     * implementation does nothing.
+     */
+    default void bindReportFormat(ReportFormat reportFormat) {}
+
+    /**
      * Provider-aware initialisation. Override this if the module's behaviour depends on the
      * active cloud provider (e.g. for region-keyed lookups). The default implementation
      * delegates to {@link #init(Map)} so existing modules don't need to change.

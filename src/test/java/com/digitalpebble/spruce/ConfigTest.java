@@ -213,4 +213,31 @@ public class ConfigTest {
         assertTrue(conf.getModules().stream()
                 .anyMatch(module -> module instanceof com.digitalpebble.spruce.modules.ccf.azure.Storage));
     }
+
+    @Test
+    void testLoadDefaultTagsReportFormat() throws Exception {
+        Config conf = Config.loadDefault(Provider.AZURE);
+        assertEquals(ReportFormat.NATIVE, conf.getReportFormat());
+
+        conf = Config.loadDefault(Provider.AZURE, ReportFormat.FOCUS);
+        assertEquals(ReportFormat.FOCUS, conf.getReportFormat());
+        assertEquals(Provider.AZURE, conf.getProvider());
+        assertFalse(conf.getModules().isEmpty());
+    }
+
+    @Test
+    void testAzureFocusDefaultConfigBindsFocusColumns() throws Exception {
+        Config conf = Config.loadDefault(Provider.AZURE, ReportFormat.FOCUS);
+        assertTrue(conf.getModules().stream()
+                .anyMatch(module -> module instanceof com.digitalpebble.spruce.modules.focus.RegionExtraction));
+        // the FOCUS input already carries the FinOps columns, no bridging module needed
+        assertFalse(conf.getModules().stream()
+                .anyMatch(module -> module instanceof com.digitalpebble.spruce.modules.azure.FOCUSColumns));
+        // loading the config binds the format-dependent input columns before validation
+        var storage = conf.getModules().stream()
+                .filter(module -> module instanceof com.digitalpebble.spruce.modules.ccf.azure.Storage)
+                .findFirst().orElseThrow();
+        assertTrue(java.util.Arrays.asList(storage.columnsNeeded())
+                .contains(AzureFOCUSColumn.X_SKU_METER_CATEGORY));
+    }
 }

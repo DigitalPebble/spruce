@@ -8,7 +8,7 @@ import static org.apache.spark.sql.types.DataTypes.DoubleType;
 import static org.apache.spark.sql.types.DataTypes.StringType;
 
 /** Defines columns added by the EnrichmentModules for Azure reports **/
-public class AzureColumn extends NativeColumn {
+public class AzureColumn extends RowColumn {
 
     public static AzureColumn CHARGE_TYPE = new AzureColumn("ChargeType", StringType);
     public static AzureColumn RESOURCE_LOCATION = new AzureColumn("ResourceLocation", StringType);

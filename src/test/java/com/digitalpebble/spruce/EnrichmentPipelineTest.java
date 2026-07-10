@@ -138,4 +138,40 @@ public class EnrichmentPipelineTest {
             }
         }
     }
+
+    /**
+     * Verifies the usage filter for FOCUS reports, which relies on the standard ChargeCategory
+     * column regardless of the provider.
+     */
+    @ParameterizedTest
+    @CsvSource({
+            "Usage, true",
+            "Purchase, false",
+            "Tax, false",
+            "Credit, false",
+            "Adjustment, false"
+    })
+    public void testPipelineFocusUsageFilter(String chargeCategory, boolean expectEnrichment) throws Exception {
+        Config config = createMockConfig();
+        config.setProvider(Provider.AZURE);
+        config.setReportFormat(ReportFormat.FOCUS);
+        EnrichmentPipeline pipeline = new EnrichmentPipeline(config);
+
+        StructType schema = new StructType()
+                .add(FOCUSColumn.CHARGE_CATEGORY.getLabel(), FOCUSColumn.CHARGE_CATEGORY.getType(), true)
+                .add(DUMMY_ENRICHED.getLabel(), DUMMY_ENRICHED.getType(), true);
+
+        Object[] values = new Object[]{chargeCategory, null};
+        Row row = new GenericRowWithSchema(values, schema);
+
+        Iterator<Row> results = pipeline.call(Collections.singletonList(row).iterator());
+
+        assertTrue(results.hasNext(), "Pipeline should always return a row");
+        Row processedRow = results.next();
+
+        int fieldIndex = processedRow.fieldIndex(DUMMY_ENRICHED.getLabel());
+        assertEquals(expectEnrichment, !processedRow.isNullAt(fieldIndex),
+                () -> "ChargeCategory " + chargeCategory + " should " + (expectEnrichment ? "" : "not ")
+                        + "trigger enrichment");
+    }
 }

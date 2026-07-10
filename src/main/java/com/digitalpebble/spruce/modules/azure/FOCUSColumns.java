@@ -18,13 +18,13 @@ import static com.digitalpebble.spruce.AzureColumn.DATE;
 import static com.digitalpebble.spruce.AzureColumn.METER_CATEGORY;
 import static com.digitalpebble.spruce.AzureColumn.RESOURCE_LOCATION;
 import static com.digitalpebble.spruce.AzureColumn.SUBSCRIPTION_ID;
-import static com.digitalpebble.spruce.FinOpsColumn.BILLED_COST;
-import static com.digitalpebble.spruce.FinOpsColumn.CHARGE_CATEGORY;
-import static com.digitalpebble.spruce.FinOpsColumn.CHARGE_PERIOD_END;
-import static com.digitalpebble.spruce.FinOpsColumn.CHARGE_PERIOD_START;
-import static com.digitalpebble.spruce.FinOpsColumn.REGION_ID;
-import static com.digitalpebble.spruce.FinOpsColumn.SERVICE_NAME;
-import static com.digitalpebble.spruce.FinOpsColumn.SUB_ACCOUNT_ID;
+import static com.digitalpebble.spruce.FOCUSColumn.BILLED_COST;
+import static com.digitalpebble.spruce.FOCUSColumn.CHARGE_CATEGORY;
+import static com.digitalpebble.spruce.FOCUSColumn.CHARGE_PERIOD_END;
+import static com.digitalpebble.spruce.FOCUSColumn.CHARGE_PERIOD_START;
+import static com.digitalpebble.spruce.FOCUSColumn.REGION_ID;
+import static com.digitalpebble.spruce.FOCUSColumn.SERVICE_NAME;
+import static com.digitalpebble.spruce.FOCUSColumn.SUB_ACCOUNT_ID;
 import static com.digitalpebble.spruce.SpruceColumn.REGION;
 
 /**
@@ -36,7 +36,7 @@ import static com.digitalpebble.spruce.SpruceColumn.REGION;
  * {@link RegionExtraction}. Columns that already carry a FOCUS-compatible name in the Azure input
  * (e.g. {@code BillingCurrency}, {@code Tags}) are left untouched and pass through unchanged.
  **/
-public class FinOpsColumns implements EnrichmentModule {
+public class FOCUSColumns implements EnrichmentModule {
 
     private static final List<DateTimeFormatter> DATE_FORMATS = List.of(
             DateTimeFormatter.ISO_LOCAL_DATE,

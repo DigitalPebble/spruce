@@ -35,5 +35,14 @@ The `-o` parameter specifies the location of enriched Parquet files generated in
 
 The option `-c` allows to specify a JSON configuration file to [override the default settings](../howto/config_modules.md).
 
+The option `-p` selects the cloud provider (`AWS`, `AZURE`); it defaults to `AWS`. The option `-f`
+selects the format of the input report: `NATIVE` (the provider's own export — the default) or
+`FOCUS` for a [FOCUS 1.0](https://focus.finops.org/) export. FOCUS is currently supported for
+Azure only:
+
+```shell
+spark-submit --class com.digitalpebble.spruce.SparkJob --driver-memory 8g ./target/spruce-*.jar -i ./focus-report -o ./output -p AZURE -f FOCUS
+```
+
 The directory _output_ contains an enriched copy of the input CURs. See [Explore the results](results.md) to understand
 what the output contains.

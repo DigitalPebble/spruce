@@ -2,12 +2,17 @@
 
 package com.digitalpebble.spruce.modules.ccf.azure;
 
+import com.digitalpebble.spruce.AzureFOCUSColumn;
 import com.digitalpebble.spruce.Column;
+import com.digitalpebble.spruce.FOCUSColumn;
+import com.digitalpebble.spruce.ReportFormat;
 import com.digitalpebble.spruce.Utils;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema;
 import org.apache.spark.sql.types.StructType;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -17,6 +22,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static com.digitalpebble.spruce.SpruceColumn.ENERGY_USED;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
@@ -102,5 +108,60 @@ class StorageTest {
     private double expected(double gbHours, int replication, boolean isHDD) {
         double coefficient = isHDD ? storage.hdd_gb_coefficient : storage.ssd_gb_coefficient;
         return gbHours / 1000 * coefficient * replication;
+    }
+
+    /**
+     * The FOCUS binding reads the same values from the FOCUS column names; the estimation logic
+     * is shared with the tests above.
+     */
+    @Nested
+    class FOCUSBinding {
+
+        private Storage focusStorage;
+        private StructType focusSchema;
+
+        @BeforeEach
+        void initialize() {
+            focusStorage = new Storage();
+            focusStorage.bindReportFormat(ReportFormat.FOCUS);
+            focusStorage.init(Map.of());
+            focusSchema = Utils.getSchema(focusStorage);
+        }
+
+        @Test
+        void columnsNeededReflectsFOCUSColumns() {
+            assertArrayEquals(new Column[]{
+                    AzureFOCUSColumn.X_SKU_METER_CATEGORY,
+                    AzureFOCUSColumn.X_SKU_METER_SUBCATEGORY,
+                    AzureFOCUSColumn.X_SKU_METER_NAME,
+                    AzureFOCUSColumn.X_PRICING_UNIT_DESCRIPTION,
+                    FOCUSColumn.CONSUMED_QUANTITY
+            }, focusStorage.columnsNeeded());
+        }
+
+        @Test
+        void processStorageRow() {
+            Map<Column, Object> enriched = enrich(row("Storage", "Tables", "LRS Data Stored", "1 GB/Month", 10d));
+            double gbHours = Utils.Conversions.GBMonthsToGBHours(10d);
+            double expected = gbHours / 1000 * focusStorage.ssd_gb_coefficient * 3;
+            assertEquals(expected, (Double) enriched.get(ENERGY_USED), 0.0001);
+        }
+
+        @Test
+        void processRowWithoutQuantity() {
+            Map<Column, Object> enriched = enrich(row("Storage", "Tables", "LRS Data Stored", "1 GB/Month", null));
+            assertFalse(enriched.containsKey(ENERGY_USED));
+        }
+
+        private Row row(String meterCategory, String meterSubCategory, String meterName, String unit, Double quantity) {
+            Object[] values = new Object[]{meterCategory, meterSubCategory, meterName, unit, quantity, null};
+            return new GenericRowWithSchema(values, focusSchema);
+        }
+
+        private Map<Column, Object> enrich(Row row) {
+            Map<Column, Object> enriched = new HashMap<>();
+            focusStorage.enrich(row, enriched);
+            return enriched;
+        }
     }
 }

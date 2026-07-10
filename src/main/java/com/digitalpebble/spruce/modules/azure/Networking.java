@@ -2,14 +2,18 @@
 
 package com.digitalpebble.spruce.modules.azure;
 
+import com.digitalpebble.spruce.AzureColumn;
+import com.digitalpebble.spruce.AzureFOCUSColumn;
 import com.digitalpebble.spruce.Column;
+import com.digitalpebble.spruce.FOCUSColumn;
+import com.digitalpebble.spruce.ReportFormat;
+import com.digitalpebble.spruce.RowColumn;
 import org.apache.spark.sql.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
-import static com.digitalpebble.spruce.AzureColumn.*;
 import static com.digitalpebble.spruce.SpruceColumn.ENERGY_USED;
 
 /**
@@ -32,19 +36,36 @@ public class Networking extends com.digitalpebble.spruce.modules.aws.Networking{
 
     private static final Logger LOG = LoggerFactory.getLogger(Networking.class);
 
+    protected RowColumn meterCategory = AzureColumn.METER_CATEGORY;
+    protected RowColumn meterSubCategory = AzureColumn.METER_SUBCATEGORY;
+    protected RowColumn quantity = AzureColumn.QUANTITY;
+
+    @Override
+    public void bindReportFormat(ReportFormat reportFormat) {
+        if (reportFormat == ReportFormat.FOCUS) {
+            meterCategory = AzureFOCUSColumn.X_SKU_METER_CATEGORY;
+            meterSubCategory = AzureFOCUSColumn.X_SKU_METER_SUBCATEGORY;
+            quantity = FOCUSColumn.CONSUMED_QUANTITY;
+        } else {
+            meterCategory = AzureColumn.METER_CATEGORY;
+            meterSubCategory = AzureColumn.METER_SUBCATEGORY;
+            quantity = AzureColumn.QUANTITY;
+        }
+    }
+
     @Override
     public Column[] columnsNeeded() {
-        return new Column[]{METER_CATEGORY, METER_SUBCATEGORY, QUANTITY};
+        return new Column[]{meterCategory, meterSubCategory, quantity};
     }
 
     @Override
     public void enrich(Row row, Map<Column, Object> enrichedValues) {
-        String meterCategory = METER_CATEGORY.getString(row);
+        String meterCategory = this.meterCategory.getString(row);
         if (!"Bandwidth".equals(meterCategory)) {
             return;
         }
 
-        String transfer_type = METER_SUBCATEGORY.getString(row);
+        String transfer_type = this.meterSubCategory.getString(row);
 
         double network_coefficient = 0d;
 
@@ -58,7 +79,10 @@ public class Networking extends com.digitalpebble.spruce.modules.aws.Networking{
         }
 
         // get the amount of data transferred
-        double amount_gb = QUANTITY.getDouble(row);
+        if (quantity.isNullAt(row)) {
+            return;
+        }
+        double amount_gb = quantity.getDouble(row);
         double energy_gb = amount_gb * network_coefficient;
 
         enrichedValues.put(ENERGY_USED, energy_gb);
