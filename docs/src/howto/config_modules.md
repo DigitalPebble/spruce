@@ -23,10 +23,8 @@ currently covered or about to be:
 --8<-- "../../../src/main/resources/default-config-azure.json"
 ```
 
-For [FOCUS 1.0](https://focus.finops.org/) reports (`-f FOCUS`), the same Azure modules are used —
-they rebind their input columns to the FOCUS names automatically — but the region extraction is
-the provider-neutral FOCUS one and no `FOCUSColumns` bridging module is needed, as the input
-already carries those columns:
+For [FOCUS 1.0](https://focus.finops.org/) reports (`-f FOCUS`), a dedicated configuration is
+used. It relies on the same Azure modules, which adapt automatically to the FOCUS column names:
 
 ``` title="default-config-azure-focus.json"
 --8<-- "../../../src/main/resources/default-config-azure-focus.json"

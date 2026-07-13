@@ -22,6 +22,7 @@ SPRUCE is part of a growing ecosystem of open source tools focused on measuring 
 |------------------------|----------------------------------------------------------------------|-------------------------------------------------------|
 | **Architecture**       | Apache Spark-based for scalable data processing                      | Node.js application with web dashboard                |
 | **Data Processing**    | Batch processing of Cost and Usage Reports (CUR) in Parquet format   | Real-time API calls to cloud providers                |
+| **FOCUS Support**      | Ingests [FOCUS 1.0](https://focus.finops.org/) reports (Azure); outputs FOCUS-compatible columns | None                                                  |
 | **Primary Use Case**   | Enrichment of existing usage reports for GreenOps + FinOps           | Standalone dashboard for carbon tracking              |
 | **Deployment**         | Runs on-premises or in the cloud (e.g., EMR) without exposing data   | Requires credentials to query cloud provider APIs     |
 | **Data Privacy**       | Processes data locally, no external API calls for core functionality | Requires cloud provider credentials                   |
@@ -42,6 +43,7 @@ SPRUCE is part of a growing ecosystem of open source tools focused on measuring 
 - You want access to data at the lowest-possible granularity and control what gets displayed and how
 - You want data for recent services and models
 - You want to have water as an environmental impact
+- You already produce [FOCUS](https://focus.finops.org/) exports for FinOps and want to reuse them
 
 ## CloudScanner
 

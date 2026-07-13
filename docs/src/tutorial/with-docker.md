@@ -35,6 +35,7 @@ The `-i` parameter specifies the location of the directory containing the CUR re
 The `-o` parameter specifies the location of enriched Parquet files generated in output.
 
 The option `-c` allows to specify a JSON configuration file to [override the default settings](../howto/config_modules.md).
+The options `-p` (cloud provider) and `-f` (report format) are described in [Quick start using Apache Spark](with-spark.md).
 
 The directory _output_ contains an enriched copy of the input CURs. See [Explore the results](results.md) to understand
 what the output contains.

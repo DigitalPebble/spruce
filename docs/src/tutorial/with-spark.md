@@ -38,7 +38,7 @@ The option `-c` allows to specify a JSON configuration file to [override the def
 The option `-p` selects the cloud provider (`AWS`, `AZURE`); it defaults to `AWS`. The option `-f`
 selects the format of the input report: `NATIVE` (the provider's own export — the default) or
 `FOCUS` for a [FOCUS 1.0](https://focus.finops.org/) export. FOCUS is currently supported for
-Azure only:
+Azure only. Note that Azure reports are read as CSV files, unlike the AWS ones which are in Parquet:
 
 ```shell
 spark-submit --class com.digitalpebble.spruce.SparkJob --driver-memory 8g ./target/spruce-*.jar -i ./focus-report -o ./output -p AZURE -f FOCUS
