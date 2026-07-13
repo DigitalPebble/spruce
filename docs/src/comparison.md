@@ -14,7 +14,7 @@ SPRUCE is part of a growing ecosystem of open source tools focused on measuring 
 - Both support AWS and Azure (as well as GCP for CCF)
 - Both use comparable methodologies for calculating operational emissions
 - Both are open source and transparent about their calculation methods
-- SPRUCE implements several modules based on CCF's methodology (see [Cloud Carbon Footprint modules](modules.md#cloud-carbon-footprint))
+- SPRUCE implements several modules based on CCF's methodology (see the [Storage](modules.md#storage) and [Accelerators](modules.md#accelerators) modules)
 
 ### Key Differences
 
