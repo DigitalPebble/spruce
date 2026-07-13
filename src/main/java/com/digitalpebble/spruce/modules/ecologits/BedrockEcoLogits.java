@@ -2,8 +2,12 @@
 
 package com.digitalpebble.spruce.modules.ecologits;
 
+import com.digitalpebble.spruce.AWSFOCUSColumn;
 import com.digitalpebble.spruce.Column;
 import com.digitalpebble.spruce.EnrichmentModule;
+import com.digitalpebble.spruce.FOCUSColumn;
+import com.digitalpebble.spruce.ReportFormat;
+import com.digitalpebble.spruce.RowColumn;
 import org.apache.spark.sql.Row;
 
 import java.util.Map;
@@ -29,6 +33,26 @@ public class BedrockEcoLogits implements EnrichmentModule {
 
     private EcoLogits impacts;
 
+    protected RowColumn productCode = LINE_ITEM_PRODUCT_CODE;
+    protected RowColumn usageType = LINE_ITEM_USAGE_TYPE;
+    protected RowColumn usageAmount = USAGE_AMOUNT;
+    protected RowColumn pricingUnit = PRICING_UNIT;
+
+    @Override
+    public void bindReportFormat(ReportFormat reportFormat) {
+        if (reportFormat == ReportFormat.FOCUS) {
+            productCode = AWSFOCUSColumn.X_SERVICE_CODE;
+            usageType = FOCUSColumn.SKU_METER;
+            usageAmount = FOCUSColumn.CONSUMED_QUANTITY;
+            pricingUnit = FOCUSColumn.PRICING_UNIT;
+        } else {
+            productCode = LINE_ITEM_PRODUCT_CODE;
+            usageType = LINE_ITEM_USAGE_TYPE;
+            usageAmount = USAGE_AMOUNT;
+            pricingUnit = PRICING_UNIT;
+        }
+    }
+
     @Override
     public void init(Map<String, Object> params) {
         if (impacts == null) {
@@ -44,7 +68,7 @@ public class BedrockEcoLogits implements EnrichmentModule {
 
     @Override
     public Column[] columnsNeeded() {
-        return new Column[]{LINE_ITEM_PRODUCT_CODE, USAGE_AMOUNT, PRICING_UNIT, LINE_ITEM_USAGE_TYPE};
+        return new Column[]{productCode, usageAmount, pricingUnit, usageType};
     }
 
     @Override
@@ -54,12 +78,12 @@ public class BedrockEcoLogits implements EnrichmentModule {
 
     @Override
     public void enrich(Row row, Map<Column, Object> enrichedValues) {
-        String productCode = LINE_ITEM_PRODUCT_CODE.getString(row);
+        String productCode = this.productCode.getString(row);
         if (!"AmazonBedrock".equals(productCode)) {
             return;
         }
 
-        String usageType = LINE_ITEM_USAGE_TYPE.getString(row);
+        String usageType = this.usageType.getString(row);
         String[] parsed = parseUsageType(usageType);
         if (parsed == null || "input".equals(parsed[1])) {
             return;
@@ -72,15 +96,15 @@ public class BedrockEcoLogits implements EnrichmentModule {
             return;
         }
 
-        if (USAGE_AMOUNT.isNullAt(row)) {
+        if (this.usageAmount.isNullAt(row)) {
             return;
         }
-        double usageAmount = USAGE_AMOUNT.getDouble(row);
+        double usageAmount = this.usageAmount.getDouble(row);
         if (usageAmount <= 0) {
             return;
         }
 
-        double tokenMultiplier = parseTokenMultiplier(PRICING_UNIT.getString(row));
+        double tokenMultiplier = parseTokenMultiplier(pricingUnit.getString(row));
         double totalTokens = usageAmount * tokenMultiplier;
 
         double per1k = totalTokens / 1_000.0;

@@ -33,6 +33,10 @@ public class FOCUSColumn extends RowColumn {
     public static FOCUSColumn CHARGE_PERIOD_END = new FOCUSColumn("ChargePeriodEnd", StringType);
     public static FOCUSColumn TAGS = new FOCUSColumn("Tags", StringType);
     public static FOCUSColumn CONSUMED_QUANTITY = new FOCUSColumn("ConsumedQuantity", DoubleType);
+    public static FOCUSColumn PRICING_UNIT = new FOCUSColumn("PricingUnit", StringType);
+    /** FOCUS 1.1 column, present in AWS FOCUS exports where it carries the same values as the
+     *  CUR {@code line_item_usage_type} (e.g. "EUW2-BoxUsage:t3.xlarge"). */
+    public static FOCUSColumn SKU_METER = new FOCUSColumn("SkuMeter", StringType);
 
     private FOCUSColumn(String l, DataType t) {
         super(l, t);

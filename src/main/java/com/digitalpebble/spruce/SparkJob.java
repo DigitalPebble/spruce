@@ -51,8 +51,8 @@ public class SparkJob {
                 LOG.error("Invalid report format: '{}'", formatStr);
                 System.exit(3);
             }
-            if (reportFormat == ReportFormat.FOCUS && provider != Provider.AZURE) {
-                LOG.error("FOCUS report format is currently only supported for AZURE");
+            if (reportFormat == ReportFormat.FOCUS && provider != Provider.AZURE && provider != Provider.AWS) {
+                LOG.error("FOCUS report format is currently only supported for AWS and AZURE");
                 System.exit(3);
             }
         } catch (ParseException e) {

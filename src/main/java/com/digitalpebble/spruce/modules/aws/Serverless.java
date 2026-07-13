@@ -2,8 +2,12 @@
 
 package com.digitalpebble.spruce.modules.aws;
 
+import com.digitalpebble.spruce.AWSFOCUSColumn;
 import com.digitalpebble.spruce.Column;
 import com.digitalpebble.spruce.EnrichmentModule;
+import com.digitalpebble.spruce.FOCUSColumn;
+import com.digitalpebble.spruce.ReportFormat;
+import com.digitalpebble.spruce.RowColumn;
 import org.apache.spark.sql.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,10 +23,30 @@ import static com.digitalpebble.spruce.SpruceColumn.*;
  *  Based on the TailPipe methodology
  *  https://tailpipe.ai/methodology/serverless-explained/
  *  as of 08/10/2025
+ *
+ *  The values read (operations, usage types) are identical in CUR and FOCUS reports, only the
+ *  column labels differ: {@link #bindReportFormat(ReportFormat)} selects the bindings.
  **/
 public class Serverless implements EnrichmentModule {
 
     private static final Logger log = LoggerFactory.getLogger(Serverless.class);
+
+    protected RowColumn operation = LINE_ITEM_OPERATION;
+    protected RowColumn usageType = LINE_ITEM_USAGE_TYPE;
+    protected RowColumn usageAmount = USAGE_AMOUNT;
+
+    @Override
+    public void bindReportFormat(ReportFormat reportFormat) {
+        if (reportFormat == ReportFormat.FOCUS) {
+            operation = AWSFOCUSColumn.X_OPERATION;
+            usageType = FOCUSColumn.SKU_METER;
+            usageAmount = FOCUSColumn.CONSUMED_QUANTITY;
+        } else {
+            operation = LINE_ITEM_OPERATION;
+            usageType = LINE_ITEM_USAGE_TYPE;
+            usageAmount = USAGE_AMOUNT;
+        }
+    }
 
     // https://tailpipe.ai/methodology/serverless-explained/
     // in kWh per GB
@@ -59,7 +83,7 @@ public class Serverless implements EnrichmentModule {
 
     @Override
     public Column[] columnsNeeded() {
-        return new Column[]{LINE_ITEM_OPERATION, USAGE_AMOUNT, LINE_ITEM_USAGE_TYPE};
+        return new Column[]{operation, usageAmount, usageType};
     }
 
     @Override
@@ -69,16 +93,16 @@ public class Serverless implements EnrichmentModule {
 
     @Override
     public void enrich(Row row, Map<Column, Object> enrichedValues) {
-        String usage_type = LINE_ITEM_USAGE_TYPE.getString(row);
+        String usage_type = this.usageType.getString(row);
         if (usage_type == null) {
             return;
         }
 
-        String operation = LINE_ITEM_OPERATION.getString(row);
+        String operation = this.operation.getString(row);
         if ("FargateTask".equals(operation)) {
             // memory
             if (usage_type.endsWith("-GB-Hours")) {
-                double amount_gb = USAGE_AMOUNT.getDouble(row);
+                double amount_gb = usageAmount.getDouble(row);
                 double energy = amount_gb * memory_coefficient_kwh;
                 enrichedValues.put(ENERGY_USED, energy);
                 return;
@@ -86,7 +110,7 @@ public class Serverless implements EnrichmentModule {
 
             // cpu
             if (usage_type.endsWith("-vCPU-Hours:perCPU")) {
-                double amount_vcpu = USAGE_AMOUNT.getDouble(row);
+                double amount_vcpu = usageAmount.getDouble(row);
                 boolean isARM = usage_type.contains("-ARM-");
                 double coefficient = isARM ? arm_cpu_coefficient_kwh : x86_cpu_coefficient_kwh;
                 double energy = amount_vcpu * coefficient;
@@ -96,7 +120,7 @@ public class Serverless implements EnrichmentModule {
         }
         else if (usage_type.contains("EMR-SERVERLESS")) {
             if (usage_type.endsWith("MemoryGBHours")) {
-                double amount_gb = USAGE_AMOUNT.getDouble(row);
+                double amount_gb = usageAmount.getDouble(row);
                 double energy = amount_gb * memory_coefficient_kwh;
                 enrichedValues.put(ENERGY_USED, energy);
                 return;
@@ -104,7 +128,7 @@ public class Serverless implements EnrichmentModule {
 
             // cpu
             if (usage_type.endsWith("-vCPUHours")) {
-                double amount_vcpu = USAGE_AMOUNT.getDouble(row);
+                double amount_vcpu = usageAmount.getDouble(row);
                 boolean isARM = usage_type.contains("-ARM-");
                 double coefficient = isARM ? arm_cpu_coefficient_kwh : x86_cpu_coefficient_kwh;
                 double energy = amount_vcpu * coefficient;
