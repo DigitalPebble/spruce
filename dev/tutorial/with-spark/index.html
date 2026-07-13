@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="zensical-0.0.47">
+      <meta name="generator" content="zensical-0.0.50">
     
     
       
@@ -36,7 +36,7 @@
       
         
       
-      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.5e19f6ca.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.62c9b9cc.min.css">
       
         
           
@@ -1179,6 +1179,12 @@ which requires Apache Maven and Java 17 or above.</p>
 <p>The <code>-i</code> parameter specifies the location of the directory containing the CUR reports in Parquet format.
 The <code>-o</code> parameter specifies the location of enriched Parquet files generated in output.</p>
 <p>The option <code>-c</code> allows to specify a JSON configuration file to <a href="../../howto/config_modules/">override the default settings</a>.</p>
+<p>The option <code>-p</code> selects the cloud provider (<code>AWS</code>, <code>AZURE</code>); it defaults to <code>AWS</code>. The option <code>-f</code>
+selects the format of the input report: <code>NATIVE</code> (the provider's own export — the default) or
+<code>FOCUS</code> for a <a href="https://focus.finops.org/">FOCUS 1.0</a> export. FOCUS is currently supported for
+Azure only. Note that Azure reports are read as CSV files, unlike the AWS ones which are in Parquet:</p>
+<div class="language-shell highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>spark-submit<span class="w"> </span>--class<span class="w"> </span>com.digitalpebble.spruce.SparkJob<span class="w"> </span>--driver-memory<span class="w"> </span>8g<span class="w"> </span>./target/spruce-*.jar<span class="w"> </span>-i<span class="w"> </span>./focus-report<span class="w"> </span>-o<span class="w"> </span>./output<span class="w"> </span>-p<span class="w"> </span>AZURE<span class="w"> </span>-f<span class="w"> </span>FOCUS
+</span></code></pre></div>
 <p>The directory <em>output</em> contains an enriched copy of the input CURs. See <a href="../results/">Explore the results</a> to understand
 what the output contains.</p>
 
@@ -1288,7 +1294,7 @@ what the output contains.</p>
       <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["announce.dismiss","content.code.annotate","content.code.copy","content.code.select","content.footnote.tooltips","content.tabs.link","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight"],"search":"../../assets/javascripts/workers/search.b6b7e04f.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"alias":true,"default":"latest","provider":"mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.0df4f2d0.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7f30b55.min.js"></script>
       
     
   </body>

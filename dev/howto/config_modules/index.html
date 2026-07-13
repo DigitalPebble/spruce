@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="zensical-0.0.47">
+      <meta name="generator" content="zensical-0.0.50">
     
     
       
@@ -36,7 +36,7 @@
       
         
       
-      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.5e19f6ca.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.62c9b9cc.min.css">
       
         
           
@@ -1167,17 +1167,25 @@ flag, defaulting to <code>AWS</code>):</p>
 <thead>
 <tr>
 <th>Provider flag</th>
+<th>Format flag</th>
 <th>Resource file</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>AWS</code></td>
+<td><code>NATIVE</code></td>
 <td><code>default-config-aws.json</code></td>
 </tr>
 <tr>
 <td><code>AZURE</code></td>
+<td><code>NATIVE</code></td>
 <td><code>default-config-azure.json</code></td>
+</tr>
+<tr>
+<td><code>AZURE</code></td>
+<td><code>FOCUS</code></td>
+<td><code>default-config-azure-focus.json</code></td>
 </tr>
 </tbody>
 </table>
@@ -1187,6 +1195,10 @@ flag, defaulting to <code>AWS</code>):</p>
 <p>The Azure pipeline is the current focus of our work, with basic services
 currently covered or about to be:</p>
 <div class="language-text highlight"><span class="filename">default-config-azure.json</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>
+</span></code></pre></div>
+<p>For <a href="https://focus.finops.org/">FOCUS 1.0</a> reports (<code>-f FOCUS</code>), a dedicated configuration is
+used. It relies on the same Azure modules, which adapt automatically to the FOCUS column names:</p>
+<div class="language-text highlight"><span class="filename">default-config-azure-focus.json</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>
 </span></code></pre></div>
 <p>This determines which modules are used and in what order but also configures their behaviour. For instance, the Networking module uses different coefficients for intra-region, inter-region, and external data transfers, all configurable via the <code>network_coefficients_kwh_gb</code> map.</p>
 <h2 id="change-the-configuration">Change the configuration<a class="headerlink" href="#change-the-configuration" title="Permanent link">&para;</a></h2>
@@ -1198,8 +1210,8 @@ custom config targets Azure, pass <code>-p AZURE</code> alongside <code>-c</code
 fall back to the AWS default.</p>
 <h2 id="selecting-a-provider">Selecting a provider<a class="headerlink" href="#selecting-a-provider" title="Permanent link">&para;</a></h2>
 <p>If you do not pass <code>-c</code>, SPRUCE picks the bundled config matching the provider:</p>
-<div class="language-shell highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>spark-submit<span class="w"> </span>--class<span class="w"> </span>com.digitalpebble.spruce.SparkJob<span class="w"> </span>./target/spruce-*.jar<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span>-i<span class="w"> </span>./curs<span class="w"> </span>-o<span class="w"> </span>./output<span class="w"> </span>-p<span class="w"> </span>AWS
+<div class="language-shell highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>spark-submit<span class="w"> </span>--class<span class="w"> </span>com.digitalpebble.spruce.SparkJob<span class="w"> </span>./target/spruce-*.jar<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span>-i<span class="w"> </span>./curs<span class="w"> </span>-o<span class="w"> </span>./output<span class="w"> </span>-p<span class="w"> </span>AWS
 </span></code></pre></div>
 <p><code>-p</code> defaults to <code>AWS</code>, so existing AWS workflows do not need to change.</p>
 
@@ -1309,7 +1321,7 @@ fall back to the AWS default.</p>
       <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["announce.dismiss","content.code.annotate","content.code.copy","content.code.select","content.footnote.tooltips","content.tabs.link","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight"],"search":"../../assets/javascripts/workers/search.b6b7e04f.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"alias":true,"default":"latest","provider":"mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.0df4f2d0.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7f30b55.min.js"></script>
       
     
   </body>
