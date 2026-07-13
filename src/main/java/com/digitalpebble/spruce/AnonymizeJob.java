@@ -75,6 +75,7 @@ public class AnonymizeJob {
 
         if (provider == Provider.AZURE) {
             whitelist.addAll(getColumnLabels(AzureColumn.class));
+            whitelist.addAll(getColumnLabels(AzureFOCUSColumn.class));
         }
 
         // Add user-specified columns
