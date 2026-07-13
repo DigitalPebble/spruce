@@ -10,7 +10,7 @@ import org.apache.spark.sql.types.MapType;
 import static org.apache.spark.sql.types.DataTypes.*;
 
 /** Columns from CUR reports **/
-public class CURColumn extends NativeColumn {
+public class CURColumn extends RowColumn {
 
     public static CURColumn BILLING_PERIOD = new CURColumn("BILLING_PERIOD", StringType);
     public static CURColumn LINE_ITEM_OPERATION = new CURColumn("line_item_operation", StringType);
