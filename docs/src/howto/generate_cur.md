@@ -1,11 +1,11 @@
 # Generate usage reports
 
 SPRUCE takes the billing exports produced by the cloud providers as input, either in the
-provider's native format or in the provider-neutral [FOCUS 1.0](https://focus.finops.org/)
+provider's native format or in the provider-neutral [FOCUS](https://focus.finops.org/)
 format:
 
 - **AWS CUR v2** (Parquet) — the default input (`-p AWS -f NATIVE`)
-- **AWS FOCUS 1.0** (Parquet) — `-p AWS -f FOCUS`
+- **AWS FOCUS 1.2** (Parquet) — `-p AWS -f FOCUS`
 - **Azure FOCUS 1.0** (CSV) — `-p AZURE -f FOCUS`
 - **Azure EA/MCA cost details** (CSV) — `-p AZURE -f NATIVE`
 
@@ -17,7 +17,7 @@ past billing periods.
 
 AWS exports are generated via [Data Exports](https://docs.aws.amazon.com/cur/latest/userguide/what-is-data-exports.html)
 and stored on S3 as Parquet files. Data Exports can produce both the CUR v2 table and a
-**FOCUS 1.0 with AWS columns** table — the steps below are the same, only the export type
+**FOCUS 1.2 with AWS columns** table — the steps below are the same, only the export type
 differs.
 
 ### AWS Console
@@ -25,7 +25,9 @@ differs.
 In the **Billing and Cost Management** section, go to **Cost and Usage Analysis** then **Data Export**. Click on **Create**.
 
 Select the export type: **Standard data export** with the **CUR 2.0** table for a native CUR,
-or the **FOCUS 1.0 with AWS columns** table for a FOCUS export.
+or the **FOCUS 1.2 with AWS columns** table for a FOCUS export. Make sure to pick the 1.2
+table, not the older **FOCUS 1.0 with AWS columns** one: SPRUCE relies on the `SkuMeter`
+column (introduced in FOCUS 1.1), which the 1.0 export does not carry.
 
 Give your export a name and, for a CUR, click on **Include Resource IDs** as shown below
 

@@ -21,16 +21,16 @@ SPRUCE is built around the idea that actionable GreenOps requires the same granu
 - **Multiple impact dimensions** — beyond carbon, SPRUCE models water consumption, giving a fuller picture of your cloud's environmental cost.
 - **GreenOps and FinOps together** — cost and impact share the same pipeline, so trade-off decisions are grounded in real data.
 - **Open and auditable** — built on open source models and public data, so your methodology is transparent, not black-boxed.
-- **Standards-friendly** — ingests [FOCUS 1.0](https://focus.finops.org/) exports from AWS and Azure, and outputs FOCUS-compatible columns.
+- **Standards-friendly** — ingests [FOCUS](https://focus.finops.org/) exports from AWS and Azure, and outputs FOCUS-compatible columns.
 - **Your data stays yours** — running on EMR means your CUR data never leaves your AWS environment.
 - **Actively maintained** — unlike Cloud Carbon Footprint, which has been abandoned, SPRUCE is under active development.
 
-SPRUCE enriches the billing exports you already produce, in the provider's native format or in the provider-neutral [FOCUS 1.0](https://focus.finops.org/) format (`-f FOCUS`):
+SPRUCE enriches the billing exports you already produce, in the provider's native format or in the provider-neutral [FOCUS](https://focus.finops.org/) format (`-f FOCUS`):
 
-| Provider | Native format | FOCUS 1.0 | Coverage |
+| Provider | Native format | FOCUS | Coverage |
 |---|---|---|---|
-| **AWS** | ✅ CUR v2 (Parquet) | ✅ | Most of the cost of a typical usage gets estimates |
-| **Azure** | ✅ EA/MCA cost details (CSV) | ✅ | Partial — basic services covered, actively expanding |
+| **AWS** | ✅ CUR v2 (Parquet) | ✅ 1.2 | Most of the cost of a typical usage gets estimates |
+| **Azure** | ✅ EA/MCA cost details (CSV) | ✅ 1.0 | Partial — basic services covered, actively expanding |
 
 ## How it works
 

@@ -3,7 +3,7 @@
 
 ## Prerequisites
 
-SPRUCE accepts AWS CUR reports (Parquet), Azure cost details (CSV), or [FOCUS 1.0](https://focus.finops.org/)
+SPRUCE accepts AWS CUR reports (Parquet), Azure cost details (CSV), or [FOCUS](https://focus.finops.org/)
 exports from either provider — see [Generate usage reports](../howto/generate_cur.md) for how to
 produce them. This tutorial uses an AWS CUR, generated via
 [Data Exports](https://docs.aws.amazon.com/cur/latest/userguide/what-is-data-exports.html) and

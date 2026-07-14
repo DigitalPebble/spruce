@@ -1,6 +1,6 @@
 # Methodology
 
-SPRUCE uses third-party resources and models to estimate the environmental impact of cloud services. It enriches usage reports — AWS CUR, Azure cost details, or [FOCUS 1.0](https://focus.finops.org/) exports from either provider — with additional columns, allowing users to do GreenOps and build dashboards and reports.
+SPRUCE uses third-party resources and models to estimate the environmental impact of cloud services. It enriches usage reports — AWS CUR, Azure cost details, or [FOCUS](https://focus.finops.org/) exports from either provider — with additional columns, allowing users to do GreenOps and build dashboards and reports.
 
 ![SPRUCE workflow](images/workflow.png)
 
