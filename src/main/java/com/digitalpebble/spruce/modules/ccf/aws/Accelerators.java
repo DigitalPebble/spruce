@@ -2,8 +2,13 @@
 
 package com.digitalpebble.spruce.modules.ccf.aws;
 
+import com.digitalpebble.spruce.AWSFOCUSColumn;
 import com.digitalpebble.spruce.Column;
 import com.digitalpebble.spruce.EnrichmentModule;
+import com.digitalpebble.spruce.FOCUSColumn;
+import com.digitalpebble.spruce.ReportFormat;
+import com.digitalpebble.spruce.RowColumn;
+import com.digitalpebble.spruce.Utils;
 import org.apache.spark.sql.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +20,13 @@ import static com.digitalpebble.spruce.CURColumn.*;
 import static com.digitalpebble.spruce.SpruceColumn.*;
 import static com.digitalpebble.spruce.Utils.loadJSONResources;
 
+/**
+ * Estimates the energy used by GPUs attached to EC2 instances.
+ *
+ * <p>FOCUS reports carry no {@code product_instance_type}; the instance type is recovered from
+ * the {@code SkuMeter} column instead (the CUR usage type, e.g. {@code BoxUsage:g6.xlarge}),
+ * and {@code x_ServiceCode} stands in for {@code line_item_product_code}.
+ **/
 public class Accelerators implements EnrichmentModule {
 
     private static final Logger LOG = LoggerFactory.getLogger(Accelerators.class);
@@ -22,6 +34,25 @@ public class Accelerators implements EnrichmentModule {
     public int gpu_utilisation_percent = 50;
     public Map<String, Map> gpu_instance_types;
     public Map<String, Map> gpu_info;
+
+    private boolean focus = false;
+    private RowColumn operation = LINE_ITEM_OPERATION;
+    private RowColumn productCode = LINE_ITEM_PRODUCT_CODE;
+    private RowColumn usageAmount = USAGE_AMOUNT;
+
+    @Override
+    public void bindReportFormat(ReportFormat reportFormat) {
+        focus = reportFormat == ReportFormat.FOCUS;
+        if (focus) {
+            operation = AWSFOCUSColumn.X_OPERATION;
+            productCode = AWSFOCUSColumn.X_SERVICE_CODE;
+            usageAmount = FOCUSColumn.CONSUMED_QUANTITY;
+        } else {
+            operation = LINE_ITEM_OPERATION;
+            productCode = LINE_ITEM_PRODUCT_CODE;
+            usageAmount = USAGE_AMOUNT;
+        }
+    }
 
     public void init(Map<String, Object> params) {
         // specify a gpu utilisation
@@ -43,6 +74,9 @@ public class Accelerators implements EnrichmentModule {
 
     @Override
     public Column[] columnsNeeded() {
+        if (focus) {
+            return new Column[]{FOCUSColumn.SKU_METER, AWSFOCUSColumn.X_OPERATION, AWSFOCUSColumn.X_SERVICE_CODE, FOCUSColumn.CONSUMED_QUANTITY};
+        }
         return new Column[]{PRODUCT_INSTANCE_TYPE, LINE_ITEM_OPERATION, LINE_ITEM_PRODUCT_CODE, USAGE_AMOUNT};
     }
 
@@ -55,13 +89,15 @@ public class Accelerators implements EnrichmentModule {
     public void enrich(Row row, Map<Column, Object> enrichedValues) {
         // limit to EC2 instances
 
-        String instanceType = PRODUCT_INSTANCE_TYPE.getString(row);
+        String instanceType = focus
+                ? Utils.instanceTypeFromUsageType(FOCUSColumn.SKU_METER.getString(row))
+                : PRODUCT_INSTANCE_TYPE.getString(row);
         if (instanceType == null) {
             return;
         }
 
-        final String operation = LINE_ITEM_OPERATION.getString(row);
-        final String product_code = LINE_ITEM_PRODUCT_CODE.getString(row);
+        final String operation = this.operation.getString(row);
+        final String product_code = this.productCode.getString(row);
 
         if (operation == null || product_code == null) {
             return;
@@ -99,7 +135,7 @@ public class Accelerators implements EnrichmentModule {
         // minWatts + (gpu_utilisation_percent / 100) * (maxWatts - minWatts)
         double energy_used = minWatts + ((double) gpu_utilisation_percent / 100) * (maxWatts - minWatts);
 
-        double amount = USAGE_AMOUNT.getDouble(row);
+        double amount = usageAmount.getDouble(row);
 
         // watts to kw
         energy_used = (amount * energy_used * quantity / 1000);

@@ -240,4 +240,24 @@ public class ConfigTest {
         assertTrue(java.util.Arrays.asList(storage.columnsNeeded())
                 .contains(AzureFOCUSColumn.X_SKU_METER_CATEGORY));
     }
+
+    @Test
+    void testAwsFocusDefaultConfigBindsFocusColumns() throws Exception {
+        Config conf = Config.loadDefault(Provider.AWS, ReportFormat.FOCUS);
+        assertEquals(ReportFormat.FOCUS, conf.getReportFormat());
+        assertEquals(Provider.AWS, conf.getProvider());
+        assertTrue(conf.getModules().stream()
+                .anyMatch(module -> module instanceof com.digitalpebble.spruce.modules.focus.RegionExtraction));
+        // loading the config binds the format-dependent input columns before validation
+        var storage = conf.getModules().stream()
+                .filter(module -> module instanceof com.digitalpebble.spruce.modules.ccf.aws.Storage)
+                .findFirst().orElseThrow();
+        assertTrue(java.util.Arrays.asList(storage.columnsNeeded())
+                .contains(FOCUSColumn.SKU_METER));
+        var boavizta = conf.getModules().stream()
+                .filter(module -> module instanceof com.digitalpebble.spruce.modules.boavizta.aws.BoaviztAPIstatic)
+                .findFirst().orElseThrow();
+        assertTrue(java.util.Arrays.asList(boavizta.columnsNeeded())
+                .contains(AWSFOCUSColumn.X_SERVICE_CODE));
+    }
 }

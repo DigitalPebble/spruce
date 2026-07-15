@@ -2,8 +2,12 @@
 
 package com.digitalpebble.spruce.modules.ccf.aws;
 
+import com.digitalpebble.spruce.AWSFOCUSColumn;
 import com.digitalpebble.spruce.Column;
 import com.digitalpebble.spruce.EnrichmentModule;
+import com.digitalpebble.spruce.FOCUSColumn;
+import com.digitalpebble.spruce.ReportFormat;
+import com.digitalpebble.spruce.RowColumn;
 import com.digitalpebble.spruce.Utils;
 import org.apache.spark.sql.Row;
 import org.slf4j.Logger;
@@ -21,12 +25,44 @@ import static com.digitalpebble.spruce.Utils.loadJSONResources;
  * Provides an estimate of energy used for storage.
  * Applies a flat coefficient per Gb
  *
+ * <p>The values read (operations, usage types, units) are identical in CUR and FOCUS reports,
+ * only the column labels differ: {@link #bindReportFormat(ReportFormat)} selects the bindings.
+ * Note that {@code x_ServiceCode} carries the CUR {@code line_item_product_code}, which matches
+ * {@code product_servicecode} for the storage services handled here.
+ *
  * @see <a href="https://www.cloudcarbonfootprint.org/docs/methodology#storage">CCF methodology</a>
  * @see <a href="https://github.com/cloud-carbon-footprint/cloud-carbon-footprint/blob/9f2cf436e5ad020830977e52c3b0a1719d20a8b9/packages/aws/src/lib/CostAndUsageTypes.ts#L25">resource file</a>
  **/
 public class Storage implements EnrichmentModule {
 
     private static final Logger log = LoggerFactory.getLogger(Storage.class);
+
+    protected RowColumn operation = LINE_ITEM_OPERATION;
+    protected RowColumn usageType = LINE_ITEM_USAGE_TYPE;
+    protected RowColumn usageAmount = USAGE_AMOUNT;
+    protected RowColumn serviceCode = PRODUCT_SERVICE_CODE;
+    protected RowColumn pricingUnit = PRICING_UNIT;
+    /** Only used for debug logging; absent from FOCUS reports. */
+    protected RowColumn productFamily = PRODUCT_PRODUCT_FAMILY;
+
+    @Override
+    public void bindReportFormat(ReportFormat reportFormat) {
+        if (reportFormat == ReportFormat.FOCUS) {
+            operation = AWSFOCUSColumn.X_OPERATION;
+            usageType = FOCUSColumn.SKU_METER;
+            usageAmount = FOCUSColumn.CONSUMED_QUANTITY;
+            serviceCode = AWSFOCUSColumn.X_SERVICE_CODE;
+            pricingUnit = FOCUSColumn.PRICING_UNIT;
+            productFamily = null;
+        } else {
+            operation = LINE_ITEM_OPERATION;
+            usageType = LINE_ITEM_USAGE_TYPE;
+            usageAmount = USAGE_AMOUNT;
+            serviceCode = PRODUCT_SERVICE_CODE;
+            pricingUnit = PRICING_UNIT;
+            productFamily = PRODUCT_PRODUCT_FAMILY;
+        }
+    }
 
     //  0.65 Watt-Hours per Terabyte-Hour for HDD
     double hdd_gb_coefficient = 0.65 / 1024d;
@@ -68,7 +104,7 @@ public class Storage implements EnrichmentModule {
 
     @Override
     public Column[] columnsNeeded() {
-        return new Column[]{LINE_ITEM_OPERATION, USAGE_AMOUNT, LINE_ITEM_USAGE_TYPE, PRODUCT_SERVICE_CODE, PRICING_UNIT};
+        return new Column[]{operation, usageAmount, usageType, serviceCode, pricingUnit};
     }
 
     @Override
@@ -78,24 +114,24 @@ public class Storage implements EnrichmentModule {
 
     @Override
     public void enrich(Row row, Map<Column, Object> enrichedValues) {
-        final String operation = LINE_ITEM_OPERATION.getString(row);
+        final String operation = this.operation.getString(row);
         if (operation == null) {
             return;
         }
 
         // implement the logic from CCF
         // first check that the unit corresponds to storage
-        final String unit = PRICING_UNIT.getString(row);
+        final String unit = this.pricingUnit.getString(row);
         if (unit == null || !units.contains(unit)) {
             return;
         }
 
-        final String usage_type = LINE_ITEM_USAGE_TYPE.getString(row);
+        final String usage_type = this.usageType.getString(row);
         if (usage_type == null) {
             return;
         }
 
-        final String serviceCode = PRODUCT_SERVICE_CODE.getString(row);
+        final String serviceCode = this.serviceCode.getString(row);
         int replication = getReplicationFactor(serviceCode, usage_type);
 
         // loop on the values from the resources
@@ -125,7 +161,7 @@ public class Storage implements EnrichmentModule {
         }
 
         // Log so that can improve coverage in the longer term
-        String product_product_family = PRODUCT_PRODUCT_FAMILY.getString(row);
+        String product_product_family = productFamily != null ? productFamily.getString(row) : null;
         if ("Storage".equals(product_product_family)) {
             log.debug("Storage type not found for {} {}", operation, usage_type);
         }
@@ -134,8 +170,8 @@ public class Storage implements EnrichmentModule {
 
     private void computeEnergy(Row row, Map<Column, Object> enrichedValues, boolean isHDD, int replication) {
         double coefficient = isHDD ? hdd_gb_coefficient : ssd_gb_coefficient;
-        double amount = USAGE_AMOUNT.getDouble(row);
-        String unit = PRICING_UNIT.getString(row);
+        double amount = usageAmount.getDouble(row);
+        String unit = pricingUnit.getString(row);
         // normalisation
         if (!"GB-Hours".equals(unit)) {
            // it is in GBMonth

@@ -72,6 +72,7 @@ public class AnonymizeJob {
         whitelist.addAll(getColumnLabels(CURColumn.class));
         whitelist.addAll(getColumnLabels(SpruceColumn.class));
         whitelist.addAll(getColumnLabels(FOCUSColumn.class));
+        whitelist.addAll(getColumnLabels(AWSFOCUSColumn.class));
 
         if (provider == Provider.AZURE) {
             whitelist.addAll(getColumnLabels(AzureColumn.class));

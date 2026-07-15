@@ -2,8 +2,11 @@
 
 package com.digitalpebble.spruce.modules.boavizta.aws;
 
+import com.digitalpebble.spruce.AWSFOCUSColumn;
 import com.digitalpebble.spruce.CURColumn;
 import com.digitalpebble.spruce.Column;
+import com.digitalpebble.spruce.FOCUSColumn;
+import com.digitalpebble.spruce.ReportFormat;
 import com.digitalpebble.spruce.SpruceColumn;
 import com.digitalpebble.spruce.Utils;
 import com.digitalpebble.spruce.modules.boavizta.Impacts;
@@ -11,6 +14,7 @@ import org.apache.spark.sql.Row;
 import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema;
 import org.apache.spark.sql.types.StructType;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -143,6 +147,87 @@ class AbstractBoaviztaAwsTest {
         Map<Column, Object> enriched = new HashMap<>();
         module.enrich(row, enriched);
         return enriched;
+    }
+
+    /**
+     * FOCUS reports carry no {@code product_instance_type}: the instance type is parsed from the
+     * SkuMeter (the CUR usage type, e.g. {@code EUW2-BoxUsage:t3.micro}) and {@code x_ServiceCode}
+     * stands in for both the product and service codes.
+     */
+    @Nested
+    class FOCUSBinding {
+
+        private TestBoavizta focusModule;
+        private StructType focusSchema;
+
+        @BeforeEach
+        void setUp() {
+            focusModule = new TestBoavizta();
+            focusModule.bindReportFormat(ReportFormat.FOCUS);
+            focusModule.init(new HashMap<>());
+            focusSchema = Utils.getSchema(focusModule);
+        }
+
+        @Test
+        void columnsNeededReflectsFOCUSColumns() {
+            assertArrayEquals(new Column[]{
+                    FOCUSColumn.SKU_METER,
+                    AWSFOCUSColumn.X_SERVICE_CODE,
+                    AWSFOCUSColumn.X_OPERATION,
+                    FOCUSColumn.CONSUMED_QUANTITY
+            }, focusModule.columnsNeeded());
+        }
+
+        @Test
+        void ec2InstanceTypeParsedFromSkuMeter() {
+            focusModule.impactsByType.put("t3.micro", new Impacts(0.001, 5.0, 1.0e-4));
+            Map<Column, Object> enriched = enrich("EUW2-BoxUsage:t3.micro", "AmazonEC2", "RunInstances", 10.0);
+            assertEquals(0.01, (double) enriched.get(SpruceColumn.ENERGY_USED), 1e-12);
+        }
+
+        @Test
+        void esDomainStripsSearchSuffixBeforeLookup() {
+            focusModule.impactsByType.put("t3.micro", new Impacts(1.0, 1.0, 1.0));
+            Map<Column, Object> enriched = enrich("ESInstance:t3.micro.search", "AmazonES", "ESDomain", 1.0);
+            assertNotNull(enriched.get(SpruceColumn.ENERGY_USED));
+        }
+
+        @Test
+        void rdsStripsDbPrefixBeforeLookup() {
+            focusModule.impactsByType.put("t3.micro", new Impacts(1.0, 1.0, 1.0));
+            Map<Column, Object> enriched = enrich("InstanceUsage:db.t3.micro", "AmazonRDS", "CreateDBInstance", 1.0);
+            assertNotNull(enriched.get(SpruceColumn.ENERGY_USED));
+        }
+
+        @ParameterizedTest
+        @MethodSource("nonRelevantFocusRows")
+        void nonRelevantRowsAreSkippedBeforeLookup(String skuMeter, String serviceCode, String operation) {
+            Map<Column, Object> enriched = enrich(skuMeter, serviceCode, operation, 1.0);
+            assertTrue(enriched.isEmpty());
+            assertEquals(0, focusModule.lookupCalls.get());
+        }
+
+        static Stream<Arguments> nonRelevantFocusRows() {
+            return Stream.of(
+                    // colon-bearing meters that are not instance lines are kept out by the operation gates
+                    Arguments.of("EBS:VolumeUsage.gp3", "AmazonEC2", "CreateVolume-Gp3"),
+                    // meters without a colon carry no instance type
+                    Arguments.of("Requests-Tier1", "AmazonS3", "GetObject"),
+                    Arguments.of(null, "AmazonEC2", "RunInstances"),
+                    Arguments.of("BoxUsage:t3.micro", "AmazonEC2", null)
+            );
+        }
+
+        private Map<Column, Object> enrich(String skuMeter, String serviceCode, String operation, double usage) {
+            Object[] values = new Object[]{
+                    skuMeter, serviceCode, operation, usage,
+                    null, null, null
+            };
+            Row row = new GenericRowWithSchema(values, focusSchema);
+            Map<Column, Object> enriched = new HashMap<>();
+            focusModule.enrich(row, enriched);
+            return enriched;
+        }
     }
 
     /**

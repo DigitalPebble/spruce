@@ -166,6 +166,24 @@ public abstract class Utils {
     }
 
     /**
+     * Returns the instance type held in an AWS usage-type-shaped value, i.e. the part after the
+     * colon (e.g. {@code EUW2-BoxUsage:t3.xlarge} → {@code t3.xlarge}), or null if there is none.
+     * Used for FOCUS reports, which carry no {@code product_instance_type} but expose the CUR
+     * usage type as {@code SkuMeter}; callers must gate on the operation to keep out the
+     * non-instance meters that also contain a colon (e.g. {@code EBS:VolumeUsage.gp3}).
+     */
+    public static String instanceTypeFromUsageType(String usageType) {
+        if (usageType == null) {
+            return null;
+        }
+        int colon = usageType.indexOf(':');
+        if (colon < 0 || colon == usageType.length() - 1) {
+            return null;
+        }
+        return usageType.substring(colon + 1);
+    }
+
+    /**
      * Loads a CSV resource and returns a list of String arrays.
      * Skips lines starting with # or empty lines.
      */
