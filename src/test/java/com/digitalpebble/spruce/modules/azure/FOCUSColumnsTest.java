@@ -11,8 +11,6 @@ import org.apache.spark.sql.types.Metadata;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,25 +35,6 @@ public class FOCUSColumnsTest {
 
     private final FOCUSColumns module = new FOCUSColumns();
     private final StructType schema = Utils.getSchema(module);
-
-    @ParameterizedTest
-    @CsvSource({
-            "Usage, Usage",
-            "UnusedReservation, Usage",
-            "UnusedSavingsPlan, Usage",
-            "Purchase, Purchase",
-            "Refund, Purchase",
-            "RoundingAdjustment, Adjustment",
-            "SomeFutureType, SomeFutureType"
-    })
-    void normalisesChargeCategory(String chargeType, String expected) {
-        Row row = generateRow(1.0, "Storage", chargeType, "sub-123", "2026-06-23");
-        Map<Column, Object> enriched = new HashMap<>();
-
-        module.enrich(row, enriched);
-
-        assertEquals(expected, enriched.get(CHARGE_CATEGORY));
-    }
 
     @Test
     void mapsAllColumns() {

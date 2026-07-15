@@ -20,7 +20,7 @@ public class AzureFOCUSColumn extends RowColumn {
     /** Same values as the legacy {@code UnitOfMeasure} (e.g. "1 Hour", "10 GB/Month"). */
     public static AzureFOCUSColumn X_PRICING_UNIT_DESCRIPTION = new AzureFOCUSColumn("x_PricingUnitDescription", StringType);
 
-    public AzureFOCUSColumn(String l, DataType t) {
+    AzureFOCUSColumn(String l, DataType t) {
         super(l, t);
     }
 }

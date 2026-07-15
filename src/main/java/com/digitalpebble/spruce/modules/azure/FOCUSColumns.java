@@ -43,25 +43,6 @@ public class FOCUSColumns implements EnrichmentModule {
             DateTimeFormatter.ofPattern("MM/dd/yyyy"),
             DateTimeFormatter.ofPattern("M/d/yyyy"));
 
-    /**
-     * ChargeType → FOCUS ChargeCategory, mirroring the mapping Microsoft applies in its own
-     * FOCUS exports. Unknown types are passed through unchanged.
-     **/
-    private static final Map<String, String> CHARGE_CATEGORIES = Map.of(
-            "Usage", "Usage",
-            "UnusedReservation", "Usage",
-            "UnusedSavingsPlan", "Usage",
-            "Purchase", "Purchase",
-            "Refund", "Purchase",
-            "RoundingAdjustment", "Adjustment",
-            "Tax", "Tax");
-
-    @Override
-    public boolean processesAllRows() {
-        // billing values must be carried for non-usage rows too (purchases, refunds)
-        return true;
-    }
-
     @Override
     public Column[] columnsNeeded() {
         return new Column[]{COST_IN_BILLING_CURRENCY, METER_CATEGORY, CHARGE_TYPE, SUBSCRIPTION_ID, DATE};
@@ -98,7 +79,7 @@ public class FOCUSColumns implements EnrichmentModule {
 
         String chargeType = CHARGE_TYPE.getString(row);
         if (chargeType != null) {
-            enrichedValues.put(CHARGE_CATEGORY, CHARGE_CATEGORIES.getOrDefault(chargeType, chargeType));
+            enrichedValues.put(CHARGE_CATEGORY, chargeType);
         }
 
         String subscriptionId = SUBSCRIPTION_ID.getString(row);

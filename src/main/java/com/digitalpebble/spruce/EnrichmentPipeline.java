@@ -17,7 +17,6 @@ import static com.digitalpebble.spruce.CURColumn.LINE_ITEM_TYPE;
 public class EnrichmentPipeline implements MapPartitionsFunction<Row, Row> {
 
     private transient List<EnrichmentModule> enrichmentModules;
-    private transient List<EnrichmentModule> allRowsModules;
 
     private final Config config;
 
@@ -31,8 +30,6 @@ public class EnrichmentPipeline implements MapPartitionsFunction<Row, Row> {
 
         if (enrichmentModules == null) {
             enrichmentModules = config.configureModules();
-            allRowsModules = enrichmentModules.stream()
-                    .filter(EnrichmentModule::processesAllRows).toList();
         }
 
         return new Iterator<Row>() {
@@ -44,13 +41,12 @@ public class EnrichmentPipeline implements MapPartitionsFunction<Row, Row> {
             @Override
             public Row next() {
                 Row row = input.next();
-                // usage filter - impact estimation only applies to entries that correspond to a
-                // usage (no tax, discount or fee); modules that process all rows still run
-                List<EnrichmentModule> modules = usageFilter(row) ? enrichmentModules : allRowsModules;
-                if (modules.isEmpty()) return row;
+                // usage filter - only need to enrich entries that correspond to a usage (no tax, discount or fee)
+                boolean usage = usageFilter(row);
+                if (!usage) return row;
 
                 Map<Column, Object> enriched = new HashMap<>();
-                for (EnrichmentModule module : modules) {
+                for (EnrichmentModule module : enrichmentModules) {
                     module.enrich(row, enriched);
                 }
 
