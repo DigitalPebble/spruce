@@ -43,9 +43,6 @@
       }
     },
     {
-      "className": "com.digitalpebble.spruce.modules.azure.InstanceTypeExtraction"
-    },
-    {
       "className": "com.digitalpebble.spruce.modules.azure.FOCUSColumns"
     }
   ]

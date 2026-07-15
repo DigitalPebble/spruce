@@ -11,9 +11,6 @@ import org.apache.spark.sql.types.Metadata;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
-import scala.collection.JavaConverters;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -46,7 +43,7 @@ public class FOCUSColumnsTest {
 
     @Test
     void mapsAllColumns() {
-        Row row = generateRow(12.5, "AmazonEC2", "RunInstances", "EUW2-BoxUsage:t3.xlarge", "Usage",
+        Row row = generateRow(12.5, "AmazonEC2", "AmazonEC2", "RunInstances", "EUW2-BoxUsage:t3.xlarge", "Usage",
                 "sub-123", "2026-06-23T00:00:00Z", "2026-06-24T00:00:00Z", 15.0);
         Map<Column, Object> enriched = new HashMap<>();
         enriched.put(REGION, "us-east-1");
@@ -56,6 +53,7 @@ public class FOCUSColumnsTest {
         assertEquals(12.5, (Double) enriched.get(BILLED_COST));
         assertEquals(15.0, (Double) enriched.get(LIST_COST));
         assertEquals("us-east-1", enriched.get(REGION_ID));
+        assertEquals("AmazonEC2", enriched.get(SERVICE_NAME));
         assertEquals("AmazonEC2", enriched.get(X_SERVICE_CODE));
         assertEquals("RunInstances", enriched.get(X_OPERATION));
         assertEquals("EUW2-BoxUsage:t3.xlarge", enriched.get(SKU_METER));
@@ -66,62 +64,19 @@ public class FOCUSColumnsTest {
     }
 
     @Test
-    void serviceNameComesFromProductMap() {
-        StructType withProduct = schemaWithExtra("product",
-                DataTypes.createMapType(DataTypes.StringType, DataTypes.StringType));
-        Map<String, String> product = new HashMap<>();
-        product.put("product_name", "Amazon Elastic Compute Cloud");
-        Row row = new GenericRowWithSchema(values(1.0, "AmazonEC2", "RunInstances", "EUW2-BoxUsage:t3.xlarge",
-                "Usage", "sub-123", "2026-06-23T00:00:00Z", "2026-06-24T00:00:00Z", 1.0,
-                JavaConverters.mapAsScalaMapConverter(product).asScala()), withProduct);
-        Map<Column, Object> enriched = new HashMap<>();
-
-        module.enrich(row, enriched);
-
-        assertEquals("Amazon Elastic Compute Cloud", enriched.get(SERVICE_NAME));
-        assertEquals("AmazonEC2", enriched.get(X_SERVICE_CODE));
-    }
-
-    @Test
-    void serviceNameFallsBackToProductCode() {
-        Row row = generateRow(1.0, "AmazonEC2", "RunInstances", "EUW2-BoxUsage:t3.xlarge", "Usage",
+    void chargeCategoryCarriesRawLineItemType() {
+        Row row = generateRow(1.0, "AmazonEC2", "AmazonEC2", "RunInstances", "EUW2-BoxUsage:t3.xlarge", "SavingsPlanCoveredUsage",
                 "sub-123", "2026-06-23T00:00:00Z", "2026-06-24T00:00:00Z", 1.0);
         Map<Column, Object> enriched = new HashMap<>();
 
         module.enrich(row, enriched);
 
-        assertEquals("AmazonEC2", enriched.get(SERVICE_NAME));
-    }
-
-    @ParameterizedTest
-    @CsvSource({
-            "Usage, Usage",
-            "DiscountedUsage, Usage",
-            "SavingsPlanCoveredUsage, Usage",
-            "SavingsPlanNegation, Usage",
-            "Fee, Purchase",
-            "RIFee, Purchase",
-            "SavingsPlanUpfrontFee, Purchase",
-            "SavingsPlanRecurringFee, Purchase",
-            "Tax, Tax",
-            "Credit, Credit",
-            "Refund, Credit",
-            "EdpDiscount, Credit",
-            "SomeFutureType, SomeFutureType"
-    })
-    void normalisesChargeCategory(String lineItemType, String expected) {
-        Row row = generateRow(1.0, "AmazonEC2", "RunInstances", "EUW2-BoxUsage:t3.xlarge", lineItemType,
-                "sub-123", "2026-06-23T00:00:00Z", "2026-06-24T00:00:00Z", 1.0);
-        Map<Column, Object> enriched = new HashMap<>();
-
-        module.enrich(row, enriched);
-
-        assertEquals(expected, enriched.get(CHARGE_CATEGORY));
+        assertEquals("SavingsPlanCoveredUsage", enriched.get(CHARGE_CATEGORY));
     }
 
     @Test
     void emptyStringsProduceNoValues() {
-        Row row = generateRow(1.0, "", "", "", "",
+        Row row = generateRow(1.0, "", "", "", "", "",
                 "sub-123", "2026-06-23T00:00:00Z", "2026-06-24T00:00:00Z", 1.0);
         Map<Column, Object> enriched = new HashMap<>();
 
@@ -143,7 +98,7 @@ public class FOCUSColumnsTest {
                 fields[i] = new StructField(fields[i].name(), DataTypes.TimestampType, true, Metadata.empty());
             }
         }
-        Row row = new GenericRowWithSchema(values(1.0, "AmazonEC2", "RunInstances", "EUW2-BoxUsage:t3.xlarge",
+        Row row = new GenericRowWithSchema(values(1.0, "AmazonEC2", "AmazonEC2", "RunInstances", "EUW2-BoxUsage:t3.xlarge",
                 "Usage", "sub-123", java.sql.Timestamp.from(java.time.Instant.parse("2026-06-23T00:00:00Z")),
                 java.sql.Timestamp.from(java.time.Instant.parse("2026-06-24T00:00:00Z")), 1.0),
                 new StructType(fields));
@@ -157,7 +112,7 @@ public class FOCUSColumnsTest {
 
     @Test
     void regionIdComesFromEnrichedRegion() {
-        Row row = generateRow(1.0, "AmazonEC2", "RunInstances", "EUW2-BoxUsage:t3.xlarge", "Usage",
+        Row row = generateRow(1.0, "AmazonEC2", "AmazonEC2", "RunInstances", "EUW2-BoxUsage:t3.xlarge", "Usage",
                 "sub-123", "2026-06-23T00:00:00Z", "2026-06-24T00:00:00Z", 1.0);
         Map<Column, Object> enriched = new HashMap<>();
         enriched.put(REGION, "us-west-2");
@@ -170,7 +125,7 @@ public class FOCUSColumnsTest {
     @Test
     void regionIdFallsBackToProductRegionCode() {
         StructType withFallback = schemaWithExtra("product_region_code", DataTypes.StringType);
-        Row row = new GenericRowWithSchema(values(1.0, "AmazonEC2", "RunInstances", "EUW2-BoxUsage:t3.xlarge",
+        Row row = new GenericRowWithSchema(values(1.0, "AmazonEC2", "AmazonEC2", "RunInstances", "EUW2-BoxUsage:t3.xlarge",
                 "Usage", "sub-123", "2026-06-23T00:00:00Z", "2026-06-24T00:00:00Z", 1.0, "US-EAST-1"), withFallback);
         Map<Column, Object> enriched = new HashMap<>();
 
@@ -181,7 +136,7 @@ public class FOCUSColumnsTest {
 
     @Test
     void nullCostProducesNoBilledCost() {
-        Row row = generateRow(null, "AmazonEC2", "RunInstances", "EUW2-BoxUsage:t3.xlarge", "Usage",
+        Row row = generateRow(null, "AmazonEC2", "AmazonEC2", "RunInstances", "EUW2-BoxUsage:t3.xlarge", "Usage",
                 "sub-123", "2026-06-23T00:00:00Z", "2026-06-24T00:00:00Z", 1.0);
         Map<Column, Object> enriched = new HashMap<>();
 
@@ -192,7 +147,7 @@ public class FOCUSColumnsTest {
 
     @Test
     void nullListCostProducesNoListCost() {
-        Row row = generateRow(1.0, "AmazonEC2", "RunInstances", "EUW2-BoxUsage:t3.xlarge", "Usage",
+        Row row = generateRow(1.0, "AmazonEC2", "AmazonEC2", "RunInstances", "EUW2-BoxUsage:t3.xlarge", "Usage",
                 "sub-123", "2026-06-23T00:00:00Z", "2026-06-24T00:00:00Z", null);
         Map<Column, Object> enriched = new HashMap<>();
 
@@ -203,7 +158,7 @@ public class FOCUSColumnsTest {
 
     @Test
     void missingRegionLeavesRegionIdNull() {
-        Row row = generateRow(1.0, "AmazonEC2", "RunInstances", "EUW2-BoxUsage:t3.xlarge", "Usage",
+        Row row = generateRow(1.0, "AmazonEC2", "AmazonEC2", "RunInstances", "EUW2-BoxUsage:t3.xlarge", "Usage",
                 "sub-123", "2026-06-23T00:00:00Z", "2026-06-24T00:00:00Z", 1.0);
         Map<Column, Object> enriched = new HashMap<>();
 
@@ -213,7 +168,7 @@ public class FOCUSColumnsTest {
     }
 
     @Test
-    void resourceTagsPopulatedConvertsToTagsJSON() {
+    void resourceTagsCopiedAsMap() {
         StructType withTags = schemaWithExtra("resource_tags",
                 DataTypes.createMapType(DataTypes.StringType, DataTypes.StringType));
 
@@ -221,16 +176,17 @@ public class FOCUSColumnsTest {
         tagsMap.put("env", "production");
         tagsMap.put("team", "spruce");
 
-        Row row = new GenericRowWithSchema(values(1.0, "AmazonEC2", "RunInstances", "EUW2-BoxUsage:t3.xlarge",
+        Row row = new GenericRowWithSchema(values(1.0, "AmazonEC2", "AmazonEC2", "RunInstances", "EUW2-BoxUsage:t3.xlarge",
                 "Usage", "sub-123", "2026-06-23T00:00:00Z", "2026-06-24T00:00:00Z", 1.0, tagsMap), withTags);
         Map<Column, Object> enriched = new HashMap<>();
 
         module.enrich(row, enriched);
 
         assertTrue(enriched.containsKey(TAGS));
-        String tagsJson = (String) enriched.get(TAGS);
-        assertTrue(tagsJson.contains("\"env\":\"production\""));
-        assertTrue(tagsJson.contains("\"team\":\"spruce\""));
+        @SuppressWarnings("unchecked")
+        scala.collection.Map<String, String> tags = (scala.collection.Map<String, String>) enriched.get(TAGS);
+        assertEquals("production", tags.apply("env"));
+        assertEquals("spruce", tags.apply("team"));
     }
 
     @Test
@@ -238,7 +194,7 @@ public class FOCUSColumnsTest {
         StructType withTags = schemaWithExtra("resource_tags",
                 DataTypes.createMapType(DataTypes.StringType, DataTypes.StringType));
 
-        Row row = new GenericRowWithSchema(values(1.0, "AmazonEC2", "RunInstances", "EUW2-BoxUsage:t3.xlarge",
+        Row row = new GenericRowWithSchema(values(1.0, "AmazonEC2", "AmazonEC2", "RunInstances", "EUW2-BoxUsage:t3.xlarge",
                 "Usage", "sub-123", "2026-06-23T00:00:00Z", "2026-06-24T00:00:00Z", 1.0, null), withTags);
         Map<Column, Object> enriched = new HashMap<>();
 
@@ -275,19 +231,18 @@ public class FOCUSColumnsTest {
 
     /** The module schema with one extra column appended after the columnsAdded(). */
     private StructType schemaWithExtra(String name, org.apache.spark.sql.types.DataType type) {
-        StructType extended = schema;
-        return extended.add(new StructField(name, type, true, Metadata.empty()));
+        return schema.add(new StructField(name, type, true, Metadata.empty()));
     }
 
     /**
      * Builds a row matching the module schema: the columnsNeeded() come first,
      * followed by the columnsAdded() left null.
      **/
-    private Row generateRow(Double cost, String productCode, String operation, String usageType,
-                            String lineItemType, String subAccountId, String startDate, String endDate,
+    private Row generateRow(Double cost, String serviceCode, String productCode, String operation,
+                            String usageType, String lineItemType, String subAccountId, String startDate, String endDate,
                             Double onDemandCost) {
         return new GenericRowWithSchema(
-                values(cost, productCode, operation, usageType, lineItemType, subAccountId, startDate, endDate, onDemandCost),
+                values(cost, serviceCode, productCode, operation, usageType, lineItemType, subAccountId, startDate, endDate, onDemandCost),
                 schema);
     }
 }

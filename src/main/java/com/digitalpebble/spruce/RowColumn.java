@@ -2,7 +2,6 @@
 
 package com.digitalpebble.spruce;
 
-import org.apache.spark.SparkIllegalArgumentException;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.types.DataType;
 
@@ -24,17 +23,14 @@ public abstract class RowColumn extends Column {
     /**
      * Returns the String value for this column in the given row.
      * If optional is true, returns null when the field is not in the schema;
-     * otherwise propagates the exception.
+     * otherwise throws.
      */
     public String getString(Row r, boolean optional) {
-        try {
-            return r.getString(resolveIndex(r));
-        } catch (SparkIllegalArgumentException e) {
-            if (optional) {
-                return null;
-            }
-            throw e;
+        int index = resolveIndex(r, optional);
+        if (index == -1) {
+            return null;
         }
+        return r.getString(index);
     }
 
     /** Returns the String value for this column in the given row. */

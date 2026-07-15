@@ -45,16 +45,33 @@ public abstract class Column implements java.io.Serializable {
     /**
      * Resolves and caches the field index for this column in the given row's schema.
      * Uses identity comparison on the schema for a fast-path cache hit.
+     * Throws if the column is absent from the schema.
      **/
     public int resolveIndex(Row r) {
-        StructType schema = r.schema();
-        if (schema == cachedSchema) {
-            return cachedIndex;
+        int index = resolveIndex(r, true);
+        if (index == -1) {
+            // throws the informative Spark exception listing the available fields
+            return r.fieldIndex(this.label);
         }
-        int index = r.fieldIndex(this.label);
-        cachedSchema = schema;
-        cachedIndex = index;
         return index;
+    }
+
+    /**
+     * Same as {@link #resolveIndex(Row)} but returns -1 when {@code optional} is true and the
+     * column is absent from the schema. Misses are cached like hits, so probing for a column a
+     * report does not carry (e.g. {@code resource_tags}) does not cost an exception per row.
+     **/
+    public int resolveIndex(Row r, boolean optional) {
+        StructType schema = r.schema();
+        if (schema != cachedSchema) {
+            scala.Option<Object> index = schema.getFieldIndex(this.label);
+            cachedIndex = index.isDefined() ? (Integer) index.get() : -1;
+            cachedSchema = schema;
+        }
+        if (cachedIndex == -1 && !optional) {
+            return r.fieldIndex(this.label);
+        }
+        return cachedIndex;
     }
 }
 

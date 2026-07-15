@@ -60,9 +60,6 @@
       }
     },
     {
-      "className": "com.digitalpebble.spruce.modules.aws.InstanceTypeExtraction"
-    },
-    {
       "className": "com.digitalpebble.spruce.modules.aws.FOCUSColumns"
     }
   ]

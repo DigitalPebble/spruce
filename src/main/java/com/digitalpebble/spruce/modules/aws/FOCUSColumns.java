@@ -5,8 +5,6 @@ package com.digitalpebble.spruce.modules.aws;
 import com.digitalpebble.spruce.CURColumn;
 import com.digitalpebble.spruce.Column;
 import com.digitalpebble.spruce.EnrichmentModule;
-import com.digitalpebble.spruce.Utils;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.types.DataTypes;
 
@@ -21,6 +19,7 @@ import static com.digitalpebble.spruce.CURColumn.LINE_ITEM_TYPE;
 import static com.digitalpebble.spruce.CURColumn.LINE_ITEM_USAGE_TYPE;
 import static com.digitalpebble.spruce.CURColumn.PRODUCT_FROM_REGION_CODE;
 import static com.digitalpebble.spruce.CURColumn.PRODUCT_REGION_CODE;
+import static com.digitalpebble.spruce.CURColumn.PRODUCT_SERVICE_CODE;
 import static com.digitalpebble.spruce.CURColumn.PRODUCT_TO_REGION_CODE;
 import static com.digitalpebble.spruce.FOCUSColumn.BILLED_COST;
 import static com.digitalpebble.spruce.FOCUSColumn.CHARGE_CATEGORY;
@@ -35,21 +34,14 @@ import static com.digitalpebble.spruce.FOCUSColumn.TAGS;
 import static com.digitalpebble.spruce.SpruceColumn.REGION;
 
 /**
- * Bridges AWS-native billing columns to the FOCUS (FinOps Open Cost &amp; Usage Specification)
- * output columns so the reporting scripts and dashboard can consume AWS-enriched data with the
- * same column names and values as other providers or FOCUS reports:
- *
- * <ul>
- *   <li>{@code ServiceName} carries the friendly name from the {@code product} map (e.g.
- *   "Amazon Elastic Compute Cloud"), as in AWS FOCUS exports, falling back to the product
- *   code;</li>
- *   <li>{@code ChargeCategory} normalises {@code line_item_line_item_type} to the FOCUS
- *   vocabulary. {@code SavingsPlanNegation} maps to {@code Usage} so that, as in AWS FOCUS
- *   exports, covered usage and its negation net out and commitment fees carry the spend as
- *   {@code Purchase};</li>
- *   <li>{@code x_ServiceCode}, {@code x_Operation} and {@code SkuMeter} carry the same values
- *   as their counterparts in AWS FOCUS exports.</li>
- * </ul>
+ * Bridges AWS-native billing columns to provider-neutral FOCUS
+ * (FinOps Open Cost &amp; Usage Specification) output columns so the reporting scripts and
+ * dashboard can consume AWS-enriched data with the same column names as other providers.
+ * Only the columns the reporting scripts and dashboard rely on are covered — this is not a
+ * CUR-to-FOCUS converter. Values are copied as-is: {@code ChargeCategory} carries the raw
+ * {@code line_item_line_item_type} vocabulary, {@code x_ServiceCode}/{@code x_Operation}
+ * mirror the extension columns of AWS FOCUS exports, and {@code SkuMeter} carries the usage
+ * type (e.g. {@code EUW2-BoxUsage:t3.xlarge}), from which the report derives instance types.
  *
  * <p>Runs last in the AWS pipeline as it reads the normalised {@code region} produced by
  * {@link RegionExtraction}.
@@ -67,40 +59,11 @@ public class FOCUSColumns implements EnrichmentModule {
             PRODUCT_REGION_CODE, PRODUCT_FROM_REGION_CODE, PRODUCT_TO_REGION_CODE
     };
 
-    /**
-     * line_item_line_item_type → FOCUS ChargeCategory, mirroring the mapping AWS applies in its
-     * own FOCUS exports. Unknown types are passed through unchanged.
-     **/
-    private static final Map<String, String> CHARGE_CATEGORIES = Map.ofEntries(
-            Map.entry("Usage", "Usage"),
-            Map.entry("DiscountedUsage", "Usage"),
-            Map.entry("SavingsPlanCoveredUsage", "Usage"),
-            Map.entry("SavingsPlanNegation", "Usage"),
-            Map.entry("Fee", "Purchase"),
-            Map.entry("RIFee", "Purchase"),
-            Map.entry("SavingsPlanUpfrontFee", "Purchase"),
-            Map.entry("SavingsPlanRecurringFee", "Purchase"),
-            Map.entry("Tax", "Tax"),
-            Map.entry("Credit", "Credit"),
-            Map.entry("Refund", "Credit"),
-            Map.entry("BundledDiscount", "Credit"),
-            Map.entry("DistributorDiscount", "Credit"),
-            Map.entry("EdpDiscount", "Credit"),
-            Map.entry("PrivateRateDiscount", "Credit"),
-            Map.entry("RiVolumeDiscount", "Credit"));
-
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
-    @Override
-    public boolean processesAllRows() {
-        // billing values must be carried for non-usage rows too (taxes, fees, negations)
-        return true;
-    }
-
     @Override
     public Column[] columnsNeeded() {
         return new Column[]{
                 LINE_ITEM_UNBLENDED_COST,
+                PRODUCT_SERVICE_CODE,
                 LINE_ITEM_PRODUCT_CODE,
                 LINE_ITEM_OPERATION,
                 LINE_ITEM_USAGE_TYPE,
@@ -143,22 +106,14 @@ public class FOCUSColumns implements EnrichmentModule {
             enrichedValues.put(REGION_ID, region.toLowerCase());
         }
 
+        String service = emptyToNull(PRODUCT_SERVICE_CODE.getString(row));
+        if (service != null) {
+            enrichedValues.put(SERVICE_NAME, service);
+        }
+
         String productCode = emptyToNull(LINE_ITEM_PRODUCT_CODE.getString(row));
         if (productCode != null) {
             enrichedValues.put(X_SERVICE_CODE, productCode);
-        }
-
-        // The product map is absent from some CURs; fall back to the product code.
-        String serviceName = null;
-        try {
-            serviceName = emptyToNull(Utils.getStringFromProductMap(row, "product_name", null));
-        } catch (IllegalArgumentException ignored) {
-        }
-        if (serviceName == null) {
-            serviceName = productCode;
-        }
-        if (serviceName != null) {
-            enrichedValues.put(SERVICE_NAME, serviceName);
         }
 
         String operation = emptyToNull(LINE_ITEM_OPERATION.getString(row));
@@ -173,7 +128,7 @@ public class FOCUSColumns implements EnrichmentModule {
 
         String chargeType = emptyToNull(LINE_ITEM_TYPE.getString(row));
         if (chargeType != null) {
-            enrichedValues.put(CHARGE_CATEGORY, CHARGE_CATEGORIES.getOrDefault(chargeType, chargeType));
+            enrichedValues.put(CHARGE_CATEGORY, chargeType);
         }
 
         String accountId = LINE_ITEM_USAGE_ACCOUNT_ID.getString(row);
@@ -191,20 +146,15 @@ public class FOCUSColumns implements EnrichmentModule {
             enrichedValues.put(CHARGE_PERIOD_END, endDate);
         }
 
-        int tagsIndex = -1;
-        try {
-            tagsIndex = RESOURCE_TAGS.resolveIndex(row);
-        } catch (IllegalArgumentException ignored) {
-        }
-
-        if (tagsIndex != -1) {
-            try {
-                Map<String, String> tagsMap = getMapValue(row, tagsIndex);
-                if (tagsMap != null) {
-                    String json = OBJECT_MAPPER.writeValueAsString(tagsMap);
-                    enrichedValues.put(TAGS, json);
-                }
-            } catch (Exception ignored) {
+        // copied as a map of tag key/values, the representation AWS FOCUS exports use
+        int tagsIndex = RESOURCE_TAGS.resolveIndex(row, true);
+        if (tagsIndex != -1 && !row.isNullAt(tagsIndex)) {
+            Object tags = row.get(tagsIndex);
+            if (tags instanceof Map<?, ?> javaMap) {
+                tags = scala.jdk.javaapi.CollectionConverters.asScala(javaMap);
+            }
+            if (tags instanceof scala.collection.Map) {
+                enrichedValues.put(TAGS, tags);
             }
         }
     }
@@ -230,36 +180,5 @@ public class FOCUSColumns implements EnrichmentModule {
             return DateTimeFormatter.ISO_INSTANT.format(instant);
         }
         return emptyToNull(raw.toString());
-    }
-
-    private static Map<String, String> getMapValue(Row row, int index) {
-        if (row.isNullAt(index)) {
-            return null;
-        }
-        Object raw = row.get(index);
-        if (raw instanceof Map) {
-            Map<?, ?> map = (Map<?, ?>) raw;
-            Map<String, String> result = new java.util.HashMap<>();
-            for (Map.Entry<?, ?> entry : map.entrySet()) {
-                if (entry.getKey() != null) {
-                    result.put(entry.getKey().toString(), entry.getValue() != null ? entry.getValue().toString() : null);
-                }
-            }
-            return result;
-        } else if (raw instanceof scala.collection.Map) {
-            scala.collection.Map map = (scala.collection.Map) raw;
-            Map<String, String> result = new java.util.HashMap<>();
-            scala.collection.Iterator<?> keys = map.keysIterator();
-            while (keys.hasNext()) {
-                Object key = keys.next();
-                if (key != null) {
-                    scala.Option<?> valueOpt = map.get(key);
-                    Object val = valueOpt.isDefined() ? valueOpt.get() : null;
-                    result.put(key.toString(), val != null ? val.toString() : null);
-                }
-            }
-            return result;
-        }
-        return null;
     }
 }

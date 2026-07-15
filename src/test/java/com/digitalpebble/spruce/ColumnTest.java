@@ -49,6 +49,34 @@ public class ColumnTest {
     }
 
     @Test
+    public void testResolveIndexOptionalCachesMisses() {
+        StructType withField = new StructType(new StructField[]{new StructField("afield", DataTypes.StringType, true, Metadata.empty())});
+        StructType withoutField = new StructType(new StructField[]{new StructField("other", DataTypes.StringType, true, Metadata.empty())});
+
+        CURColumn col = new CURColumn("afield", DataTypes.StringType);
+
+        // absent: -1 when optional, repeatedly (the miss is cached, no exception thrown)
+        Row missing = new GenericRowWithSchema(new Object[]{"x"}, withoutField);
+        assertEquals(-1, col.resolveIndex(missing, true));
+        assertEquals(-1, col.resolveIndex(missing, true));
+
+        // a cached miss still throws for the non-optional variant
+        boolean exception = false;
+        try {
+            col.resolveIndex(missing);
+        } catch (Exception e) {
+            exception = true;
+        }
+        assertTrue(exception);
+
+        // switching to a schema that has the column invalidates the cached miss
+        Row present = new GenericRowWithSchema(new Object[]{"y"}, withField);
+        assertEquals(0, col.resolveIndex(present, true));
+        assertEquals(0, col.resolveIndex(present));
+        assertEquals("y", col.getString(present, true));
+    }
+
+    @Test
     public void testGetDoubleAndIsNullAt() {
         final String name = "dfield";
         StructType schema = new StructType(new StructField[]{new StructField(name, DataTypes.DoubleType, true, Metadata.empty())});
