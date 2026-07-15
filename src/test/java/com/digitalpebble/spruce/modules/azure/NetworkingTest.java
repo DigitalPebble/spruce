@@ -2,11 +2,15 @@
 
 package com.digitalpebble.spruce.modules.azure;
 
+import com.digitalpebble.spruce.AzureFOCUSColumn;
 import com.digitalpebble.spruce.Column;
+import com.digitalpebble.spruce.FOCUSColumn;
+import com.digitalpebble.spruce.ReportFormat;
 import com.digitalpebble.spruce.Utils;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema;
 import org.apache.spark.sql.types.StructType;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -73,5 +77,52 @@ class NetworkingTest {
         Networking custom = new Networking();
         custom.init(new HashMap<>());
         assertEquals(0.0015, custom.network_coefficient_inter);
+    }
+
+    /**
+     * The FOCUS binding reads the same values from the FOCUS column names; the estimation logic
+     * is shared with the tests above.
+     */
+    @Nested
+    class FOCUSBinding {
+
+        private final Networking focusNetworking = focusNetworking();
+        private final StructType focusSchema = Utils.getSchema(focusNetworking);
+
+        private Networking focusNetworking() {
+            Networking networking = new Networking();
+            networking.bindReportFormat(ReportFormat.FOCUS);
+            return networking;
+        }
+
+        @Test
+        void columnsNeededReflectsFOCUSColumns() {
+            assertArrayEquals(new Column[]{
+                    AzureFOCUSColumn.X_SKU_METER_CATEGORY,
+                    AzureFOCUSColumn.X_SKU_METER_SUBCATEGORY,
+                    FOCUSColumn.CONSUMED_QUANTITY
+            }, focusNetworking.columnsNeeded());
+        }
+
+        @Test
+        void processInterRegion() {
+            Map<Column, Object> enriched = enrich("Bandwidth", "Inter-Region", 10d);
+            double expected = focusNetworking.network_coefficient_inter * 10;
+            assertEquals(expected, (Double) enriched.get(ENERGY_USED));
+        }
+
+        @Test
+        void processInterRegionWithoutQuantity() {
+            Map<Column, Object> enriched = enrich("Bandwidth", "Inter-Region", null);
+            assertFalse(enriched.containsKey(ENERGY_USED));
+        }
+
+        private Map<Column, Object> enrich(String meterCategory, String meterSubCategory, Double quantity) {
+            Object[] values = new Object[]{meterCategory, meterSubCategory, quantity, null};
+            Row row = new GenericRowWithSchema(values, focusSchema);
+            Map<Column, Object> enriched = new HashMap<>();
+            focusNetworking.enrich(row, enriched);
+            return enriched;
+        }
     }
 }

@@ -1,7 +1,7 @@
 {
   "modules": [
     {
-      "className": "com.digitalpebble.spruce.modules.aws.RegionExtraction"
+      "className": "com.digitalpebble.spruce.modules.focus.RegionExtraction"
     },
     {
       "className": "com.digitalpebble.spruce.modules.ccf.aws.Storage",
@@ -58,9 +58,6 @@
         "powerSupplyEfficiency": 1.04,
         "powerTransmissionLosses": 1.08
       }
-    },
-    {
-      "className": "com.digitalpebble.spruce.modules.aws.FOCUSColumns"
     }
   ]
 }

@@ -4,8 +4,11 @@ Instead of using a container, you can run SPRUCE directly on [Apache Spark](http
 
 ## Prerequisites
 
-You will need to have CUR reports as inputs. Those are generated via [Data Exports](https://docs.aws.amazon.com/cur/latest/userguide/what-is-data-exports.html) and stored on S3 as Parquet files.
-See instructions on [Generate Cost and Usage Reports](../howto/generate_cur.md).
+SPRUCE accepts AWS CUR reports (Parquet), Azure cost details (CSV), or [FOCUS](https://focus.finops.org/)
+exports from either provider — see [Generate usage reports](../howto/generate_cur.md) for how to
+produce them. This tutorial uses an AWS CUR, generated via
+[Data Exports](https://docs.aws.amazon.com/cur/latest/userguide/what-is-data-exports.html) and
+stored on S3 as Parquet files; other inputs are selected with the `-p` and `-f` options shown below.
 
 For this tutorial, we will assume that you copied the S3 files to your local file system. You can do this with the AWS CLI
 
@@ -30,10 +33,19 @@ If you downloaded a released jar, make sure the path matches its location.
 spark-submit --class com.digitalpebble.spruce.SparkJob --driver-memory 8g ./target/spruce-*.jar -i ./curs -o ./output
 ```
 
-The `-i` parameter specifies the location of the directory containing the CUR reports in Parquet format.
+The `-i` parameter specifies the location of the directory containing the input reports.
 The `-o` parameter specifies the location of enriched Parquet files generated in output.
 
 The option `-c` allows to specify a JSON configuration file to [override the default settings](../howto/config_modules.md).
 
-The directory _output_ contains an enriched copy of the input CURs. See [Explore the results](results.md) to understand
+The option `-p` selects the cloud provider (`AWS`, `AZURE`); it defaults to `AWS`. The option `-f`
+selects the format of the input report: `NATIVE` (the provider's own export — the default) or
+`FOCUS` for a [FOCUS](https://focus.finops.org/) export. FOCUS is currently supported for
+AWS (FOCUS 1.2 exports) and Azure (FOCUS 1.0 exports). Note that Azure reports are read as CSV files, unlike the AWS ones which are in Parquet:
+
+```shell
+spark-submit --class com.digitalpebble.spruce.SparkJob --driver-memory 8g ./target/spruce-*.jar -i ./focus-report -o ./output -p AZURE -f FOCUS
+```
+
+The directory _output_ contains an enriched copy of the input reports. See [Explore the results](results.md) to understand
 what the output contains.

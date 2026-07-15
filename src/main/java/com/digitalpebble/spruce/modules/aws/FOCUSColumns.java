@@ -16,15 +16,16 @@ import static com.digitalpebble.spruce.CURColumn.PRODUCT_FROM_REGION_CODE;
 import static com.digitalpebble.spruce.CURColumn.PRODUCT_REGION_CODE;
 import static com.digitalpebble.spruce.CURColumn.PRODUCT_SERVICE_CODE;
 import static com.digitalpebble.spruce.CURColumn.PRODUCT_TO_REGION_CODE;
-import static com.digitalpebble.spruce.FinOpsColumn.BILLED_COST;
-import static com.digitalpebble.spruce.FinOpsColumn.CHARGE_CATEGORY;
-import static com.digitalpebble.spruce.FinOpsColumn.CHARGE_PERIOD_END;
-import static com.digitalpebble.spruce.FinOpsColumn.CHARGE_PERIOD_START;
-import static com.digitalpebble.spruce.FinOpsColumn.LIST_COST;
-import static com.digitalpebble.spruce.FinOpsColumn.REGION_ID;
-import static com.digitalpebble.spruce.FinOpsColumn.SERVICE_NAME;
-import static com.digitalpebble.spruce.FinOpsColumn.SUB_ACCOUNT_ID;
-import static com.digitalpebble.spruce.FinOpsColumn.TAGS;
+import static com.digitalpebble.spruce.FOCUSColumn.BILLED_COST;
+import static com.digitalpebble.spruce.FOCUSColumn.CHARGE_CATEGORY;
+import static com.digitalpebble.spruce.FOCUSColumn.CHARGE_PERIOD_END;
+import static com.digitalpebble.spruce.FOCUSColumn.CHARGE_PERIOD_START;
+import static com.digitalpebble.spruce.FOCUSColumn.LIST_COST;
+import static com.digitalpebble.spruce.FOCUSColumn.REGION_ID;
+import static com.digitalpebble.spruce.FOCUSColumn.SERVICE_NAME;
+import static com.digitalpebble.spruce.FOCUSColumn.SUB_ACCOUNT_ID;
+import static com.digitalpebble.spruce.FOCUSColumn.TAGS;
+import static com.digitalpebble.spruce.FOCUSColumn.LIST_COST;
 import static com.digitalpebble.spruce.SpruceColumn.REGION;
 
 /**
@@ -35,7 +36,7 @@ import static com.digitalpebble.spruce.SpruceColumn.REGION;
  * <p>Runs last in the AWS pipeline as it reads the normalised {@code region} produced by
  * {@link RegionExtraction}.
  **/
-public class FinOpsColumns implements EnrichmentModule {
+public class FOCUSColumns implements EnrichmentModule {
 
     public static final CURColumn LINE_ITEM_UNBLENDED_COST = new CURColumn("line_item_unblended_cost", DataTypes.DoubleType);
     public static final CURColumn LINE_ITEM_USAGE_ACCOUNT_ID = new CURColumn("line_item_usage_account_id", DataTypes.StringType);

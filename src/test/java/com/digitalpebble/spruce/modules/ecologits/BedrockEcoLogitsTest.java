@@ -137,6 +137,31 @@ public class BedrockEcoLogitsTest {
     }
 
     @Test
+    void testFOCUSBindingEnrichesOutputTokens() {
+        // FOCUS reports carry the same values as the CUR under x_ServiceCode / ConsumedQuantity /
+        // PricingUnit / SkuMeter; the estimation logic is shared with the tests above.
+        BedrockEcoLogits focusModule = new BedrockEcoLogits();
+        focusModule.bindReportFormat(ReportFormat.FOCUS);
+        StructType focusSchema = Utils.getSchema(focusModule);
+        EcoLogits impacts = new EcoLogits(TEST_MAPPING, TEST_COEFFICIENTS);
+        impacts.load();
+        focusModule.setEcoLogits(impacts);
+        focusModule.init(new HashMap<>());
+
+        assertEquals(AWSFOCUSColumn.X_SERVICE_CODE, focusModule.columnsNeeded()[0]);
+        assertEquals(FOCUSColumn.CONSUMED_QUANTITY, focusModule.columnsNeeded()[1]);
+        assertEquals(FOCUSColumn.PRICING_UNIT, focusModule.columnsNeeded()[2]);
+        assertEquals(FOCUSColumn.SKU_METER, focusModule.columnsNeeded()[3]);
+
+        Row row = createRow(focusSchema, "AmazonBedrock", 1.0, "1K tokens", "EUN1-Claude-output-tokens");
+        Map<Column, Object> enriched = new HashMap<>();
+        focusModule.enrich(row, enriched);
+
+        assertNotNull(enriched.get(ENERGY_USED));
+        assertEquals(OUTPUT_ENERGY_PER_1K, ENERGY_USED.getDouble(enriched), 1e-12);
+    }
+
+    @Test
     void testEnrichesEmbodiedEmissions() {
         Row row = createRow(schema, "AmazonBedrock", 1.0, "1K tokens", "EUN1-Claude-output-tokens");
         Map<Column, Object> enriched = new HashMap<>();

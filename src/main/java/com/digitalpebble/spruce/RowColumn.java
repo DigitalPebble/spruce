@@ -10,9 +10,9 @@ import org.apache.spark.sql.types.DataType;
  * Abstract base class for native column types that work with Spark Row objects.
  * Provides shared functionality for extracting values from Row objects.
  */
-public abstract class NativeColumn extends Column {
+public abstract class RowColumn extends Column {
 
-    NativeColumn(String l, DataType t) {
+    RowColumn(String l, DataType t) {
         super(l, t);
     }
 

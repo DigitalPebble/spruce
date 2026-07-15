@@ -19,7 +19,7 @@ Split cost allocation data introduces new usage records and new cost metric colu
 
 ## How to Enable Split Cost Allocation Data
 
-When defining the CUR data export, activate the options `Split cost allocation data` as well as `Include resource IDs`. See [Generate Cost and Usage Reports](generate_cur.md) for more details.
+When defining the CUR data export, activate the options `Split cost allocation data` as well as `Include resource IDs`. See [Generate usage reports](generate_cur.md) for more details.
 
 <div class="warning">
 Activating SCAD has a substantial impact on the size of the CUR reports as they contain line items for every split as well as the AWS resources.

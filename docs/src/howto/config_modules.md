@@ -4,10 +4,12 @@ The enrichment modules are configured in a per-provider JSON file bundled in the
 The file used at runtime is selected from the cloud provider (`-p / --provider` CLI
 flag, defaulting to `AWS`):
 
-| Provider flag | Resource file              |
-|---------------|----------------------------|
-| `AWS`         | `default-config-aws.json`  |
-| `AZURE`       | `default-config-azure.json` |
+| Provider flag | Format flag | Resource file                     |
+|---------------|-------------|-----------------------------------|
+| `AWS`         | `NATIVE`    | `default-config-aws.json`         |
+| `AWS`         | `FOCUS`     | `default-config-aws-focus.json`   |
+| `AZURE`       | `NATIVE`    | `default-config-azure.json`       |
+| `AZURE`       | `FOCUS`     | `default-config-azure-focus.json` |
 
 The AWS default looks like this:
 
@@ -20,6 +22,20 @@ currently covered or about to be:
 
 ``` title="default-config-azure.json"
 --8<-- "../../../src/main/resources/default-config-azure.json"
+```
+
+For [FOCUS](https://focus.finops.org/) reports (`-f FOCUS`), a dedicated configuration is
+used. It relies on the same provider modules, which adapt automatically to the FOCUS column names:
+
+``` title="default-config-azure-focus.json"
+--8<-- "../../../src/main/resources/default-config-azure-focus.json"
+```
+
+The AWS FOCUS pipeline follows the same pattern, with the provider-neutral
+`focus.RegionExtraction` replacing the CUR-specific one:
+
+``` title="default-config-aws-focus.json"
+--8<-- "../../../src/main/resources/default-config-aws-focus.json"
 ```
 
 This determines which modules are used and in what order but also configures their behaviour. For instance, the Networking module uses different coefficients for intra-region, inter-region, and external data transfers, all configurable via the `network_coefficients_kwh_gb` map.

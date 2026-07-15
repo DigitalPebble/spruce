@@ -23,11 +23,13 @@ public class SparkJob {
         options.addRequiredOption("i", "input", true, "input path");
         options.addRequiredOption("o", "output", true, "output path");
         options.addOption("p", "provider", true, "cloud provider (AWS, GOOGLE, AZURE) — defaults to AWS");
+        options.addOption("f", "format", true, "report format (NATIVE, FOCUS) — defaults to NATIVE");
 
         String configPath = null;
         String inputPath = null;
         String outputPath = null;
         Provider provider = Provider.AWS;
+        ReportFormat reportFormat = ReportFormat.NATIVE;
 
         try {
             CommandLineParser parser = new DefaultParser();
@@ -40,6 +42,17 @@ public class SparkJob {
                 provider = Provider.valueOf(providerStr.toUpperCase());
             } catch (IllegalArgumentException e) {
                 LOG.error("Invalid provider: '{}'", providerStr);
+                System.exit(3);
+            }
+            String formatStr = cmd.getOptionValue("f", "NATIVE");
+            try {
+                reportFormat = ReportFormat.fromString(formatStr);
+            } catch (IllegalArgumentException e) {
+                LOG.error("Invalid report format: '{}'", formatStr);
+                System.exit(3);
+            }
+            if (reportFormat == ReportFormat.FOCUS && provider != Provider.AZURE && provider != Provider.AWS) {
+                LOG.error("FOCUS report format is currently only supported for AWS and AZURE");
                 System.exit(3);
             }
         } catch (ParseException e) {
@@ -62,9 +75,11 @@ public class SparkJob {
                     .option("quote", "\"")
                     .option("escape", "\"").csv(inputPath);
             // inferSchema may read numeric columns as strings; force them to double
-            AzureColumn[] numericColumns = {AzureColumn.QUANTITY, AzureColumn.COST_IN_BILLING_CURRENCY};
+            RowColumn[] numericColumns = reportFormat == ReportFormat.FOCUS
+                    ? new RowColumn[]{FOCUSColumn.CONSUMED_QUANTITY, FOCUSColumn.BILLED_COST}
+                    : new RowColumn[]{AzureColumn.QUANTITY, AzureColumn.COST_IN_BILLING_CURRENCY};
             java.util.List<String> columns = java.util.Arrays.asList(dataframe.columns());
-            for (AzureColumn column : numericColumns) {
+            for (RowColumn column : numericColumns) {
                 if (columns.contains(column.getLabel())) {
                     dataframe = dataframe.withColumn(column.getLabel(),
                             dataframe.col(column.getLabel()).cast("double"));
@@ -79,10 +94,10 @@ public class SparkJob {
         try {
             // explicitly set by user
             if (configPath != null) {
-                config = Config.fromJsonFile(Paths.get(configPath), provider);
+                config = Config.fromJsonFile(Paths.get(configPath), provider, reportFormat);
             } else {
                 // load default config
-                config = Config.loadDefault(provider);
+                config = Config.loadDefault(provider, reportFormat);
             }
         } catch (IOException e) {
             LOG.error(e.getMessage());

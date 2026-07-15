@@ -2,12 +2,18 @@
 
 package com.digitalpebble.spruce.modules.ccf.aws;
 
+import com.digitalpebble.spruce.AWSFOCUSColumn;
 import com.digitalpebble.spruce.Column;
+import com.digitalpebble.spruce.FOCUSColumn;
+import com.digitalpebble.spruce.ReportFormat;
 import com.digitalpebble.spruce.Utils;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema;
 import org.apache.spark.sql.types.StructType;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -17,6 +23,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static com.digitalpebble.spruce.SpruceColumn.ENERGY_USED;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
@@ -53,6 +60,61 @@ class AcceleratorsTest {
             assertEquals(expected, (Double) enriched.get(ENERGY_USED), 0.0001);
         } else {
             assertFalse(enriched.containsKey(ENERGY_USED));
+        }
+    }
+
+    /**
+     * FOCUS reports carry no {@code product_instance_type}: the instance type is parsed from the
+     * SkuMeter (the CUR usage type, e.g. {@code BoxUsage:g5.xlarge}) and {@code x_ServiceCode}
+     * stands in for {@code line_item_product_code}.
+     */
+    @Nested
+    class FOCUSBinding {
+
+        private final Accelerators focusAccelerators = new Accelerators();
+        private StructType focusSchema;
+
+        @BeforeEach
+        void initialize() {
+            focusAccelerators.bindReportFormat(ReportFormat.FOCUS);
+            focusAccelerators.init(Map.of());
+            focusSchema = Utils.getSchema(focusAccelerators);
+        }
+
+        @Test
+        void columnsNeededReflectsFOCUSColumns() {
+            assertArrayEquals(new Column[]{
+                    FOCUSColumn.SKU_METER,
+                    AWSFOCUSColumn.X_OPERATION,
+                    AWSFOCUSColumn.X_SERVICE_CODE,
+                    FOCUSColumn.CONSUMED_QUANTITY
+            }, focusAccelerators.columnsNeeded());
+        }
+
+        @Test
+        void processGpuInstance() {
+            Map<Column, Object> enriched = enrich("EUW2-BoxUsage:g5.xlarge", "RunInstances", "AmazonEC2", 1.0d);
+            assertEquals(0.0855d, (Double) enriched.get(ENERGY_USED), 0.0001);
+        }
+
+        @Test
+        void processNonGpuInstance() {
+            Map<Column, Object> enriched = enrich("BoxUsage:c5.xlarge", "RunInstances", "AmazonEC2", 1.0d);
+            assertFalse(enriched.containsKey(ENERGY_USED));
+        }
+
+        @Test
+        void processNonInstanceMeter() {
+            Map<Column, Object> enriched = enrich("EBS:VolumeUsage.gp3", "CreateVolume-Gp3", "AmazonEC2", 1.0d);
+            assertFalse(enriched.containsKey(ENERGY_USED));
+        }
+
+        private Map<Column, Object> enrich(String skuMeter, String operation, String serviceCode, double amount) {
+            Object[] values = new Object[]{skuMeter, operation, serviceCode, amount, null};
+            Row row = new GenericRowWithSchema(values, focusSchema);
+            Map<Column, Object> enriched = new HashMap<>();
+            focusAccelerators.enrich(row, enriched);
+            return enriched;
         }
     }
 }

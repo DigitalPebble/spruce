@@ -84,6 +84,19 @@ public void init(Map<String, Object> params, Provider provider) {
 The default implementation delegates to the single-arg `init(Map)`, so modules that
 don't care about the provider don't need to do anything.
 
+### `bindReportFormat()`
+
+If your module reads input columns whose names depend on the format of the report
+(e.g. legacy Azure `MeterCategory` vs FOCUS `x_SkuMeterCategory`), override
+`bindReportFormat(ReportFormat)` and swap the column bindings there — see
+`ccf.azure.Storage` for an example. The default implementation does nothing.
+
+This is a separate hook rather than part of `init()` because of when it runs:
+the `Config` invokes it as soon as the report format is known, at configuration load
+time, so that `columnsNeeded()` returns the right columns when SPRUCE validates the
+schema — which happens on the driver *before* `init()` is ever called. Keep it free
+of side effects: no resource loading, no network calls.
+
 ### `enrich()`
 
 Called once per usage row (tax, discount and fee rows are filtered out by the pipeline).

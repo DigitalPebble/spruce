@@ -2,8 +2,13 @@
 
 package com.digitalpebble.spruce.modules.ccf.azure;
 
+import com.digitalpebble.spruce.AzureColumn;
+import com.digitalpebble.spruce.AzureFOCUSColumn;
 import com.digitalpebble.spruce.Column;
 import com.digitalpebble.spruce.EnrichmentModule;
+import com.digitalpebble.spruce.FOCUSColumn;
+import com.digitalpebble.spruce.ReportFormat;
+import com.digitalpebble.spruce.RowColumn;
 import com.digitalpebble.spruce.Utils;
 import org.apache.spark.sql.Row;
 import org.slf4j.Logger;
@@ -16,17 +21,41 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.digitalpebble.spruce.AzureColumn.*;
 import static com.digitalpebble.spruce.SpruceColumn.ENERGY_USED;
 
 /**
  * Provides an estimate of energy used for Azure storage capacity meters.
+ * The values read (meter names, units) are identical in legacy and FOCUS reports, only the
+ * column labels differ: {@link #bindReportFormat(ReportFormat)} selects the bindings.
  *
  * @see <a href="https://www.cloudcarbonfootprint.org/docs/methodology#storage">CCF methodology</a>
  **/
 public class Storage implements EnrichmentModule {
 
     private static final Logger LOG = LoggerFactory.getLogger(Storage.class);
+
+    protected RowColumn meterCategory = AzureColumn.METER_CATEGORY;
+    protected RowColumn meterSubCategory = AzureColumn.METER_SUBCATEGORY;
+    protected RowColumn meterName = AzureColumn.METER_NAME;
+    protected RowColumn unitOfMeasure = AzureColumn.UNIT_OF_MEASURE;
+    protected RowColumn quantity = AzureColumn.QUANTITY;
+
+    @Override
+    public void bindReportFormat(ReportFormat reportFormat) {
+        if (reportFormat == ReportFormat.FOCUS) {
+            meterCategory = AzureFOCUSColumn.X_SKU_METER_CATEGORY;
+            meterSubCategory = AzureFOCUSColumn.X_SKU_METER_SUBCATEGORY;
+            meterName = AzureFOCUSColumn.X_SKU_METER_NAME;
+            unitOfMeasure = AzureFOCUSColumn.X_PRICING_UNIT_DESCRIPTION;
+            quantity = FOCUSColumn.CONSUMED_QUANTITY;
+        } else {
+            meterCategory = AzureColumn.METER_CATEGORY;
+            meterSubCategory = AzureColumn.METER_SUBCATEGORY;
+            meterName = AzureColumn.METER_NAME;
+            unitOfMeasure = AzureColumn.UNIT_OF_MEASURE;
+            quantity = AzureColumn.QUANTITY;
+        }
+    }
 
     private static final Pattern MANAGED_DISK_PATTERN = Pattern.compile("\\b([PES]\\d{1,2})\\b");
     private static final double HOURS_PER_AZURE_PRICING_MONTH = 30d * 24d;
@@ -72,7 +101,7 @@ public class Storage implements EnrichmentModule {
 
     @Override
     public Column[] columnsNeeded() {
-        return new Column[]{METER_CATEGORY, METER_SUBCATEGORY, METER_NAME, UNIT_OF_MEASURE, QUANTITY};
+        return new Column[]{meterCategory, meterSubCategory, meterName, unitOfMeasure, quantity};
     }
 
     @Override
@@ -82,22 +111,22 @@ public class Storage implements EnrichmentModule {
 
     @Override
     public void enrich(Row row, Map<Column, Object> enrichedValues) {
-        String meterCategory = METER_CATEGORY.getString(row);
+        String meterCategory = this.meterCategory.getString(row);
         if (!"Storage".equals(meterCategory)) {
             return;
         }
 
-        String meterName = METER_NAME.getString(row);
+        String meterName = this.meterName.getString(row);
         if (meterName == null) {
             return;
         }
-        if (QUANTITY.isNullAt(row)) {
+        if (this.quantity.isNullAt(row)) {
             return;
         }
 
-        String meterSubCategory = METER_SUBCATEGORY.getString(row);
-        String unit = UNIT_OF_MEASURE.getString(row);
-        double quantity = QUANTITY.getDouble(row);
+        String meterSubCategory = this.meterSubCategory.getString(row);
+        String unit = this.unitOfMeasure.getString(row);
+        double quantity = this.quantity.getDouble(row);
         boolean isHDD = false;
         double gbHours;
         int replication;

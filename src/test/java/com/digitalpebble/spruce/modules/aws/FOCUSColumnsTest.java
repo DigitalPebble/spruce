@@ -15,15 +15,16 @@ import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.digitalpebble.spruce.FinOpsColumn.BILLED_COST;
-import static com.digitalpebble.spruce.FinOpsColumn.CHARGE_CATEGORY;
-import static com.digitalpebble.spruce.FinOpsColumn.CHARGE_PERIOD_END;
-import static com.digitalpebble.spruce.FinOpsColumn.CHARGE_PERIOD_START;
-import static com.digitalpebble.spruce.FinOpsColumn.LIST_COST;
-import static com.digitalpebble.spruce.FinOpsColumn.REGION_ID;
-import static com.digitalpebble.spruce.FinOpsColumn.SERVICE_NAME;
-import static com.digitalpebble.spruce.FinOpsColumn.SUB_ACCOUNT_ID;
-import static com.digitalpebble.spruce.FinOpsColumn.TAGS;
+import static com.digitalpebble.spruce.FOCUSColumn.BILLED_COST;
+import static com.digitalpebble.spruce.FOCUSColumn.BILLED_COST;
+import static com.digitalpebble.spruce.FOCUSColumn.CHARGE_CATEGORY;
+import static com.digitalpebble.spruce.FOCUSColumn.CHARGE_PERIOD_END;
+import static com.digitalpebble.spruce.FOCUSColumn.CHARGE_PERIOD_START;
+import static com.digitalpebble.spruce.FOCUSColumn.LIST_COST;
+import static com.digitalpebble.spruce.FOCUSColumn.REGION_ID;
+import static com.digitalpebble.spruce.FOCUSColumn.SERVICE_NAME;
+import static com.digitalpebble.spruce.FOCUSColumn.SUB_ACCOUNT_ID;
+import static com.digitalpebble.spruce.FOCUSColumn.TAGS;
 import static com.digitalpebble.spruce.SpruceColumn.REGION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -33,9 +34,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * Maps AWS-native billing columns to provider-neutral FOCUS output columns.
  **/
-public class FinOpsColumnsTest {
+public class FOCUSColumnsTest {
 
-    private final FinOpsColumns module = new FinOpsColumns();
+    private final FOCUSColumns module = new FOCUSColumns();
     private final StructType schema = Utils.getSchema(module);
 
     @Test
@@ -176,7 +177,7 @@ public class FinOpsColumnsTest {
         assertTrue(java.util.Arrays.asList(module.columnsAdded()).contains(TAGS));
         assertTrue(java.util.Arrays.asList(module.columnsAdded()).contains(LIST_COST));
         assertFalse(java.util.Arrays.asList(module.columnsAdded())
-                .contains(com.digitalpebble.spruce.FinOpsColumn.BILLING_CURRENCY));
+                .contains(com.digitalpebble.spruce.FOCUSColumn.BILLING_CURRENCY));
     }
 
     /**
