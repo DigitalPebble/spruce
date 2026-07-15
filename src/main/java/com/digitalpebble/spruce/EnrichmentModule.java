@@ -39,6 +39,17 @@ public interface EnrichmentModule extends Serializable {
         init(params);
     }
 
+    /**
+     * Returns true if this module must run on every row, including non-usage ones (taxes, fees,
+     * credits, savings plan negations). The default is false: most modules estimate the impacts
+     * of usage, and running them on non-usage rows would double-count (e.g. a savings plan
+     * negation row mirrors the usage rows it discounts). Normalisation modules that copy billing
+     * values (e.g. FOCUSColumns) override this so the output carries them for all rows.
+     */
+    default boolean processesAllRows() {
+        return false;
+    }
+
     /** Returns the columns required by this module **/
     Column[] columnsNeeded();
 

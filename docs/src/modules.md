@@ -27,17 +27,18 @@ written by earlier ones, which is why the order in the configuration file matter
 
 ```mermaid
 flowchart LR
-    A[Billing row] --> B("<b>Metadata</b><br>RegionExtraction")
+    A[Billing row] --> B("<b>Metadata</b><br>RegionExtraction,<br>InstanceTypeExtraction")
     B --> C("<b>Energy &amp; embodied</b><br>Storage, Networking,<br>Serverless, Accelerators,<br>Boavizta, EcoLogits")
     C --> D("<b>Factors</b><br>PWUE,<br>AverageCarbonIntensity")
     D --> E("<b>Impacts</b><br>OperationalEmissions,<br>Water")
-    E --> F("<b>Normalisation</b><br>FOCUSColumns<br>(legacy Azure only)")
+    E --> F("<b>Normalisation</b><br>FOCUSColumns<br>(native formats only)")
     F --> G[Enriched row]
 ```
 
 | Module | Providers | Writes | Based on |
 |---|---|---|---|
 | [RegionExtraction](#regionextraction) | AWS, Azure, FOCUS | `region` | — |
+| [InstanceTypeExtraction](#instancetypeextraction) | AWS, Azure | `instance_type` | — |
 | [Storage](#storage) | AWS, Azure | `operational_energy_kwh` | [Cloud Carbon Footprint](https://www.cloudcarbonfootprint.org/) |
 | [Networking](#networking) | AWS, Azure | `operational_energy_kwh` | [Boavizta](https://boavizta.org/) coefficients |
 | [Serverless](#serverless) | AWS | `operational_energy_kwh` | [Tailpipe](https://tailpipe.ai/methodology/serverless-explained/) |
@@ -48,7 +49,7 @@ flowchart LR
 | [AverageCarbonIntensity](#averagecarbonintensity) | AWS, Azure | `carbon_intensity` | [Ember](https://ember-energy.org/) |
 | [OperationalEmissions](#operationalemissions) | AWS, Azure | `operational_emissions_co2eq_g` | — |
 | [Water](#water) | AWS, Azure | `water_cooling_l`, `water_electricity_production_l`, `water_consumption_stress_area_l` | [WRI](https://www.wri.org/) |
-| [FOCUSColumns](#focuscolumns) | Azure (legacy format) | [FOCUS](https://focus.finops.org/) columns | — |
+| [FOCUSColumns](#focuscolumns) | AWS, Azure (native formats) | [FOCUS](https://focus.finops.org/) columns | — |
 
 ## Stage 1 — Metadata extraction
 
@@ -62,6 +63,23 @@ provider-neutral: it reads the standard `RegionId` column.
 |---|---|
 | **Classes** | `com.digitalpebble.spruce.modules.aws.RegionExtraction`<br>`com.digitalpebble.spruce.modules.azure.RegionExtraction`<br>`com.digitalpebble.spruce.modules.focus.RegionExtraction` |
 | **Writes** | `region` |
+
+### InstanceTypeExtraction
+
+Copies the instance type (e.g. `m5.large` on AWS, `Standard_DS2_v2` on Azure) into the
+provider-neutral `instance_type` output column, so reporting does not need per-provider or
+per-format extraction logic.
+
+On AWS, a CUR carries it in `product_instance_type`; a FOCUS report carries the CUR usage type
+as `SkuMeter` (e.g. `EUW2-BoxUsage:t3.xlarge`) and the part after the colon is kept when it is
+shaped like an instance type. On Azure, the VM size is read from the `ServiceType` key of the
+JSON details blob (`AdditionalInfo` in cost details exports, `x_SkuDetails` in FOCUS ones) on
+"Virtual Machines" rows.
+
+| | |
+|---|---|
+| **Classes** | `com.digitalpebble.spruce.modules.aws.InstanceTypeExtraction`<br>`com.digitalpebble.spruce.modules.azure.InstanceTypeExtraction` |
+| **Writes** | `instance_type` |
 
 ## Stage 2 — Energy and embodied estimates
 
@@ -331,32 +349,76 @@ Estimates the water consumption associated with cloud usage, producing three col
 
 ### FOCUSColumns
 
-Bridges Azure-native billing columns to provider-neutral [FOCUS](https://focus.finops.org/)
+Bridges provider-native billing columns to provider-neutral [FOCUS](https://focus.finops.org/)
 (FinOps Open Cost & Usage Specification) columns, so the reporting scripts and dashboard can
-consume Azure-enriched data with the same column names as other providers. Runs last in the
-Azure pipeline, after `region` has been set by [RegionExtraction](#regionextraction).
+consume enriched data with the same column names and values whatever the input format. Runs
+last in the pipeline, after `region` has been set by [RegionExtraction](#regionextraction).
 
-This module is only needed for the legacy cost details format: a FOCUS report already carries
-these columns on input, so the FOCUS pipeline does not include it.
+These modules are only needed for the native formats: a FOCUS report already carries
+these columns on input, so the FOCUS pipelines do not include them.
 
-Columns that already carry a FOCUS-compatible name in the Azure input (`BillingCurrency`,
-`Tags`) are left untouched and pass through unchanged.
+Unlike the impact modules, which only run on usage rows, these run on every row — taxes,
+fees, credits and savings plan negations must carry their billing values too for spend
+reporting to be complete.
+
+For AWS CURs:
+
+| FOCUS column | AWS source |
+|---|---|
+| `BilledCost` | `line_item_unblended_cost` |
+| `ListCost` | `pricing_public_on_demand_cost` |
+| `RegionId` | `region` (normalised by RegionExtraction) |
+| `ServiceName` | `product` map `product_name` (e.g. "Amazon Elastic Compute Cloud"), falling back to `line_item_product_code` |
+| `ChargeCategory` | `line_item_line_item_type`, normalised (see below) |
+| `SubAccountId` | `line_item_usage_account_id` |
+| `ChargePeriodStart` | `line_item_usage_start_date` |
+| `ChargePeriodEnd` | `line_item_usage_end_date` |
+| `Tags` | `resource_tags`, serialised to a JSON string |
+| `SkuMeter` | `line_item_usage_type` |
+| `x_ServiceCode` | `line_item_product_code` |
+| `x_Operation` | `line_item_operation` |
+
+`ChargeCategory` carries the FOCUS vocabulary rather than the raw line item type, mirroring the
+mapping AWS applies in its own FOCUS exports — in particular `SavingsPlanNegation` maps to
+`Usage` so that covered usage and its negation net out and the commitment fees carry the spend
+as `Purchase`:
+
+| `line_item_line_item_type` | `ChargeCategory` |
+|---|---|
+| `Usage`, `DiscountedUsage`, `SavingsPlanCoveredUsage`, `SavingsPlanNegation` | `Usage` |
+| `Fee`, `RIFee`, `SavingsPlanUpfrontFee`, `SavingsPlanRecurringFee` | `Purchase` |
+| `Tax` | `Tax` |
+| `Credit`, `Refund`, `BundledDiscount`, `DistributorDiscount`, `EdpDiscount`, `PrivateRateDiscount`, `RiVolumeDiscount` | `Credit` |
+| anything else | passed through unchanged |
+
+For Azure cost details exports (columns that already carry a FOCUS-compatible name in the
+input, such as `BillingCurrency` and `Tags`, pass through unchanged):
 
 | FOCUS column | Azure source |
 |---|---|
 | `BilledCost` | `CostInBillingCurrency` |
 | `RegionId` | `region` (normalised by RegionExtraction) |
 | `ServiceName` | `MeterCategory` |
-| `ChargeCategory` | `ChargeType` |
+| `ChargeCategory` | `ChargeType`, normalised (see below) |
 | `SubAccountId` | `SubscriptionId` |
 | `ChargePeriodStart` | `Date` |
 | `ChargePeriodEnd` | `Date` + 1 day |
 
+`ChargeCategory` mirrors the mapping Microsoft applies in its own FOCUS exports:
+
+| `ChargeType` | `ChargeCategory` |
+|---|---|
+| `Usage`, `UnusedReservation`, `UnusedSavingsPlan` | `Usage` |
+| `Purchase`, `Refund` | `Purchase` |
+| `Tax` | `Tax` |
+| `RoundingAdjustment` | `Adjustment` |
+| anything else | passed through unchanged |
+
 | | |
 |---|---|
-| **Class** | `com.digitalpebble.spruce.modules.azure.FOCUSColumns` |
-| **Reads** | `region` and the Azure-native columns above |
-| **Writes** | `BilledCost`, `RegionId`, `ServiceName`, `ChargeCategory`, `SubAccountId`, `ChargePeriodStart`, `ChargePeriodEnd` |
+| **Classes** | `com.digitalpebble.spruce.modules.aws.FOCUSColumns`<br>`com.digitalpebble.spruce.modules.azure.FOCUSColumns` |
+| **Reads** | `region` and the provider-native columns above |
+| **Writes** | `BilledCost`, `ListCost`, `RegionId`, `ServiceName`, `ChargeCategory`, `SubAccountId`, `ChargePeriodStart`, `ChargePeriodEnd`, `Tags`, `SkuMeter`, `x_ServiceCode`, `x_Operation` |
 
 ## Supporting data
 

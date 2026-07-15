@@ -58,10 +58,13 @@ public class EnrichmentPipelineTest {
     private static Config createMockConfig() {
         Config config = new Config();
         config.setProvider(Provider.AWS);
-        DummyModule module = new DummyModule();
-        config.getModules().add(module);
+        addModule(config, new DummyModule());
+        return config;
+    }
 
-        // Also inject matching config entry via reflection so configureModules() works
+    /** Adds a module with a matching (empty) config entry so configureModules() works. */
+    private static void addModule(Config config, EnrichmentModule module) {
+        config.getModules().add(module);
         try {
             var configsField = Config.class.getDeclaredField("configs");
             configsField.setAccessible(true);
@@ -72,8 +75,6 @@ public class EnrichmentPipelineTest {
         } catch (Exception e) {
             throw new RuntimeException("Failed to set up mock config", e);
         }
-
-        return config;
     }
 
     /**
@@ -137,6 +138,60 @@ public class EnrichmentPipelineTest {
                 }
             }
         }
+    }
+
+    /**
+     * Verifies that a module opting into {@link EnrichmentModule#processesAllRows()} runs on
+     * non-usage rows, while regular modules are still skipped.
+     */
+    @ParameterizedTest
+    @CsvSource({
+            "Usage",
+            "Tax",
+            "SavingsPlanNegation"
+    })
+    public void testAllRowsModuleRunsOnNonUsageRows(String lineItemType) throws Exception {
+        final Column ALL_ROWS_ENRICHED = new Column("all_rows_enriched", DataTypes.StringType) {};
+
+        Config config = createMockConfig();
+        addModule(config, new EnrichmentModule() {
+            @Override
+            public boolean processesAllRows() {
+                return true;
+            }
+
+            @Override
+            public Column[] columnsNeeded() {
+                return new Column[0];
+            }
+
+            @Override
+            public Column[] columnsAdded() {
+                return new Column[]{ALL_ROWS_ENRICHED};
+            }
+
+            @Override
+            public void enrich(Row row, Map<Column, Object> enrichedValues) {
+                enrichedValues.put(ALL_ROWS_ENRICHED, "set");
+            }
+        });
+        EnrichmentPipeline pipeline = new EnrichmentPipeline(config);
+
+        StructType schema = new StructType()
+                .add(LINE_ITEM_TYPE.getLabel(), LINE_ITEM_TYPE.getType(), true)
+                .add(DUMMY_ENRICHED.getLabel(), DUMMY_ENRICHED.getType(), true)
+                .add(ALL_ROWS_ENRICHED.getLabel(), ALL_ROWS_ENRICHED.getType(), true);
+
+        Row row = new GenericRowWithSchema(new Object[]{lineItemType, null, null}, schema);
+
+        Iterator<Row> results = pipeline.call(Collections.singletonList(row).iterator());
+        Row processedRow = results.next();
+
+        assertFalse(processedRow.isNullAt(processedRow.fieldIndex(ALL_ROWS_ENRICHED.getLabel())),
+                "all-rows module should run whatever the line item type");
+        boolean usage = lineItemType.endsWith("Usage") && !lineItemType.equals("SavingsPlanNegation");
+        assertEquals(usage, !processedRow.isNullAt(processedRow.fieldIndex(DUMMY_ENRICHED.getLabel())),
+                "regular module should only run on usage rows");
     }
 
     /**

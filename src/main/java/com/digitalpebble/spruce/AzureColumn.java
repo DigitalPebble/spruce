@@ -21,7 +21,7 @@ public class AzureColumn extends RowColumn {
     public static AzureColumn SUBSCRIPTION_ID = new AzureColumn("SubscriptionId", StringType);
     public static AzureColumn DATE = new AzureColumn("Date", StringType);
 
-    AzureColumn(String l, DataType t) {
+    public AzureColumn(String l, DataType t) {
         super(l, t);
     }
 }
