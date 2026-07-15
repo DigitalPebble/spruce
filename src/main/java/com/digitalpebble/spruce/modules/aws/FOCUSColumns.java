@@ -25,7 +25,6 @@ import static com.digitalpebble.spruce.FOCUSColumn.REGION_ID;
 import static com.digitalpebble.spruce.FOCUSColumn.SERVICE_NAME;
 import static com.digitalpebble.spruce.FOCUSColumn.SUB_ACCOUNT_ID;
 import static com.digitalpebble.spruce.FOCUSColumn.TAGS;
-import static com.digitalpebble.spruce.FOCUSColumn.LIST_COST;
 import static com.digitalpebble.spruce.SpruceColumn.REGION;
 
 /**

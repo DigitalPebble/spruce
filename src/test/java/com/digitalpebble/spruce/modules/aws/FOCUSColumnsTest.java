@@ -16,7 +16,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.digitalpebble.spruce.FOCUSColumn.BILLED_COST;
-import static com.digitalpebble.spruce.FOCUSColumn.BILLED_COST;
 import static com.digitalpebble.spruce.FOCUSColumn.CHARGE_CATEGORY;
 import static com.digitalpebble.spruce.FOCUSColumn.CHARGE_PERIOD_END;
 import static com.digitalpebble.spruce.FOCUSColumn.CHARGE_PERIOD_START;
