@@ -92,6 +92,24 @@
     </div>
     <div data-md-component="announce">
       
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+              <button class="md-banner__button md-icon" aria-label="Don't show this again">
+                
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+              </button>
+            
+            
+  SPRUCE now ingests <strong>FOCUS</strong> exports from AWS and Azure —
+  <a href="../howto/generate_cur/">get started</a>
+
+          </div>
+          
+            <script>var el=document.querySelector("[data-md-component=announce]");if(el){var content=el.querySelector(".md-typeset");__md_hash(content.innerHTML)===__md_get("__announce")&&(el.hidden=!0)}</script>
+          
+        </aside>
+      
     </div>
     
       <div data-md-color-scheme="default" data-md-component="outdated" hidden>
@@ -601,167 +619,29 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#cloud-carbon-footprint" class="md-nav__link">
+  <a href="#the-pipeline-at-a-glance" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Cloud Carbon Footprint
+        The pipeline at a glance
       </span>
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Cloud Carbon Footprint">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stage-1-metadata-extraction" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Stage 1 — Metadata extraction
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Stage 1 — Metadata extraction">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#ccfawsstorage" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        ccf.aws.Storage
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#ccfazurestorage" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        ccf.azure.Storage
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#ccfawsaccelerators" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        ccf.aws.Accelerators
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#boavizta" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Boavizta
-      </span>
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Boavizta">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#boaviztaawsboaviztapi" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        boavizta.aws.BoaviztAPI
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#boaviztaawsboaviztapistatic" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        boavizta.aws.BoaviztAPIstatic
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#boaviztaazureboaviztapi" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        boavizta.azure.BoaviztAPI
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#boaviztaazureboaviztapistatic" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        boavizta.azure.BoaviztAPIstatic
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#ecologits" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        EcoLogits
-      </span>
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="EcoLogits">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#ecologitsbedrockecologits" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        ecologits.BedrockEcoLogits
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#emberaveragecarbonintensity" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        ember.AverageCarbonIntensity
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#cloud-region-metadata" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Cloud region metadata
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#regionextraction" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -771,8 +651,108 @@
   </a>
   
 </li>
+        
+      </ul>
+    </nav>
+  
+</li>
       
         <li class="md-nav__item">
+  <a href="#stage-2-energy-and-embodied-estimates" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Stage 2 — Energy and embodied estimates
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Stage 2 — Energy and embodied estimates">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#storage" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Storage
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#networking" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Networking
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#serverless" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Serverless
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#accelerators" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Accelerators
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#compute-boavizta" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Compute — Boavizta
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#llm-inference-ecologits" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        LLM inference — EcoLogits
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stage-3-efficiency-and-intensity-factors" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Stage 3 — Efficiency and intensity factors
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Stage 3 — Efficiency and intensity factors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#pwue" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -782,52 +762,36 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#water" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#averagecarbonintensity" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Water
+        AverageCarbonIntensity
       </span>
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#awsnetworking" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        aws.Networking
-      </span>
-    </span>
-  </a>
+        
+      </ul>
+    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#azurenetworking" class="md-nav__link">
+  <a href="#stage-4-impacts" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        azure.Networking
+        Stage 4 — Impacts
       </span>
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#awsserverless" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        aws.Serverless
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
+    <nav class="md-nav" aria-label="Stage 4 — Impacts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#operationalemissions" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -837,15 +801,76 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#azurefocuscolumns" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#water" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        azure.FOCUSColumns
+        Water
       </span>
     </span>
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stage-5-output-normalisation" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Stage 5 — Output normalisation
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Stage 5 — Output normalisation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#focuscolumns" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        FOCUSColumns
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#supporting-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Supporting data
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Supporting data">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cloud-region-metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Cloud region metadata
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -976,7 +1001,7 @@
   <span class="md-ellipsis">
     
   
-  Generate CUR reports
+  Generate usage reports
 
     
   </span>
@@ -1341,167 +1366,29 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#cloud-carbon-footprint" class="md-nav__link">
+  <a href="#the-pipeline-at-a-glance" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Cloud Carbon Footprint
+        The pipeline at a glance
       </span>
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Cloud Carbon Footprint">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stage-1-metadata-extraction" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Stage 1 — Metadata extraction
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Stage 1 — Metadata extraction">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#ccfawsstorage" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        ccf.aws.Storage
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#ccfazurestorage" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        ccf.azure.Storage
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#ccfawsaccelerators" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        ccf.aws.Accelerators
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#boavizta" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Boavizta
-      </span>
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Boavizta">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#boaviztaawsboaviztapi" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        boavizta.aws.BoaviztAPI
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#boaviztaawsboaviztapistatic" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        boavizta.aws.BoaviztAPIstatic
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#boaviztaazureboaviztapi" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        boavizta.azure.BoaviztAPI
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#boaviztaazureboaviztapistatic" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        boavizta.azure.BoaviztAPIstatic
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#ecologits" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        EcoLogits
-      </span>
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="EcoLogits">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#ecologitsbedrockecologits" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        ecologits.BedrockEcoLogits
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#emberaveragecarbonintensity" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        ember.AverageCarbonIntensity
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#cloud-region-metadata" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Cloud region metadata
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#regionextraction" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1511,8 +1398,108 @@
   </a>
   
 </li>
+        
+      </ul>
+    </nav>
+  
+</li>
       
         <li class="md-nav__item">
+  <a href="#stage-2-energy-and-embodied-estimates" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Stage 2 — Energy and embodied estimates
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Stage 2 — Energy and embodied estimates">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#storage" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Storage
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#networking" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Networking
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#serverless" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Serverless
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#accelerators" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Accelerators
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#compute-boavizta" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Compute — Boavizta
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#llm-inference-ecologits" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        LLM inference — EcoLogits
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stage-3-efficiency-and-intensity-factors" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Stage 3 — Efficiency and intensity factors
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Stage 3 — Efficiency and intensity factors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#pwue" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1522,52 +1509,36 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#water" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#averagecarbonintensity" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Water
+        AverageCarbonIntensity
       </span>
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#awsnetworking" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        aws.Networking
-      </span>
-    </span>
-  </a>
+        
+      </ul>
+    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#azurenetworking" class="md-nav__link">
+  <a href="#stage-4-impacts" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        azure.Networking
+        Stage 4 — Impacts
       </span>
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#awsserverless" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        aws.Serverless
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
+    <nav class="md-nav" aria-label="Stage 4 — Impacts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#operationalemissions" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1577,15 +1548,76 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#azurefocuscolumns" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#water" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        azure.FOCUSColumns
+        Water
       </span>
     </span>
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stage-5-output-normalisation" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Stage 5 — Output normalisation
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Stage 5 — Output normalisation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#focuscolumns" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        FOCUSColumns
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#supporting-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Supporting data
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Supporting data">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cloud-region-metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Cloud region metadata
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1619,50 +1651,165 @@ An <code>EnrichmentModule</code> is the unit of extension in SPRUCE. Each module
 the CUR input row and/or from values set by earlier modules, then writes its results into a
 shared map. The pipeline materialises one output row per CUR row at the end, avoiding
 per-module row copies.</p>
-<p>For instance, the <a href="https://github.com/DigitalPebble/spruce/blob/main/src/main/java/com/digitalpebble/spruce/modules/ember/AverageCarbonIntensity.java">AverageCarbonIntensity.java</a> module applies average carbon intensity factors to energy estimates based on the region in order to generate <em>operational emissions</em>.</p>
-<p>The list of columns generated by the modules can be found in the <a href="https://github.com/DigitalPebble/spruce/blob/main/src/main/java/com/digitalpebble/spruce/SpruceColumn.java">SpruceColumn</a> class.</p>
-<p>The enrichment modules are listed and configured in a configuration file, one per cloud provider and report format. If no configuration is specified, SPRUCE uses the bundled default for the active provider (e.g. <a href="https://github.com/DigitalPebble/spruce/blob/main/src/main/resources/default-config-aws.json"><code>default-config-aws.json</code></a> for AWS, or <a href="https://github.com/DigitalPebble/spruce/blob/main/src/main/resources/default-config-azure-focus.json"><code>default-config-azure-focus.json</code></a> for an Azure <a href="https://focus.finops.org/">FOCUS 1.0</a> report).
-See <a href="../howto/config_modules/">Configure the modules</a> for instructions on how to modify the enrichment modules.</p>
-<p>An Azure FOCUS export carries the same values as the legacy cost details export under different
-column names (e.g. <code>x_SkuMeterCategory</code> instead of <code>MeterCategory</code>, <code>ConsumedQuantity</code> instead of
-<code>Quantity</code>). The Azure modules therefore work for both formats: when the report format is FOCUS,
-they automatically rebind their input columns to the FOCUS names.</p>
-<h2 id="cloud-carbon-footprint">Cloud Carbon Footprint<a class="headerlink" href="#cloud-carbon-footprint" title="Permanent link">&para;</a></h2>
-<p>The following modules implement the heuristics from the <a href="https://www.cloudcarbonfootprint.org/">Cloud Carbon Footprint</a> project.</p>
-<h3 id="ccfawsstorage">ccf.aws.Storage<a class="headerlink" href="#ccfawsstorage" title="Permanent link">&para;</a></h3>
-<p>Provides an estimate of energy used for storage by applying a flat coefficient per Gb, following the approach used by the <a href="https://www.cloudcarbonfootprint.org/">Cloud Carbon Footprint</a> project.
-Service-specific replication factors are applied.
-See <a href="https://www.cloudcarbonfootprint.org/docs/methodology#storage">methodology</a> for more details.</p>
-<p>The HDD and SSD coefficients (in Wh per TB-hour) can be overridden via configuration:</p>
+<p>The enrichment modules are listed and configured in a configuration file, one per cloud provider and report format. If no configuration is specified, SPRUCE uses the bundled default for the active provider (e.g. <a href="https://github.com/DigitalPebble/spruce/blob/main/src/main/resources/default-config-aws.json"><code>default-config-aws.json</code></a> for a native AWS CUR, or <a href="https://github.com/DigitalPebble/spruce/blob/main/src/main/resources/default-config-aws-focus.json"><code>default-config-aws-focus.json</code></a> / <a href="https://github.com/DigitalPebble/spruce/blob/main/src/main/resources/default-config-azure-focus.json"><code>default-config-azure-focus.json</code></a> for an AWS or Azure <a href="https://focus.finops.org/">FOCUS</a> report).
+See <a href="../howto/config_modules/">Configure the modules</a> for instructions on how to modify the enrichment modules, and <a href="../howto/write_module/">Write a module</a> to add your own.
+The list of columns generated by the modules can be found in the <a href="https://github.com/DigitalPebble/spruce/blob/main/src/main/java/com/digitalpebble/spruce/SpruceColumn.java">SpruceColumn</a> class.</p>
+<div class="admonition note">
+<p class="admonition-title">Native and FOCUS report formats</p>
+<p>A FOCUS export carries mostly the same values as the provider's native export under different
+column names (e.g. for Azure <code>x_SkuMeterCategory</code> instead of <code>MeterCategory</code>, for AWS <code>x_Operation</code>
+instead of <code>line_item_operation</code> and <code>SkuMeter</code> instead of <code>line_item_usage_type</code>). The provider
+modules therefore work for both formats: when the report format is FOCUS, they automatically
+rebind their input columns to the FOCUS names. Two AWS specificities: <code>x_ServiceCode</code> carries the
+CUR product code (<code>line_item_product_code</code>), and the columns with no FOCUS equivalent are derived
+from <code>SkuMeter</code> — the instance type from meters like <code>BoxUsage:m5.large</code> and the data transfer
+category from the meter suffixes (<code>DataTransfer-Regional-Bytes</code>, <code>AWS-Out-Bytes</code>, ...).</p>
+</div>
+<h2 id="the-pipeline-at-a-glance">The pipeline at a glance<a class="headerlink" href="#the-pipeline-at-a-glance" title="Permanent link">&para;</a></h2>
+<p>The modules run in sequence and fall into five stages. Later stages consume the columns
+written by earlier ones, which is why the order in the configuration file matters.</p>
+<pre class="mermaid"><code>flowchart LR
+    A[Billing row] --&gt; B("&lt;b&gt;Metadata&lt;/b&gt;&lt;br&gt;RegionExtraction")
+    B --&gt; C("&lt;b&gt;Energy &amp;amp; embodied&lt;/b&gt;&lt;br&gt;Storage, Networking,&lt;br&gt;Serverless, Accelerators,&lt;br&gt;Boavizta, EcoLogits")
+    C --&gt; D("&lt;b&gt;Factors&lt;/b&gt;&lt;br&gt;PWUE,&lt;br&gt;AverageCarbonIntensity")
+    D --&gt; E("&lt;b&gt;Impacts&lt;/b&gt;&lt;br&gt;OperationalEmissions,&lt;br&gt;Water")
+    E --&gt; F("&lt;b&gt;Normalisation&lt;/b&gt;&lt;br&gt;FOCUSColumns&lt;br&gt;(legacy Azure only)")
+    F --&gt; G[Enriched row]</code></pre>
 <table>
 <thead>
 <tr>
-<th>Key</th>
-<th>Default</th>
-<th>Description</th>
+<th>Module</th>
+<th>Providers</th>
+<th>Writes</th>
+<th>Based on</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>hdd_coefficient_tb_h</code></td>
-<td>0.65</td>
-<td>Energy per TB-hour for HDD storage</td>
+<td><a href="#regionextraction">RegionExtraction</a></td>
+<td>AWS, Azure, FOCUS</td>
+<td><code>region</code></td>
+<td>—</td>
 </tr>
 <tr>
-<td><code>ssd_coefficient_tb_h</code></td>
-<td>1.2</td>
-<td>Energy per TB-hour for SSD storage</td>
+<td><a href="#storage">Storage</a></td>
+<td>AWS, Azure</td>
+<td><code>operational_energy_kwh</code></td>
+<td><a href="https://www.cloudcarbonfootprint.org/">Cloud Carbon Footprint</a></td>
+</tr>
+<tr>
+<td><a href="#networking">Networking</a></td>
+<td>AWS, Azure</td>
+<td><code>operational_energy_kwh</code></td>
+<td><a href="https://boavizta.org/">Boavizta</a> coefficients</td>
+</tr>
+<tr>
+<td><a href="#serverless">Serverless</a></td>
+<td>AWS</td>
+<td><code>operational_energy_kwh</code></td>
+<td><a href="https://tailpipe.ai/methodology/serverless-explained/">Tailpipe</a></td>
+</tr>
+<tr>
+<td><a href="#accelerators">Accelerators</a></td>
+<td>AWS</td>
+<td><code>operational_energy_kwh</code></td>
+<td><a href="https://www.cloudcarbonfootprint.org/">Cloud Carbon Footprint</a></td>
+</tr>
+<tr>
+<td><a href="#compute-boavizta">Compute — Boavizta</a></td>
+<td>AWS, Azure</td>
+<td><code>operational_energy_kwh</code>, <code>embodied_emissions_co2eq_g</code>, <code>embodied_adp_sbeq_g</code></td>
+<td><a href="https://doc.api.boavizta.org/">BoaviztAPI</a></td>
+</tr>
+<tr>
+<td><a href="#llm-inference-ecologits">LLM inference — EcoLogits</a></td>
+<td>AWS</td>
+<td><code>operational_energy_kwh</code>, <code>embodied_emissions_co2eq_g</code></td>
+<td><a href="https://ecologits.ai/">EcoLogits</a></td>
+</tr>
+<tr>
+<td><a href="#pwue">PWUE</a></td>
+<td>AWS, Azure</td>
+<td><code>power_usage_effectiveness</code>, <code>water_usage_effectiveness</code></td>
+<td>Provider-published data</td>
+</tr>
+<tr>
+<td><a href="#averagecarbonintensity">AverageCarbonIntensity</a></td>
+<td>AWS, Azure</td>
+<td><code>carbon_intensity</code></td>
+<td><a href="https://ember-energy.org/">Ember</a></td>
+</tr>
+<tr>
+<td><a href="#operationalemissions">OperationalEmissions</a></td>
+<td>AWS, Azure</td>
+<td><code>operational_emissions_co2eq_g</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><a href="#water">Water</a></td>
+<td>AWS, Azure</td>
+<td><code>water_cooling_l</code>, <code>water_electricity_production_l</code>, <code>water_consumption_stress_area_l</code></td>
+<td><a href="https://www.wri.org/">WRI</a></td>
+</tr>
+<tr>
+<td><a href="#focuscolumns">FOCUSColumns</a></td>
+<td>Azure (legacy format)</td>
+<td><a href="https://focus.finops.org/">FOCUS</a> columns</td>
+<td>—</td>
 </tr>
 </tbody>
 </table>
-<p><strong>Output column</strong>:  <code>operational_energy_kwh</code>.</p>
-<h3 id="ccfazurestorage">ccf.azure.Storage<a class="headerlink" href="#ccfazurestorage" title="Permanent link">&para;</a></h3>
-<p>Provides an estimate of energy used for Azure storage by applying the same
-Cloud Carbon Footprint storage coefficients used by <code>ccf.aws.Storage</code>.
-Service-specific replication factors are applied. Managed disks are estimated
+<h2 id="stage-1-metadata-extraction">Stage 1 — Metadata extraction<a class="headerlink" href="#stage-1-metadata-extraction" title="Permanent link">&para;</a></h2>
+<h3 id="regionextraction">RegionExtraction<a class="headerlink" href="#regionextraction" title="Permanent link">&para;</a></h3>
+<p>Extracts the region information from the provider-specific input columns and stores it in
+a standard location, where all the following modules can find it. The FOCUS variant is
+provider-neutral: it reads the standard <code>RegionId</code> column.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Classes</strong></td>
+<td><code>com.digitalpebble.spruce.modules.aws.RegionExtraction</code><br><code>com.digitalpebble.spruce.modules.azure.RegionExtraction</code><br><code>com.digitalpebble.spruce.modules.focus.RegionExtraction</code></td>
+</tr>
+<tr>
+<td><strong>Writes</strong></td>
+<td><code>region</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="stage-2-energy-and-embodied-estimates">Stage 2 — Energy and embodied estimates<a class="headerlink" href="#stage-2-energy-and-embodied-estimates" title="Permanent link">&para;</a></h2>
+<p>The modules in this stage estimate the energy used by a row of usage — and, for Boavizta
+and EcoLogits, the related embodied emissions. Each module handles a different kind of
+usage (storage, networking, compute, …), so they complement each other rather than overlap.</p>
+<h3 id="storage">Storage<a class="headerlink" href="#storage" title="Permanent link">&para;</a></h3>
+<p>Estimates the energy used for storage by applying a flat coefficient per GB, following the
+approach of the <a href="https://www.cloudcarbonfootprint.org/docs/methodology#storage">Cloud Carbon Footprint</a> project.
+Service-specific replication factors are applied. On Azure, managed disks are estimated
 from their provisioned capacity.</p>
-<p>The HDD and SSD coefficients (in Wh per TB-hour) can be overridden via
-configuration using the same keys as <code>ccf.aws.Storage</code>:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Classes</strong></td>
+<td><code>com.digitalpebble.spruce.modules.ccf.aws.Storage</code><br><code>com.digitalpebble.spruce.modules.ccf.azure.Storage</code></td>
+</tr>
+<tr>
+<td><strong>Writes</strong></td>
+<td><code>operational_energy_kwh</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Configuration</strong> (in Wh per TB-hour):</p>
 <table>
 <thead>
 <tr>
@@ -1684,85 +1831,34 @@ configuration using the same keys as <code>ccf.aws.Storage</code>:</p>
 </tr>
 </tbody>
 </table>
-<p><strong>Output column</strong>:  <code>operational_energy_kwh</code>.</p>
-<h3 id="ccfawsaccelerators">ccf.aws.Accelerators<a class="headerlink" href="#ccfawsaccelerators" title="Permanent link">&para;</a></h3>
-<p>Provides an estimate of energy used by accelerators, following the approach used by the <a href="https://www.cloudcarbonfootprint.org/">Cloud Carbon Footprint</a> project.
-See <a href="https://www.cloudcarbonfootprint.org/docs/methodology/#graphic-processing-units-gpus">methodology</a> for more details.</p>
-<p><strong>Output column</strong>:  <code>operational_energy_kwh</code>.</p>
-<h2 id="boavizta">Boavizta<a class="headerlink" href="#boavizta" title="Permanent link">&para;</a></h2>
-<p>The following modules make use of the <a href="https://doc.api.boavizta.org">BoaviztAPI</a>.</p>
-<h3 id="boaviztaawsboaviztapi">boavizta.aws.BoaviztAPI<a class="headerlink" href="#boaviztaawsboaviztapi" title="Permanent link">&para;</a></h3>
-<p>Provides an estimate of <a href="https://www.eea.europa.eu/en/analysis/indicators/primary-and-final-energy-consumption">final energy</a> used for computation (EC2, OpenSearch, RDS) as well as the related embodied emissions using the <a href="https://doc.api.boavizta.org/">BoaviztAPI</a>.</p>
-<p><strong>Output columns</strong>: <code>operational_energy_kwh</code>, <code>embodied_emissions_co2eq_g</code> and <code>embodied_adp_sbeq_g</code>.</p>
-<p>From <a href="https://doc.api.boavizta.org/Explanations/impacts/">https://doc.api.boavizta.org/Explanations/impacts/</a></p>
-<p><strong>Abiotic Depletion Potential (ADP)</strong> is an environmental impact indicator. This category corresponds to mineral and resources used and is, in this sense, mainly influenced by the rate of resources extracted. The effect of this consumption on their depletion is estimated according to their availability stock at a global scale. This impact category is divided into two components: a material component and a fossil fuels component (we use a version of ADP which include both).
-This impact is expressed in grams of antimony equivalent (gSbeq).</p>
-<p><strong>Source</strong>: <a href="https://www.sciencedirect.com/topics/engineering/abiotic-depletion-potential">sciencedirect</a></p>
-<h3 id="boaviztaawsboaviztapistatic">boavizta.aws.BoaviztAPIstatic<a class="headerlink" href="#boaviztaawsboaviztapistatic" title="Permanent link">&para;</a></h3>
-<p>Similar to the previous module but does not get the information from an instance of the BoaviztAPI but from a static file generated from it. This makes it simpler to use SPRUCE.</p>
-<p><strong>Output columns</strong>: <code>operational_energy_kwh</code>, <code>embodied_emissions_co2eq_g</code> and <code>embodied_adp_sbeq_g</code>.</p>
-<h3 id="boaviztaazureboaviztapi">boavizta.azure.BoaviztAPI<a class="headerlink" href="#boaviztaazureboaviztapi" title="Permanent link">&para;</a></h3>
-<p>Similar to the AWS equivalent but for Azure.</p>
-<p><strong>Output columns</strong>: <code>operational_energy_kwh</code>, <code>embodied_emissions_co2eq_g</code> and <code>embodied_adp_sbeq_g</code>.</p>
-<h3 id="boaviztaazureboaviztapistatic">boavizta.azure.BoaviztAPIstatic<a class="headerlink" href="#boaviztaazureboaviztapistatic" title="Permanent link">&para;</a></h3>
-<p>Similar to the AWS equivalent but for Azure.</p>
-<p><strong>Output columns</strong>: <code>operational_energy_kwh</code>, <code>embodied_emissions_co2eq_g</code> and <code>embodied_adp_sbeq_g</code>.</p>
-<h2 id="ecologits">EcoLogits<a class="headerlink" href="#ecologits" title="Permanent link">&para;</a></h2>
-<p>The following modules estimate the energy consumption and embodied emissions of LLM inference using static coefficients derived from the <a href="https://ecologits.ai/">EcoLogits</a> project.</p>
-<h3 id="ecologitsbedrockecologits">ecologits.BedrockEcoLogits<a class="headerlink" href="#ecologitsbedrockecologits" title="Permanent link">&para;</a></h3>
-<p>Provides an estimate of energy consumption and embodied emissions for LLM inference on <strong>AWS Bedrock</strong>, based on static per-model coefficients from the EcoLogits project. This follows the same pattern as <code>boavizta.aws.BoaviztAPIstatic</code>: a static data file bundled in the JAR is loaded at initialisation time, and the module matches Bedrock CUR rows to per-model coefficients to compute energy usage and embodied emissions.</p>
-<p>The module parses the <code>line_item_usage_type</code> field (format: <code>{REGION}-{ModelKey}-{input|output}-tokens[-batch]</code>) to extract both the model key and the token type, then normalises the token count from <code>pricing_unit</code> (handling real-world values such as <code>1K tokens</code> or <code>1M tokens</code>). Only output-token rows are scored — the EcoLogits methodology attributes ~all generation cost to the autoregressive output phase, so input-token rows are skipped.</p>
-<p><strong>Output columns</strong>: <code>operational_energy_kwh</code> and <code>embodied_emissions_co2eq_g</code>.</p>
-<blockquote>
-<p><strong>Batch size assumption:</strong> EcoLogits hardcodes a batch size of <code>B=64</code> concurrent requests. The resulting coefficients are a mid-batch estimate — they underestimate energy for low-traffic scenarios and overestimate it for high-throughput batch inference (e.g. Bedrock Batch mode). Making <code>B</code> dynamic requires provider telemetry not available in billing data.</p>
-</blockquote>
-<h2 id="emberaveragecarbonintensity">ember.AverageCarbonIntensity<a class="headerlink" href="#emberaveragecarbonintensity" title="Permanent link">&para;</a></h2>
-<p>Adds average carbon intensity factors derived from <a href="https://ember-energy.org/">Ember</a>'s electricity data, distributed under the <a href="https://ember-energy.org/creative-commons/">Creative Commons Attribution Licence (CC-BY-4.0)</a>.
-Values are keyed directly by cloud provider and region (e.g. <code>aws:us-east-1</code>). For regions in countries with sub-national data (currently the US and India), the carbon intensity is taken from the Ember value for the state hosting the data centre; otherwise the country-level Ember value is used.</p>
-<p>The data is loaded from <code>src/main/resources/ember/ember_co2_intensity.csv</code>, which is generated from <a href="#cloud-region-metadata"><code>cloud_regions.json</code></a> — see the scripts under <a href="https://github.com/DigitalPebble/spruce/tree/main/scripts"><code>scripts/</code></a> and the dedicated <a href="https://github.com/DigitalPebble/spruce/blob/main/scripts/README.md">README</a> for how to refresh it.</p>
-<p><strong>Output column</strong>: <code>carbon_intensity</code>.</p>
-<h2 id="cloud-region-metadata">Cloud region metadata<a class="headerlink" href="#cloud-region-metadata" title="Permanent link">&para;</a></h2>
-<p>SPRUCE ships with <code>src/main/resources/cloud_regions.json</code>, a single JSON file
-listing the AWS, GCP, and Azure cloud regions together with their location
-(country, metro area, latitude/longitude), service status, and number of
-availability zones. It is the canonical source for the region-to-location
-mapping used by other modules and resource files (e.g. <code>ember.AverageCarbonIntensity</code>).</p>
-<p>The file is produced in two steps by scripts under <a href="https://github.com/DigitalPebble/spruce/tree/main/scripts"><code>scripts/</code></a>, see <a href="https://github.com/DigitalPebble/spruce/blob/main/scripts/README.md"><code>scripts/README.md</code></a> for the full usage details.</p>
-<h2 id="regionextraction">RegionExtraction<a class="headerlink" href="#regionextraction" title="Permanent link">&para;</a></h2>
-<p>Extracts the region information from the input and stores it in a standard location.
-The FOCUS variant is provider-neutral: it reads the standard <code>RegionId</code> column.</p>
-<p><strong>Output column</strong>:  <code>region</code>.</p>
-<p><strong>AWS Module</strong>: <code>com.digitalpebble.spruce.modules.aws.RegionExtraction</code>
-<strong>Azure Module</strong>: <code>com.digitalpebble.spruce.modules.azure.RegionExtraction</code>
-<strong>FOCUS Module</strong>: <code>com.digitalpebble.spruce.modules.focus.RegionExtraction</code></p>
-<h2 id="pwue">PWUE<a class="headerlink" href="#pwue" title="Permanent link">&para;</a></h2>
-<p>Loads and stores both <strong>Power Usage Effectiveness (PUE)</strong> and <strong>Water Usage Effectiveness (WUE)</strong> factors from a single CSV resource file. This module replaces the previous separate PUE module and centralizes the loading of these efficiency factors.</p>
-<p>The module uses the 2024 data published by AWS for <a href="https://sustainability.aboutamazon.com/aws-wue-pue.csv">Power Usage Effectiveness</a> and the corresponding WUE values. For Azure, the source is <a href="https://datacenters.microsoft.com/sustainability/efficiency/">https://datacenters.microsoft.com/sustainability/efficiency/</a>.</p>
-<p>The PWUE module supports both AWS and Azure providers and loads the appropriate resource file based on the provider:
-- AWS: <code>aws-pue-wue.csv</code>
-- Azure: <code>azure-pue-wue.csv</code></p>
-<p>The lookup logic follows this priority:
-1. Exact region match (e.g., "us-east-1")
-2. Regex pattern match (e.g., "us-.+")
-3. Default configured value (fallback to 1.15 for PUE, null for WUE)</p>
-<p><strong>Output columns</strong>:  <code>power_usage_effectiveness</code> and <code>water_usage_effectiveness</code>.</p>
-<h2 id="water">Water<a class="headerlink" href="#water" title="Permanent link">&para;</a></h2>
-<p>Estimates water consumption associated with cloud usage, producing three columns:</p>
-<ul>
-<li>
-<p><strong><code>water_cooling_l</code></strong> – the volume of water (in litres) used for <strong>data centre cooling</strong>. Computed as <code>operational_energy_kwh</code> × <code>power_usage_effectiveness</code> × WUE, where WUE (Water Usage Effectiveness) is the ratio of litres of water consumed for cooling per kWh of IT energy. The per-region WUE values are loaded by the <a href="#pwue">PWUE module</a> from the <a href="https://sustainability.aboutamazon.com/aws-wue-pue.csv">2024 data published by AWS</a>. The source for Azure is <a href="https://datacenters.microsoft.com/sustainability/efficiency/">https://datacenters.microsoft.com/sustainability/efficiency/</a>.</p>
-</li>
-<li>
-<p><strong><code>water_electricity_production_l</code></strong> – the volume of water (in litres) consumed during <strong>electricity generation</strong> to power the data centre. Computed as <code>operational_energy_kwh</code> × <code>power_usage_effectiveness</code> × WCF, where WCF (Water Consumption Factor) represents the litres of water consumed per kWh of electricity generated. The WCF values per electricity grid zone are sourced from the <a href="https://www.wri.org/data/dataset-guidance-calculating-water-use-embedded-purchased-electricity">WRI methodology for calculating water use embedded in purchased electricity</a>.</p>
-</li>
-<li>
-<p><strong><code>water_consumption_stress_area_l</code></strong> – the total water consumption (<code>water_cooling_l</code> + <code>water_electricity_production_l</code>) attributed to regions under <strong>high or extremely high water stress</strong> (Aqueduct 4.0 baseline water stress category ≥ 3). This field is only populated when the electricity grid zone for the region has a water stress category of 3 (High) or 4 (Extremely High); it is absent otherwise. Water stress categories are derived from the <a href="https://www.wri.org/data/aqueduct-global-maps-40-data">WRI Aqueduct 4.0</a> dataset.
-  The World Resource Institute's Aqueduct tool is licensed through Creative Commons. The data has been extracted and mapped to cloud provider region codes.</p>
-</li>
-</ul>
-<p><strong>Output columns</strong>: <code>water_cooling_l</code>, <code>water_electricity_production_l</code>, and <code>water_consumption_stress_area_l</code>.</p>
-<h2 id="awsnetworking">aws.Networking<a class="headerlink" href="#awsnetworking" title="Permanent link">&para;</a></h2>
-<p>Provides an estimate of energy used for networking in and out of data centres. The module distinguishes between three transfer types with separate coefficients (in kWh/Gb):</p>
+<h3 id="networking">Networking<a class="headerlink" href="#networking" title="Permanent link">&para;</a></h3>
+<p>Estimates the energy used for networking in and out of data centres. The module
+distinguishes between three transfer types with separate coefficients, taken from the
+Boavizta Cloud Emissions Working Group.</p>
+<p>In a CUR, the transfer type is read from the <code>transfer_type</code> product attribute of the
+<code>AWSDataTransfer</code> lines. A FOCUS report carries neither, so the category is derived from the
+<code>SkuMeter</code> suffixes instead (<code>DataTransfer-Regional-Bytes</code> and <code>DataTransfer-xAZ-*-Bytes</code> →
+intra, <code>AWS-*-Bytes</code> and <code>CloudFront-*-Bytes</code> → inter, <code>DataTransfer-In/Out-Bytes</code> → external),
+which map one-to-one to the CUR transfer types.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Classes</strong></td>
+<td><code>com.digitalpebble.spruce.modules.aws.Networking</code><br><code>com.digitalpebble.spruce.modules.azure.Networking</code></td>
+</tr>
+<tr>
+<td><strong>Writes</strong></td>
+<td><code>operational_energy_kwh</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Configuration</strong> — the <code>network_coefficients_kwh_gb</code> map (in kWh/GB):</p>
 <table>
 <thead>
 <tr>
@@ -1783,28 +1879,46 @@ The FOCUS variant is provider-neutral: it reads the standard <code>RegionId</cod
 <td>Inter-region</td>
 <td><code>inter</code></td>
 <td>0.0015</td>
-<td>Traffic between AWS regions</td>
+<td>Traffic between regions</td>
 </tr>
 <tr>
 <td>External</td>
 <td><code>extra</code></td>
 <td>0.059</td>
-<td>Traffic to/from the internet (AWS Inbound / Outbound)</td>
+<td>Traffic to/from the internet (Inbound / Outbound)</td>
 </tr>
 </tbody>
 </table>
-<p>The coefficients are taken from the Boavizta Cloud Emissions Working Group and can be overridden via the <code>network_coefficients_kwh_gb</code> configuration map.</p>
+<div class="admonition note">
+<p class="admonition-title">Attributing networking emissions</p>
 <p>The relevance and usefulness of attributing emissions for networking based on usage is
-subject for debate as the energy use of networking is pretty constant independently of
+subject for debate, as the energy use of networking is pretty constant independently of
 traffic. The consequences of reducing networking are probably negligible but since the
-approach in SPRUCE is attributional, we do the same for networking in order to be consistent.</p>
-<p><strong>Output column</strong>: <code>operational_energy_kwh</code>.</p>
-<h2 id="azurenetworking">azure.Networking<a class="headerlink" href="#azurenetworking" title="Permanent link">&para;</a></h2>
-<p>Same as above but for Azure.</p>
-<p><strong>Output column</strong>: <code>operational_energy_kwh</code>.</p>
-<h2 id="awsserverless">aws.Serverless<a class="headerlink" href="#awsserverless" title="Permanent link">&para;</a></h2>
-<p>Provides an estimate of energy for the memory and vCPU usage of serverless services like Fargate or EMR.
-The default coefficients are taken from the <a href="https://tailpipe.ai/methodology/serverless-explained/">Tailpipe methodology</a> and can be overridden via configuration:</p>
+approach in SPRUCE is attributional, we do the same for networking in order to be
+consistent.</p>
+</div>
+<h3 id="serverless">Serverless<a class="headerlink" href="#serverless" title="Permanent link">&para;</a></h3>
+<p>Estimates the energy for the memory and vCPU usage of serverless services like Fargate or
+EMR. The default coefficients are taken from the <a href="https://tailpipe.ai/methodology/serverless-explained/">Tailpipe methodology</a>.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Class</strong></td>
+<td><code>com.digitalpebble.spruce.modules.aws.Serverless</code></td>
+</tr>
+<tr>
+<td><strong>Writes</strong></td>
+<td><code>operational_energy_kwh</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Configuration</strong>:</p>
 <table>
 <thead>
 <tr>
@@ -1831,21 +1945,327 @@ The default coefficients are taken from the <a href="https://tailpipe.ai/methodo
 </tr>
 </tbody>
 </table>
-<p><strong>Output column</strong>:  <code>operational_energy_kwh</code>.</p>
-<h2 id="operationalemissions">OperationalEmissions<a class="headerlink" href="#operationalemissions" title="Permanent link">&para;</a></h2>
-<p>Computes operational emissions based on the energy usage, average carbon intensity factors and <code>power_usage_effectiveness</code> estimated by the preceding modules, based on the <code>region</code>. It also accounts for two additional overheads:</p>
+<h3 id="accelerators">Accelerators<a class="headerlink" href="#accelerators" title="Permanent link">&para;</a></h3>
+<p>Estimates the energy used by accelerators (GPUs), following the approach of the
+<a href="https://www.cloudcarbonfootprint.org/docs/methodology/#graphic-processing-units-gpus">Cloud Carbon Footprint</a>
+project: the power draw is interpolated between the minimum and maximum wattage of the
+accelerator at an assumed utilisation rate.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Class</strong></td>
+<td><code>com.digitalpebble.spruce.modules.ccf.aws.Accelerators</code></td>
+</tr>
+<tr>
+<td><strong>Writes</strong></td>
+<td><code>operational_energy_kwh</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Configuration</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>gpu_utilisation_percent</code></td>
+<td>50</td>
+<td>Assumed GPU utilisation rate</td>
+</tr>
+</tbody>
+</table>
+<h3 id="compute-boavizta">Compute — Boavizta<a class="headerlink" href="#compute-boavizta" title="Permanent link">&para;</a></h3>
+<p>Estimates the <a href="https://www.eea.europa.eu/en/analysis/indicators/primary-and-final-energy-consumption">final energy</a>
+used for computation (e.g. EC2, OpenSearch, RDS on AWS; virtual machines on Azure), as well
+as the related embodied emissions and abiotic resource depletion, using the
+<a href="https://doc.api.boavizta.org/">BoaviztAPI</a>.</p>
+<p>In a CUR, the instance type is read from <code>product_instance_type</code>; a FOCUS report does not carry
+it, so it is parsed from the <code>SkuMeter</code> column instead (e.g. <code>EUW2-BoxUsage:t3.xlarge</code>).</p>
+<p>Each provider has two variants:</p>
 <ul>
-<li><strong>Power Supply Efficiency</strong>: The power lost between the data centre mains electricity and the server (default <code>1.04</code>).</li>
-<li><strong>Power Transmission Losses</strong>: The power lost between the power station and the data centre mains electricity (default <code>1.08</code>).</li>
+<li><strong>BoaviztAPI</strong> queries a running instance of the API (<code>docker run -p 5000:5000 ghcr.io/boavizta/boaviztapi:latest</code>). The address can be set with the <code>address</code> configuration key (default <code>http://localhost:5000</code>).</li>
+<li><strong>BoaviztAPIstatic</strong> reads the same information from a static file generated from the API and bundled with SPRUCE. No API instance is needed, which makes it simpler to use — this is the variant enabled in the default configurations.</li>
 </ul>
-<p>These two values can be overridden via configuration (<code>powerSupplyEfficiency</code> and <code>powerTransmissionLosses</code>).</p>
-<p><code>operational_emissions_co2eq_g</code> is equal to <code>operational_energy_kwh</code> * <code>carbon_intensity</code> * <code>power_usage_effectiveness</code> * <code>powerSupplyEfficiency</code> * <code>powerTransmissionLosses</code>.</p>
-<p><strong>Output columns</strong>: <code>operational_emissions_co2eq_g</code>.</p>
-<h2 id="azurefocuscolumns">azure.FOCUSColumns<a class="headerlink" href="#azurefocuscolumns" title="Permanent link">&para;</a></h2>
-<p>Bridges Azure-native billing columns to provider-neutral <a href="https://focus.finops.org/">FOCUS</a> (FinOps Open Cost &amp; Usage Specification) columns, so the reporting scripts and dashboard can consume Azure-enriched data with the same column names as other providers. Runs last in the Azure pipeline, after <code>region</code> has been set by <a href="#regionextraction">RegionExtraction</a>.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Classes</strong></td>
+<td><code>com.digitalpebble.spruce.modules.boavizta.aws.BoaviztAPI</code><br><code>com.digitalpebble.spruce.modules.boavizta.aws.BoaviztAPIstatic</code><br><code>com.digitalpebble.spruce.modules.boavizta.azure.BoaviztAPI</code><br><code>com.digitalpebble.spruce.modules.boavizta.azure.BoaviztAPIstatic</code></td>
+</tr>
+<tr>
+<td><strong>Writes</strong></td>
+<td><code>operational_energy_kwh</code>, <code>embodied_emissions_co2eq_g</code>, <code>embodied_adp_sbeq_g</code></td>
+</tr>
+</tbody>
+</table>
+<details class="info">
+<summary>What is Abiotic Depletion Potential (ADP)?</summary>
+<p>From the <a href="https://doc.api.boavizta.org/Explanations/impacts/">BoaviztAPI documentation</a>:</p>
+<p><strong>Abiotic Depletion Potential (ADP)</strong> is an environmental impact indicator. This category
+corresponds to mineral and resources used and is, in this sense, mainly influenced by the
+rate of resources extracted. The effect of this consumption on their depletion is estimated
+according to their availability stock at a global scale. This impact category is divided
+into two components: a material component and a fossil fuels component (we use a version of
+ADP which includes both). This impact is expressed in grams of antimony equivalent (gSbeq).</p>
+<p><strong>Source</strong>: <a href="https://www.sciencedirect.com/topics/engineering/abiotic-depletion-potential">sciencedirect</a></p>
+</details>
+<h3 id="llm-inference-ecologits">LLM inference — EcoLogits<a class="headerlink" href="#llm-inference-ecologits" title="Permanent link">&para;</a></h3>
+<p>Estimates the energy consumption and embodied emissions of LLM inference on <strong>AWS Bedrock</strong>,
+based on static per-model coefficients derived from the <a href="https://ecologits.ai/">EcoLogits</a>
+project. Like <code>BoaviztAPIstatic</code>, a static data file bundled in the JAR is loaded at
+initialisation time; the module then matches Bedrock CUR rows to per-model coefficients.</p>
+<p>The module parses the <code>line_item_usage_type</code> field (format:
+<code>{REGION}-{ModelKey}-{input|output}-tokens[-batch]</code>) to extract both the model key and the
+token type, then normalises the token count from <code>pricing_unit</code> (handling real-world values
+such as <code>1K tokens</code> or <code>1M tokens</code>). Only output-token rows are scored — the EcoLogits
+methodology attributes ~all generation cost to the autoregressive output phase, so
+input-token rows are skipped.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Class</strong></td>
+<td><code>com.digitalpebble.spruce.modules.ecologits.BedrockEcoLogits</code></td>
+</tr>
+<tr>
+<td><strong>Writes</strong></td>
+<td><code>operational_energy_kwh</code>, <code>embodied_emissions_co2eq_g</code></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Batch size assumption</p>
+<p>EcoLogits hardcodes a batch size of <code>B=64</code> concurrent requests. The resulting
+coefficients are a mid-batch estimate — they underestimate energy for low-traffic
+scenarios and overestimate it for high-throughput batch inference (e.g. Bedrock Batch
+mode). Making <code>B</code> dynamic requires provider telemetry not available in billing data.</p>
+</div>
+<h2 id="stage-3-efficiency-and-intensity-factors">Stage 3 — Efficiency and intensity factors<a class="headerlink" href="#stage-3-efficiency-and-intensity-factors" title="Permanent link">&para;</a></h2>
+<p>The modules in this stage do not estimate energy themselves; they attach the per-region
+factors that the impact modules in the next stage multiply the energy estimates by.</p>
+<h3 id="pwue">PWUE<a class="headerlink" href="#pwue" title="Permanent link">&para;</a></h3>
+<p>Loads both <strong>Power Usage Effectiveness (PUE)</strong> and <strong>Water Usage Effectiveness (WUE)</strong>
+factors from a CSV resource file bundled per provider: <a href="https://github.com/DigitalPebble/spruce/blob/main/src/main/resources/aws-pue-wue.csv"><code>aws-pue-wue.csv</code></a> uses the 2024 data
+<a href="https://sustainability.aboutamazon.com/aws-wue-pue.csv">published by AWS</a>, and
+<a href="https://github.com/DigitalPebble/spruce/blob/main/src/main/resources/azure-pue-wue.csv"><code>azure-pue-wue.csv</code></a> is sourced from <a href="https://datacenters.microsoft.com/sustainability/efficiency/">Microsoft's data centre sustainability pages</a>.</p>
+<p>The lookup logic follows this priority:</p>
+<ol>
+<li>Exact region match (e.g. <code>us-east-1</code>)</li>
+<li>Regex pattern match (e.g. <code>us-.+</code>)</li>
+<li>Default configured value (fallback to 1.15 for PUE, null for WUE)</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Class</strong></td>
+<td><code>com.digitalpebble.spruce.modules.PWUE</code></td>
+</tr>
+<tr>
+<td><strong>Reads</strong></td>
+<td><code>region</code></td>
+</tr>
+<tr>
+<td><strong>Writes</strong></td>
+<td><code>power_usage_effectiveness</code>, <code>water_usage_effectiveness</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Configuration</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>default</code></td>
+<td>1.15</td>
+<td>PUE used when a region matches neither an exact entry nor a pattern</td>
+</tr>
+</tbody>
+</table>
+<h3 id="averagecarbonintensity">AverageCarbonIntensity<a class="headerlink" href="#averagecarbonintensity" title="Permanent link">&para;</a></h3>
+<p>Adds average carbon intensity factors derived from <a href="https://ember-energy.org/">Ember</a>'s
+electricity data, distributed under the <a href="https://ember-energy.org/creative-commons/">Creative Commons Attribution Licence (CC-BY-4.0)</a>.
+Values are keyed directly by cloud provider and region (e.g. <code>aws:us-east-1</code>). For regions
+in countries with sub-national data (currently the US and India), the carbon intensity is
+taken from the Ember value for the state hosting the data centre; otherwise the
+country-level Ember value is used.</p>
+<p>The data is loaded from <code>ember/ember_co2_intensity.csv</code>, which is generated from
+<a href="#cloud-region-metadata"><code>cloud_regions.json</code></a> — see the scripts under
+<a href="https://github.com/DigitalPebble/spruce/tree/main/scripts"><code>scripts/</code></a> and the dedicated
+<a href="https://github.com/DigitalPebble/spruce/blob/main/scripts/README.md">README</a> for how to
+refresh it.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Class</strong></td>
+<td><code>com.digitalpebble.spruce.modules.ember.AverageCarbonIntensity</code></td>
+</tr>
+<tr>
+<td><strong>Reads</strong></td>
+<td><code>region</code></td>
+</tr>
+<tr>
+<td><strong>Writes</strong></td>
+<td><code>carbon_intensity</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="stage-4-impacts">Stage 4 — Impacts<a class="headerlink" href="#stage-4-impacts" title="Permanent link">&para;</a></h2>
+<p>The modules in this stage combine the energy estimates from stage 2 with the factors from
+stage 3 to produce the final impact columns.</p>
+<h3 id="operationalemissions">OperationalEmissions<a class="headerlink" href="#operationalemissions" title="Permanent link">&para;</a></h3>
+<p>Computes operational emissions from the energy usage, carbon intensity and PUE estimated by
+the preceding modules:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>operational_emissions_co2eq_g =
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    operational_energy_kwh × carbon_intensity × power_usage_effectiveness
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    × powerSupplyEfficiency × powerTransmissionLosses
+</span></code></pre></div>
+<p>It accounts for two additional overheads:</p>
+<ul>
+<li><strong>Power Supply Efficiency</strong>: the power lost between the data centre mains electricity and the server (default <code>1.04</code>).</li>
+<li><strong>Power Transmission Losses</strong>: the power lost between the power station and the data centre mains electricity (default <code>1.08</code>).</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Class</strong></td>
+<td><code>com.digitalpebble.spruce.modules.OperationalEmissions</code></td>
+</tr>
+<tr>
+<td><strong>Reads</strong></td>
+<td><code>operational_energy_kwh</code>, <code>carbon_intensity</code>, <code>power_usage_effectiveness</code></td>
+</tr>
+<tr>
+<td><strong>Writes</strong></td>
+<td><code>operational_emissions_co2eq_g</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Configuration</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>powerSupplyEfficiency</code></td>
+<td>1.04</td>
+<td>Losses between mains and server</td>
+</tr>
+<tr>
+<td><code>powerTransmissionLosses</code></td>
+<td>1.08</td>
+<td>Losses between power station and data centre</td>
+</tr>
+</tbody>
+</table>
+<h3 id="water">Water<a class="headerlink" href="#water" title="Permanent link">&para;</a></h3>
+<p>Estimates the water consumption associated with cloud usage, producing three columns:</p>
+<ul>
+<li>
+<p><strong><code>water_cooling_l</code></strong> — the volume of water (in litres) used for <strong>data centre cooling</strong>.
+  Computed as <code>operational_energy_kwh</code> × <code>power_usage_effectiveness</code> × WUE, where WUE is the
+  ratio of litres of water consumed for cooling per kWh of IT energy, loaded per region by
+  the <a href="#pwue">PWUE module</a>.</p>
+</li>
+<li>
+<p><strong><code>water_electricity_production_l</code></strong> — the volume of water (in litres) consumed during
+  <strong>electricity generation</strong> to power the data centre. Computed as <code>operational_energy_kwh</code>
+  × <code>power_usage_effectiveness</code> × WCF, where WCF (Water Consumption Factor) represents the
+  litres of water consumed per kWh of electricity generated. The WCF values per electricity
+  grid zone are sourced from the <a href="https://www.wri.org/data/dataset-guidance-calculating-water-use-embedded-purchased-electricity">WRI methodology for calculating water use embedded in purchased electricity</a>.</p>
+</li>
+<li>
+<p><strong><code>water_consumption_stress_area_l</code></strong> — the total water consumption (<code>water_cooling_l</code> +
+  <code>water_electricity_production_l</code>) attributed to regions under <strong>high or extremely high
+  water stress</strong>. This field is only populated when the electricity grid zone for the region
+  has a baseline water stress category of 3 (High) or 4 (Extremely High) in the
+  <a href="https://www.wri.org/data/aqueduct-global-maps-40-data">WRI Aqueduct 4.0</a> dataset; it is
+  absent otherwise. The Aqueduct data is licensed through Creative Commons and has been
+  extracted and mapped to cloud provider region codes.</p>
+</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Class</strong></td>
+<td><code>com.digitalpebble.spruce.modules.Water</code></td>
+</tr>
+<tr>
+<td><strong>Reads</strong></td>
+<td><code>operational_energy_kwh</code>, <code>power_usage_effectiveness</code>, <code>water_usage_effectiveness</code>, <code>region</code></td>
+</tr>
+<tr>
+<td><strong>Writes</strong></td>
+<td><code>water_cooling_l</code>, <code>water_electricity_production_l</code>, <code>water_consumption_stress_area_l</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="stage-5-output-normalisation">Stage 5 — Output normalisation<a class="headerlink" href="#stage-5-output-normalisation" title="Permanent link">&para;</a></h2>
+<h3 id="focuscolumns">FOCUSColumns<a class="headerlink" href="#focuscolumns" title="Permanent link">&para;</a></h3>
+<p>Bridges Azure-native billing columns to provider-neutral <a href="https://focus.finops.org/">FOCUS</a>
+(FinOps Open Cost &amp; Usage Specification) columns, so the reporting scripts and dashboard can
+consume Azure-enriched data with the same column names as other providers. Runs last in the
+Azure pipeline, after <code>region</code> has been set by <a href="#regionextraction">RegionExtraction</a>.</p>
 <p>This module is only needed for the legacy cost details format: a FOCUS report already carries
 these columns on input, so the FOCUS pipeline does not include it.</p>
-<p>Columns that already carry a FOCUS-compatible name in the Azure input (<code>BillingCurrency</code>, <code>Tags</code>) are left untouched and pass through unchanged.</p>
+<p>Columns that already carry a FOCUS-compatible name in the Azure input (<code>BillingCurrency</code>,
+<code>Tags</code>) are left untouched and pass through unchanged.</p>
 <table>
 <thead>
 <tr>
@@ -1884,8 +2304,39 @@ these columns on input, so the FOCUS pipeline does not include it.</p>
 </tr>
 </tbody>
 </table>
-<p><strong>Output columns</strong>: <code>BilledCost</code>, <code>RegionId</code>, <code>ServiceName</code>, <code>ChargeCategory</code>, <code>SubAccountId</code>, <code>ChargePeriodStart</code>, <code>ChargePeriodEnd</code>.</p>
-<p><strong>Azure Module</strong>: <code>com.digitalpebble.spruce.modules.azure.FOCUSColumns</code></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Class</strong></td>
+<td><code>com.digitalpebble.spruce.modules.azure.FOCUSColumns</code></td>
+</tr>
+<tr>
+<td><strong>Reads</strong></td>
+<td><code>region</code> and the Azure-native columns above</td>
+</tr>
+<tr>
+<td><strong>Writes</strong></td>
+<td><code>BilledCost</code>, <code>RegionId</code>, <code>ServiceName</code>, <code>ChargeCategory</code>, <code>SubAccountId</code>, <code>ChargePeriodStart</code>, <code>ChargePeriodEnd</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="supporting-data">Supporting data<a class="headerlink" href="#supporting-data" title="Permanent link">&para;</a></h2>
+<h3 id="cloud-region-metadata">Cloud region metadata<a class="headerlink" href="#cloud-region-metadata" title="Permanent link">&para;</a></h3>
+<p>SPRUCE ships with <code>cloud_regions.json</code>, a single JSON file listing the AWS, GCP, and Azure
+cloud regions together with their location (country, metro area, latitude/longitude),
+service status, and number of availability zones. It is the canonical source for the
+region-to-location mapping used by the modules and resource files (e.g.
+<a href="#averagecarbonintensity">AverageCarbonIntensity</a>).</p>
+<p>The file is produced in two steps by scripts under
+<a href="https://github.com/DigitalPebble/spruce/tree/main/scripts"><code>scripts/</code></a>, see
+<a href="https://github.com/DigitalPebble/spruce/blob/main/scripts/README.md"><code>scripts/README.md</code></a>
+for the full usage details.</p>
 
 
 

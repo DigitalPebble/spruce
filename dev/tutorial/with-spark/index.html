@@ -92,6 +92,24 @@
     </div>
     <div data-md-component="announce">
       
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+              <button class="md-banner__button md-icon" aria-label="Don't show this again">
+                
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+              </button>
+            
+            
+  SPRUCE now ingests <strong>FOCUS</strong> exports from AWS and Azure —
+  <a href="../../howto/generate_cur/">get started</a>
+
+          </div>
+          
+            <script>var el=document.querySelector("[data-md-component=announce]");if(el){var content=el.querySelector(".md-typeset");__md_hash(content.innerHTML)===__md_get("__announce")&&(el.hidden=!0)}</script>
+          
+        </aside>
+      
     </div>
     
       <div data-md-color-scheme="default" data-md-component="outdated" hidden>
@@ -749,7 +767,7 @@
   <span class="md-ellipsis">
     
   
-  Generate CUR reports
+  Generate usage reports
 
     
   </span>
@@ -1162,8 +1180,11 @@
 <h1 id="quick-start-using-apache-spark">Quick start using Apache Spark⚡<a class="headerlink" href="#quick-start-using-apache-spark" title="Permanent link">&para;</a></h1>
 <p>Instead of using a container, you can run SPRUCE directly on <a href="https://spark.apache.org/">Apache Spark</a> either locally or on a cluster.</p>
 <h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
-<p>You will need to have CUR reports as inputs. Those are generated via <a href="https://docs.aws.amazon.com/cur/latest/userguide/what-is-data-exports.html">Data Exports</a> and stored on S3 as Parquet files.
-See instructions on <a href="../../howto/generate_cur/">Generate Cost and Usage Reports</a>.</p>
+<p>SPRUCE accepts AWS CUR reports (Parquet), Azure cost details (CSV), or <a href="https://focus.finops.org/">FOCUS</a>
+exports from either provider — see <a href="../../howto/generate_cur/">Generate usage reports</a> for how to
+produce them. This tutorial uses an AWS CUR, generated via
+<a href="https://docs.aws.amazon.com/cur/latest/userguide/what-is-data-exports.html">Data Exports</a> and
+stored on S3 as Parquet files; other inputs are selected with the <code>-p</code> and <code>-f</code> options shown below.</p>
 <p>For this tutorial, we will assume that you copied the S3 files to your local file system. You can do this with the AWS CLI</p>
 <div class="language-shell highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>aws<span class="w"> </span>s3<span class="w"> </span>cp<span class="w"> </span>s3://<span class="o">{</span>bucket<span class="o">}</span>/<span class="o">{</span>prefix<span class="o">}</span>/<span class="o">{</span>data_export_name<span class="o">}</span>/data/<span class="w"> </span>curs<span class="w"> </span>--recursive
 </span></code></pre></div>
@@ -1176,16 +1197,16 @@ which requires Apache Maven and Java 17 or above.</p>
 <p>If you downloaded a released jar, make sure the path matches its location.</p>
 <div class="language-shell highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>spark-submit<span class="w"> </span>--class<span class="w"> </span>com.digitalpebble.spruce.SparkJob<span class="w"> </span>--driver-memory<span class="w"> </span>8g<span class="w"> </span>./target/spruce-*.jar<span class="w"> </span>-i<span class="w"> </span>./curs<span class="w"> </span>-o<span class="w"> </span>./output
 </span></code></pre></div>
-<p>The <code>-i</code> parameter specifies the location of the directory containing the CUR reports in Parquet format.
+<p>The <code>-i</code> parameter specifies the location of the directory containing the input reports.
 The <code>-o</code> parameter specifies the location of enriched Parquet files generated in output.</p>
 <p>The option <code>-c</code> allows to specify a JSON configuration file to <a href="../../howto/config_modules/">override the default settings</a>.</p>
 <p>The option <code>-p</code> selects the cloud provider (<code>AWS</code>, <code>AZURE</code>); it defaults to <code>AWS</code>. The option <code>-f</code>
 selects the format of the input report: <code>NATIVE</code> (the provider's own export — the default) or
-<code>FOCUS</code> for a <a href="https://focus.finops.org/">FOCUS 1.0</a> export. FOCUS is currently supported for
-Azure only. Note that Azure reports are read as CSV files, unlike the AWS ones which are in Parquet:</p>
+<code>FOCUS</code> for a <a href="https://focus.finops.org/">FOCUS</a> export. FOCUS is currently supported for
+AWS (FOCUS 1.2 exports) and Azure (FOCUS 1.0 exports). Note that Azure reports are read as CSV files, unlike the AWS ones which are in Parquet:</p>
 <div class="language-shell highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>spark-submit<span class="w"> </span>--class<span class="w"> </span>com.digitalpebble.spruce.SparkJob<span class="w"> </span>--driver-memory<span class="w"> </span>8g<span class="w"> </span>./target/spruce-*.jar<span class="w"> </span>-i<span class="w"> </span>./focus-report<span class="w"> </span>-o<span class="w"> </span>./output<span class="w"> </span>-p<span class="w"> </span>AZURE<span class="w"> </span>-f<span class="w"> </span>FOCUS
 </span></code></pre></div>
-<p>The directory <em>output</em> contains an enriched copy of the input CURs. See <a href="../results/">Explore the results</a> to understand
+<p>The directory <em>output</em> contains an enriched copy of the input reports. See <a href="../results/">Explore the results</a> to understand
 what the output contains.</p>
 
 

@@ -90,6 +90,24 @@
     </div>
     <div data-md-component="announce">
       
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+              <button class="md-banner__button md-icon" aria-label="Don't show this again">
+                
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+              </button>
+            
+            
+  SPRUCE now ingests <strong>FOCUS</strong> exports from AWS and Azure —
+  <a href="./howto/generate_cur/">get started</a>
+
+          </div>
+          
+            <script>var el=document.querySelector("[data-md-component=announce]");if(el){var content=el.querySelector(".md-typeset");__md_hash(content.innerHTML)===__md_get("__announce")&&(el.hidden=!0)}</script>
+          
+        </aside>
+      
     </div>
     
       <div data-md-color-scheme="default" data-md-component="outdated" hidden>
@@ -678,7 +696,7 @@
   <span class="md-ellipsis">
     
   
-  Generate CUR reports
+  Generate usage reports
 
     
   </span>
@@ -1054,6 +1072,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#supported-providers-and-formats" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Supported providers and formats
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#how-it-works" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1111,10 +1140,40 @@ place makes it easier to expose your costs and impacts side by side.</p>
 <li><strong>Multiple impact dimensions</strong> — beyond carbon, SPRUCE models water consumption, giving a fuller picture of your cloud's environmental cost.</li>
 <li><strong>GreenOps and FinOps together</strong> — cost and impact share the same pipeline, so trade-off decisions are grounded in real data.</li>
 <li><strong>Open and auditable</strong> — built on open source models and public data, so your methodology is transparent, not black-boxed.</li>
+<li><strong>Standards-friendly</strong> — ingests <a href="https://focus.finops.org/">FOCUS</a> exports from AWS and Azure, and outputs FOCUS-compatible columns.</li>
 <li><strong>Your data stays yours</strong> — running on EMR means your CUR data never leaves your AWS environment.</li>
 <li><strong>Actively maintained</strong> — unlike Cloud Carbon Footprint, which has been abandoned, SPRUCE is under active development.</li>
 </ul>
-<p>SPRUCE handles CUR reports from AWS and partially supports Azure, both in the legacy EA/MCA cost details format and in <a href="https://focus.finops.org/">FOCUS 1.0</a> format. However, most of the cost from a typical usage already gets estimates.</p>
+<h2 id="supported-providers-and-formats">Supported providers and formats<a class="headerlink" href="#supported-providers-and-formats" title="Permanent link">&para;</a></h2>
+<p>SPRUCE enriches the billing exports you already produce, in the provider's native format or in the
+provider-neutral <a href="https://focus.finops.org/">FOCUS</a> format:</p>
+<table>
+<thead>
+<tr>
+<th>Provider</th>
+<th>Native format</th>
+<th>FOCUS</th>
+<th>Coverage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>AWS</strong></td>
+<td>✅ CUR v2 (Parquet)</td>
+<td>✅ 1.2</td>
+<td>Most of the cost of a typical usage gets estimates</td>
+</tr>
+<tr>
+<td><strong>Azure</strong></td>
+<td>✅ EA/MCA cost details (CSV)</td>
+<td>✅ 1.0</td>
+<td>Partial — basic services covered, actively expanding</td>
+</tr>
+</tbody>
+</table>
+<p>The provider is selected with <code>-p</code> and the report format with <code>-f</code>; see the
+<a href="tutorial/with-spark/">quick start</a> for examples and
+<a href="howto/generate_cur/">Generate usage reports</a> for how to produce these exports.</p>
 <h2 id="how-it-works">How it works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h2>
 <p><strong>SPRUCE</strong> uses <a href="https://spark.apache.org/">Apache Spark®</a> to read and write the usage reports (typically in Parquet format) in a scalable way and, thanks to its modular approach,
 splits the enrichment of the data into configurable stages.</p>

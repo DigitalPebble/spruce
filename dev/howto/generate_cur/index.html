@@ -29,7 +29,7 @@
     
     
       
-        <title>Generate CUR reports - SPRUCE documentation</title>
+        <title>Generate usage reports - SPRUCE documentation</title>
       
     
     
@@ -85,12 +85,30 @@
     <div data-md-component="skip">
       
         
-        <a href="#generate-cur-reports" class="md-skip">
+        <a href="#generate-usage-reports" class="md-skip">
           Skip to content
         </a>
       
     </div>
     <div data-md-component="announce">
+      
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+              <button class="md-banner__button md-icon" aria-label="Don't show this again">
+                
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+              </button>
+            
+            
+  SPRUCE now ingests <strong>FOCUS</strong> exports from AWS and Azure —
+  <a href="././">get started</a>
+
+          </div>
+          
+            <script>var el=document.querySelector("[data-md-component=announce]");if(el){var content=el.querySelector(".md-typeset");__md_hash(content.innerHTML)===__md_get("__announce")&&(el.hidden=!0)}</script>
+          
+        </aside>
       
     </div>
     
@@ -124,7 +142,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Generate CUR reports
+              Generate usage reports
             
           </span>
         </div>
@@ -689,7 +707,7 @@
   <span class="md-ellipsis">
     
   
-  Generate CUR reports
+  Generate usage reports
 
     
   </span>
@@ -706,7 +724,7 @@
   <span class="md-ellipsis">
     
   
-  Generate CUR reports
+  Generate usage reports
 
     
   </span>
@@ -732,6 +750,18 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#aws" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        AWS
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="AWS">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#aws-console" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -741,12 +771,28 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#command-line" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
         Command line
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#azure" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Azure
       </span>
     </span>
   </a>
@@ -1114,6 +1160,18 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#aws" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        AWS
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="AWS">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#aws-console" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1123,12 +1181,28 @@
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#command-line" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
         Command line
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#azure" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Azure
       </span>
     </span>
   </a>
@@ -1159,23 +1233,56 @@
   
 
 
-<h1 id="generate-cur-reports">Generate CUR reports<a class="headerlink" href="#generate-cur-reports" title="Permanent link">&para;</a></h1>
-<p>You will need to have CUR reports as inputs. Those are generated via <a href="https://docs.aws.amazon.com/cur/latest/userguide/what-is-data-exports.html">Data Exports</a> and stored on S3 as Parquet files.</p>
-<p>The <strong>Data Export</strong> will automatically populate the CURv2 reports. You can open a support ticket with AWS to get the reports backfilled with historical data.</p>
-<h2 id="aws-console">AWS Console<a class="headerlink" href="#aws-console" title="Permanent link">&para;</a></h2>
-<p>In the <strong>Billing and Cost Management</strong> section, go to <strong>Cost and Usage Analysis</strong> then <strong>Data Export</strong>. Click on <strong>Create</strong>:</p>
-<p>Give your export a name, click on <strong>Include Resource IDs</strong> as shown below</p>
+<h1 id="generate-usage-reports">Generate usage reports<a class="headerlink" href="#generate-usage-reports" title="Permanent link">&para;</a></h1>
+<p>SPRUCE takes the billing exports produced by the cloud providers as input, either in the
+provider's native format or in the provider-neutral <a href="https://focus.finops.org/">FOCUS</a>
+format:</p>
+<ul>
+<li><strong>AWS CUR v2</strong> (Parquet) — the default input (<code>-p AWS -f NATIVE</code>)</li>
+<li><strong>AWS FOCUS 1.2</strong> (Parquet) — <code>-p AWS -f FOCUS</code></li>
+<li><strong>Azure FOCUS 1.0</strong> (CSV) — <code>-p AZURE -f FOCUS</code></li>
+<li><strong>Azure EA/MCA cost details</strong> (CSV) — <code>-p AZURE -f NATIVE</code></li>
+</ul>
+<p>This page explains how to set up each export. In all cases you can ask the provider to
+backfill historical data: AWS via a support ticket, Azure by creating a one-time export for
+past billing periods.</p>
+<h2 id="aws">AWS<a class="headerlink" href="#aws" title="Permanent link">&para;</a></h2>
+<p>AWS exports are generated via <a href="https://docs.aws.amazon.com/cur/latest/userguide/what-is-data-exports.html">Data Exports</a>
+and stored on S3 as Parquet files. Data Exports can produce both the CUR v2 table and a
+<strong>FOCUS 1.2 with AWS columns</strong> table — the steps below are the same, only the export type
+differs.</p>
+<h3 id="aws-console">AWS Console<a class="headerlink" href="#aws-console" title="Permanent link">&para;</a></h3>
+<p>In the <strong>Billing and Cost Management</strong> section, go to <strong>Cost and Usage Analysis</strong> then <strong>Data Export</strong>. Click on <strong>Create</strong>.</p>
+<p>Select the export type: <strong>Standard data export</strong> with the <strong>CUR 2.0</strong> table for a native CUR,
+or the <strong>FOCUS 1.2 with AWS columns</strong> table for a FOCUS export. Make sure to pick the 1.2
+table, not the older <strong>FOCUS 1.0 with AWS columns</strong> one: SPRUCE relies on the <code>SkuMeter</code>
+column (introduced in FOCUS 1.1), which the 1.0 export does not carry.</p>
+<p>Give your export a name and, for a CUR, click on <strong>Include Resource IDs</strong> as shown below</p>
 <p><img alt="AWS Console" src="../../images/cur_creation.png" /></p>
 <p>Scroll down to <strong>Data export storage settings</strong>, select a S3 bucket and a prefix. 
 If you create a bucket, you should select a region with a low carbon intensity like <code>eu-north-1</code> (Sweden) or <code>eu-west-3</code> (France), the emissions related to the storage of the reports will be greatly reduced.</p>
 <p><img alt="AWS Console" src="../../images/cur_creation2.png" /></p>
 <p>Optionally, add <strong>Tags</strong> to track the cost and impacts of your GreenOps activities.</p>
-<h2 id="command-line">Command line<a class="headerlink" href="#command-line" title="Permanent link">&para;</a></h2>
+<h3 id="command-line">Command line<a class="headerlink" href="#command-line" title="Permanent link">&para;</a></h3>
 <p>Make sure your AWS keys are exported as environment variables</p>
 <div class="language-shell highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">eval</span><span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span>aws<span class="w"> </span>configure<span class="w"> </span>export-credentials<span class="w"> </span>--profile<span class="w"> </span>default<span class="w"> </span>--format<span class="w"> </span>env<span class="k">)</span><span class="s2">&quot;</span>
 </span></code></pre></div>
 <p>Copy the script <a href="https://github.com/DigitalPebble/spruce/blob/main/createCUR.sh">createCUR.sh</a> and run it on the command line. You will be asked to enter a <code>region</code> for the S3 bucket, a <code>bucket</code> name and a <code>prefix</code>.</p>
 <p>This should create the bucket where the CUR reports will be stored and configure the Data Export for the CURs.</p>
+<h2 id="azure">Azure<a class="headerlink" href="#azure" title="Permanent link">&para;</a></h2>
+<p>Azure exports are generated via <a href="https://learn.microsoft.com/en-us/azure/cost-management-billing/costs/tutorial-improved-exports">Cost Management exports</a>
+and delivered as CSV files to a storage account.</p>
+<p>In the Azure portal, go to <strong>Cost Management</strong>, select <strong>Exports</strong> and click on <strong>Create</strong>.
+Pick the dataset:</p>
+<ul>
+<li><strong>Cost and usage details (FOCUS)</strong> for a FOCUS 1.0 export — the recommended option for SPRUCE</li>
+<li><strong>Cost and usage details (actual)</strong> for the legacy EA/MCA cost details format</li>
+</ul>
+<p>Choose the frequency (a daily export of the month-to-date costs is a good default), a storage
+account and a container, then create the export. Use <strong>Export selected dates</strong> to backfill
+past billing periods.</p>
+<p>Download the CSV files from the storage account (e.g. with <a href="https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-v10">azcopy</a>)
+and pass the directory to SPRUCE with <code>-p AZURE -f FOCUS</code> (or <code>-f NATIVE</code> for the legacy format).</p>
 
 
 

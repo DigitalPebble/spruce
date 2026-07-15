@@ -92,6 +92,24 @@
     </div>
     <div data-md-component="announce">
       
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+              <button class="md-banner__button md-icon" aria-label="Don't show this again">
+                
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+              </button>
+            
+            
+  SPRUCE now ingests <strong>FOCUS</strong> exports from AWS and Azure —
+  <a href="../howto/generate_cur/">get started</a>
+
+          </div>
+          
+            <script>var el=document.querySelector("[data-md-component=announce]");if(el){var content=el.querySelector(".md-typeset");__md_hash(content.innerHTML)===__md_get("__announce")&&(el.hidden=!0)}</script>
+          
+        </aside>
+      
     </div>
     
       <div data-md-color-scheme="default" data-md-component="outdated" hidden>
@@ -866,7 +884,7 @@
   <span class="md-ellipsis">
     
   
-  Generate CUR reports
+  Generate usage reports
 
     
   </span>
@@ -1406,7 +1424,7 @@
 <li>Both support AWS and Azure (as well as GCP for CCF)</li>
 <li>Both use comparable methodologies for calculating operational emissions</li>
 <li>Both are open source and transparent about their calculation methods</li>
-<li>SPRUCE implements several modules based on CCF's methodology (see <a href="../modules/#cloud-carbon-footprint">Cloud Carbon Footprint modules</a>)</li>
+<li>SPRUCE implements several modules based on CCF's methodology (see the <a href="../modules/#storage">Storage</a> and <a href="../modules/#accelerators">Accelerators</a> modules)</li>
 </ul>
 <h3 id="key-differences">Key Differences<a class="headerlink" href="#key-differences" title="Permanent link">&para;</a></h3>
 <table>
@@ -1430,7 +1448,7 @@
 </tr>
 <tr>
 <td><strong>FOCUS Support</strong></td>
-<td>Ingests <a href="https://focus.finops.org/">FOCUS 1.0</a> reports (Azure); outputs FOCUS-compatible columns</td>
+<td>Ingests <a href="https://focus.finops.org/">FOCUS</a> reports (AWS, Azure); outputs FOCUS-compatible columns</td>
 <td>None</td>
 </tr>
 <tr>
@@ -1632,13 +1650,13 @@
         
         
           
-          <a href="../howto/generate_cur/" class="md-footer__link md-footer__link--next" aria-label="Next: Generate CUR reports">
+          <a href="../howto/generate_cur/" class="md-footer__link md-footer__link--next" aria-label="Next: Generate usage reports">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Generate CUR reports
+                Generate usage reports
               </div>
             </div>
             <div class="md-footer__button md-icon">

@@ -92,6 +92,24 @@
     </div>
     <div data-md-component="announce">
       
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+              <button class="md-banner__button md-icon" aria-label="Don't show this again">
+                
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+              </button>
+            
+            
+  SPRUCE now ingests <strong>FOCUS</strong> exports from AWS and Azure —
+  <a href="../generate_cur/">get started</a>
+
+          </div>
+          
+            <script>var el=document.querySelector("[data-md-component=announce]");if(el){var content=el.querySelector(".md-typeset");__md_hash(content.innerHTML)===__md_get("__announce")&&(el.hidden=!0)}</script>
+          
+        </aside>
+      
     </div>
     
       <div data-md-color-scheme="default" data-md-component="outdated" hidden>
@@ -680,7 +698,7 @@
   <span class="md-ellipsis">
     
   
-  Generate CUR reports
+  Generate usage reports
 
     
   </span>
@@ -1251,7 +1269,7 @@ This makes it difficult to understand:</p>
 <p>Without split allocation, costs appear aggregated at the <strong>resource level</strong> rather than the <strong>usage level</strong>, making accurate chargeback or budgeting almost impossible.</p>
 <p>Split cost allocation data introduces new usage records and new cost metric columns for each containerized resource ID (that is, ECS task and Kubernetes pod) in AWS CUR. For more information, see <a href="https://docs.aws.amazon.com/cur/latest/userguide/split-line-item-columns.html">Split line item details</a>.</p>
 <h2 id="how-to-enable-split-cost-allocation-data">How to Enable Split Cost Allocation Data<a class="headerlink" href="#how-to-enable-split-cost-allocation-data" title="Permanent link">&para;</a></h2>
-<p>When defining the CUR data export, activate the options <code>Split cost allocation data</code> as well as <code>Include resource IDs</code>. See <a href="../generate_cur/">Generate Cost and Usage Reports</a> for more details.</p>
+<p>When defining the CUR data export, activate the options <code>Split cost allocation data</code> as well as <code>Include resource IDs</code>. See <a href="../generate_cur/">Generate usage reports</a> for more details.</p>
 <div class="warning">
 Activating SCAD has a substantial impact on the size of the CUR reports as they contain line items for every split as well as the AWS resources.
 </div>

@@ -92,6 +92,24 @@
     </div>
     <div data-md-component="announce">
       
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+              <button class="md-banner__button md-icon" aria-label="Don't show this again">
+                
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+              </button>
+            
+            
+  SPRUCE now ingests <strong>FOCUS</strong> exports from AWS and Azure —
+  <a href="../../howto/generate_cur/">get started</a>
+
+          </div>
+          
+            <script>var el=document.querySelector("[data-md-component=announce]");if(el){var content=el.querySelector(".md-typeset");__md_hash(content.innerHTML)===__md_get("__announce")&&(el.hidden=!0)}</script>
+          
+        </aside>
+      
     </div>
     
       <div data-md-color-scheme="default" data-md-component="outdated" hidden>
@@ -749,7 +767,7 @@
   <span class="md-ellipsis">
     
   
-  Generate CUR reports
+  Generate usage reports
 
     
   </span>
@@ -1161,8 +1179,11 @@
 
 <h1 id="quick-start-using-docker">Quick start using Docker 🐳<a class="headerlink" href="#quick-start-using-docker" title="Permanent link">&para;</a></h1>
 <h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
-<p>You will need to have CUR reports as inputs. Those are generated via <a href="https://docs.aws.amazon.com/cur/latest/userguide/what-is-data-exports.html">Data Exports</a> and stored on S3 as Parquet files.
-See instructions on <a href="../../howto/generate_cur/">Generate Cost and Usage Reports</a>.</p>
+<p>SPRUCE accepts AWS CUR reports (Parquet), Azure cost details (CSV), or <a href="https://focus.finops.org/">FOCUS</a>
+exports from either provider — see <a href="../../howto/generate_cur/">Generate usage reports</a> for how to
+produce them. This tutorial uses an AWS CUR, generated via
+<a href="https://docs.aws.amazon.com/cur/latest/userguide/what-is-data-exports.html">Data Exports</a> and
+stored on S3 as Parquet files; commands for the other inputs are shown below.</p>
 <p>For this tutorial, we will assume that you copied the S3 files to your local file system. You can do this with the AWS CLI</p>
 <div class="language-shell highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>aws<span class="w"> </span>s3<span class="w"> </span>cp<span class="w"> </span>s3://<span class="o">{</span>bucket<span class="o">}</span>/<span class="o">{</span>prefix<span class="o">}</span>/<span class="o">{</span>data_export_name<span class="o">}</span>/data/<span class="w"> </span>curs<span class="w"> </span>--recursive
 </span></code></pre></div>
@@ -1171,17 +1192,35 @@ See instructions on <a href="../../howto/generate_cur/">Generate Cost and Usage 
 <p>Pull the latest Docker image with</p>
 <p><code>docker pull ghcr.io/digitalpebble/spruce</code></p>
 <p>This retrieves a Docker image containing Apache Spark as well as the SPRUCE jar.</p>
-<p>The command below processes the data locally by mounting the working directory as a volume. The input CURs are
+<p>The command below processes the data locally by mounting the working directory as a volume. The input reports are
 assumed to be in a directory called <em>curs</em>.</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:3"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">AWS CUR</label><label for="__tabbed_1_2">AWS FOCUS</label><label for="__tabbed_1_3">Azure FOCUS</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
 <div class="language-shell highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>-v<span class="w"> </span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>:/workspace<span class="w"> </span>-w<span class="w"> </span>/workspace<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>ghcr.io/digitalpebble/spruce<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>-i<span class="w"> </span>curs<span class="w"> </span>-o<span class="w"> </span>output
 </span></code></pre></div>
-<p>The <code>-i</code> parameter specifies the location of the directory containing the CUR reports in Parquet format.
+</div>
+<div class="tabbed-block">
+<div class="language-shell highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>-v<span class="w"> </span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>:/workspace<span class="w"> </span>-w<span class="w"> </span>/workspace<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>ghcr.io/digitalpebble/spruce<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>-i<span class="w"> </span>focus<span class="w"> </span>-o<span class="w"> </span>output<span class="w"> </span>-f<span class="w"> </span>FOCUS
+</span></code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="language-shell highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>-v<span class="w"> </span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>:/workspace<span class="w"> </span>-w<span class="w"> </span>/workspace<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>ghcr.io/digitalpebble/spruce<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>-i<span class="w"> </span>focus<span class="w"> </span>-o<span class="w"> </span>output<span class="w"> </span>-p<span class="w"> </span>AZURE<span class="w"> </span>-f<span class="w"> </span>FOCUS
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<p>The <code>-i</code> parameter specifies the location of the directory containing the input reports.
 The <code>-o</code> parameter specifies the location of enriched Parquet files generated in output.</p>
 <p>The option <code>-c</code> allows to specify a JSON configuration file to <a href="../../howto/config_modules/">override the default settings</a>.
 The options <code>-p</code> (cloud provider) and <code>-f</code> (report format) are described in <a href="../with-spark/">Quick start using Apache Spark</a>.</p>
-<p>The directory <em>output</em> contains an enriched copy of the input CURs. See <a href="../results/">Explore the results</a> to understand
+<p>The directory <em>output</em> contains an enriched copy of the input reports. See <a href="../results/">Explore the results</a> to understand
 what the output contains.</p>
 
 
