@@ -1405,7 +1405,7 @@
 example described in <a href="../../howto/dashboard/">Build a simple dashboard</a>. It
 reads the same inputs as <code>report.py</code> and runs DuckDB queries locally.</p>
 <h2 id="automated-report">Automated report<a class="headerlink" href="#automated-report" title="Permanent link">&para;</a></h2>
-<p>The easiest way to explore SPRUCE output is <code>report.py</code>, a Python script that reads enriched Parquet files, runs all the analyses described on this page automatically, and writes a formatted report — no SQL required.</p>
+<p>The easiest way to explore SPRUCE output is <code>report.py</code>, a Python script that reads enriched Parquet files, runs all the analyses described on this page automatically, and writes a formatted report — no SQL required. Its queries use the FOCUS columns emitted by all SPRUCE pipelines, so it works on the enriched output of every supported input format (AWS CUR, AWS FOCUS, Azure cost details, Azure FOCUS). If the input is not partitioned by <code>BILLING_PERIOD</code>, the billing periods are inferred from the FOCUS <code>ChargePeriodStart</code> column.</p>
 <h3 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h3>
 <div class="language-shell highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>reporting/requirements-report.txt<span class="w">   </span><span class="c1"># duckdb (+ markdown, weasyprint for html/pdf)</span>
 </span></code></pre></div>
@@ -1463,19 +1463,19 @@ reads the same inputs as <code>report.py</code> and runs DuckDB queries locally.
 </tr>
 <tr>
 <td>Top Emitters by Service</td>
-<td>Top 20 product/service/operation combinations by operational CO₂</td>
+<td>Top 20 services by operational CO₂</td>
 </tr>
 <tr>
 <td>Top Instance Types</td>
-<td>Top 20 instance families by operational + embodied CO₂</td>
+<td>Top 20 instance families by operational + embodied CO₂ (derived from <code>SkuMeter</code>, where populated)</td>
 </tr>
 <tr>
 <td>Coverage</td>
-<td>% of unblended costs that have emissions data; top 20 uncovered services by cost</td>
+<td>% of billed costs that have emissions data; top 20 uncovered services by cost</td>
 </tr>
 <tr>
 <td>Regional Analysis</td>
-<td>CO₂, energy, carbon intensity, water, PUE, and gCO₂/$ per AWS region</td>
+<td>CO₂, energy, carbon intensity, water, PUE, and gCO₂/$ per region</td>
 </tr>
 <tr>
 <td>Tag Breakdown</td>
@@ -1487,7 +1487,7 @@ reads the same inputs as <code>report.py</code> and runs DuckDB queries locally.
 </tr>
 </tbody>
 </table>
-<p>After the fixed sections, the script scans <code>resource_tags</code> and presents an interactive menu of the most consistently used tag keys, ordered by the percentage of line items that carry a non-empty value. Select a tag to see the emissions breakdown by tag value; press Enter when done. If no tags are found, the report states this clearly.</p>
+<p>After the fixed sections, the script scans the <code>Tags</code> column and presents an interactive menu of the most consistently used tag keys, ordered by the percentage of line items that carry a non-empty value. Select a tag to see the emissions breakdown by tag value; press Enter when done. If no tags are found, the report states this clearly.</p>
 <p>Recommendations are generated automatically from the data:</p>
 <table>
 <thead>
@@ -1522,7 +1522,9 @@ reads the same inputs as <code>report.py</code> and runs DuckDB queries locally.
 </table>
 <h2 id="manual-queries">Manual queries<a class="headerlink" href="#manual-queries" title="Permanent link">&para;</a></h2>
 <p>As an alternative to the script above, you can also write equivalent SQL queries using <a href="https://duckdb.org/">DuckDB</a> locally
- (or <a href="https://docs.aws.amazon.com/athena/latest/ug/what-is.html">Athena</a> if the output was <a href="../../howto/s3/">written to S3</a>):</p>
+ (or <a href="https://docs.aws.amazon.com/athena/latest/ug/what-is.html">Athena</a> if the output was <a href="../../howto/s3/">written to S3</a>).
+The examples below use the native AWS CUR columns, which pass through into the enriched output alongside the FOCUS ones;
+on the output of another pipeline, substitute the corresponding provider or FOCUS columns (e.g. <code>ServiceName</code>, <code>BilledCost</code>):</p>
 <h3 id="breakdown-by-billing-period">Breakdown by billing period<a class="headerlink" href="#breakdown-by-billing-period" title="Permanent link">&para;</a></h3>
 <div class="language-sql highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">create</span><span class="w"> </span><span class="k">table</span><span class="w"> </span><span class="n">enriched_curs</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="k">select</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">from</span><span class="w"> </span><span class="s1">&#39;output/**/*.parquet&#39;</span><span class="p">;</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>

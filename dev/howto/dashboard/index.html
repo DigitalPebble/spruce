@@ -1269,7 +1269,9 @@
 <p>The repository includes <code>reporting/dashboard.py</code>, a <a href="https://streamlit.io/">Streamlit</a>
 example that reads SPRUCE-enriched Parquet output and runs interactive DuckDB
 queries locally to explore cost, energy, emissions, water, region, and tag
-breakdowns.</p>
+breakdowns. Like <code>report.py</code>, it queries the FOCUS columns emitted by all
+SPRUCE pipelines, so it works on the enriched output of every supported input
+format (AWS CUR, AWS FOCUS, Azure cost details, Azure FOCUS).</p>
 <h2 id="install">Install<a class="headerlink" href="#install" title="Permanent link">&para;</a></h2>
 <div class="language-shell highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>reporting/requirements-dashboard.txt
 </span></code></pre></div>
@@ -1312,7 +1314,7 @@ chain, matching the pattern used by <code>report.py</code>.</p>
 </tr>
 <tr>
 <td>Top emitters</td>
-<td>Sorted top product/service/operation combinations as a table-first view</td>
+<td>Sorted top service/region combinations as a table-first view</td>
 </tr>
 <tr>
 <td>Regions</td>
@@ -1320,11 +1322,11 @@ chain, matching the pattern used by <code>report.py</code>.</p>
 </tr>
 <tr>
 <td>Tags</td>
-<td>Sorted tag-value chart and table for a selected <code>resource_tags</code> key</td>
+<td>Sorted tag-value chart and table for a selected <code>Tags</code> key</td>
 </tr>
 </tbody>
 </table>
-<p>Use the sidebar to filter by billing period and region. If <code>resource_tags</code> are
+<p>Use the sidebar to filter by billing period and region. If <code>Tags</code> are
 present, choose one tag key to break down emissions by tag value. The cost
 coverage KPI matches <code>report.py</code> and is calculated across the full input, not
 only the currently selected filters.</p>
