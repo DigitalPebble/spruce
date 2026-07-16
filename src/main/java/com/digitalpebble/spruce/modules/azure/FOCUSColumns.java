@@ -7,9 +7,6 @@ import com.digitalpebble.spruce.EnrichmentModule;
 import org.apache.spark.sql.Row;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
-import java.util.List;
 import java.util.Map;
 
 import static com.digitalpebble.spruce.AzureColumn.CHARGE_TYPE;
@@ -37,11 +34,6 @@ import static com.digitalpebble.spruce.SpruceColumn.REGION;
  * (e.g. {@code BillingCurrency}, {@code Tags}) are left untouched and pass through unchanged.
  **/
 public class FOCUSColumns implements EnrichmentModule {
-
-    private static final List<DateTimeFormatter> DATE_FORMATS = List.of(
-            DateTimeFormatter.ISO_LOCAL_DATE,
-            DateTimeFormatter.ofPattern("MM/dd/yyyy"),
-            DateTimeFormatter.ofPattern("M/d/yyyy"));
 
     @Override
     public Column[] columnsNeeded() {
@@ -87,28 +79,11 @@ public class FOCUSColumns implements EnrichmentModule {
             enrichedValues.put(SUB_ACCOUNT_ID, subscriptionId);
         }
 
-        String date = DATE.getString(row);
+        // Azure usage rows have daily granularity, so the charge period spans one day
+        LocalDate date = DATE.getDate(row);
         if (date != null) {
-            enrichedValues.put(CHARGE_PERIOD_START, date);
-            String end = nextDay(date);
-            if (end != null) {
-                enrichedValues.put(CHARGE_PERIOD_END, end);
-            }
+            enrichedValues.put(CHARGE_PERIOD_START, date.toString());
+            enrichedValues.put(CHARGE_PERIOD_END, date.plusDays(1).toString());
         }
-    }
-
-    /**
-     * Returns the day after the given Azure date string, in the same format, or null if it cannot
-     * be parsed. Azure usage rows have daily granularity, so the charge period spans one day.
-     **/
-    private static String nextDay(String date) {
-        String trimmed = date.trim();
-        for (DateTimeFormatter format : DATE_FORMATS) {
-            try {
-                return LocalDate.parse(trimmed, format).plusDays(1).format(format);
-            } catch (DateTimeParseException ignored) {
-            }
-        }
-        return null;
     }
 }

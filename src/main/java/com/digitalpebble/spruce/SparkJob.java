@@ -10,14 +10,55 @@ import scala.Option;
 import java.io.IOException;
 import java.nio.file.Paths;
 
+import static org.apache.spark.sql.functions.coalesce;
 import static org.apache.spark.sql.functions.concat;
 import static org.apache.spark.sql.functions.lit;
 import static org.apache.spark.sql.functions.not;
+import static org.apache.spark.sql.functions.try_to_date;
 import static org.apache.spark.sql.functions.when;
 
 public class SparkJob {
 
     private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(SparkJob.class);
+
+    /**
+     * Fixes up the types and values of an Azure report loaded from CSV, where inferSchema does
+     * not always produce what the enrichment modules expect.
+     */
+    static Dataset<Row> normalizeAzureColumns(Dataset<Row> dataframe, ReportFormat reportFormat) {
+        // inferSchema may read numeric columns as strings; force them to double
+        RowColumn[] numericColumns = reportFormat == ReportFormat.FOCUS
+                ? new RowColumn[]{FOCUSColumn.CONSUMED_QUANTITY, FOCUSColumn.BILLED_COST}
+                : new RowColumn[]{AzureColumn.QUANTITY, AzureColumn.COST_IN_BILLING_CURRENCY};
+        java.util.List<String> columns = java.util.Arrays.asList(dataframe.columns());
+        for (RowColumn column : numericColumns) {
+            if (columns.contains(column.getLabel())) {
+                dataframe = dataframe.withColumn(column.getLabel(),
+                        dataframe.col(column.getLabel()).cast("double"));
+            }
+        }
+        // inferSchema reads Date as a date when values are ISO but as a string when they
+        // are US-formatted; normalise to a date either way. try_to_date rather than a cast
+        // as ANSI mode makes a failed cast throw instead of yielding null.
+        if (columns.contains(AzureColumn.DATE.getLabel())) {
+            org.apache.spark.sql.Column date = dataframe.col(AzureColumn.DATE.getLabel());
+            dataframe = dataframe.withColumn(AzureColumn.DATE.getLabel(),
+                    coalesce(try_to_date(date),
+                            try_to_date(date, "MM/dd/yyyy"),
+                            try_to_date(date, "M/d/yyyy")));
+        }
+        // EA cost details exports carry Tags as a JSON fragment missing the enclosing braces
+        // (https://github.com/microsoft/finops-toolkit/discussions/2053); wrap it so the
+        // column always holds a valid JSON object, as in MCA and FOCUS exports
+        if (columns.contains("Tags")) {
+            org.apache.spark.sql.Column tags = dataframe.col("Tags");
+            dataframe = dataframe.withColumn("Tags",
+                    when(tags.isNotNull().and(not(tags.startsWith("{"))),
+                            concat(lit("{"), tags, lit("}")))
+                            .otherwise(tags));
+        }
+        return dataframe;
+    }
 
     public static void main(String[] args) {
 
@@ -77,27 +118,7 @@ public class SparkJob {
             dataframe = spark.read().option("header", "true").option("inferSchema", "true")
                     .option("quote", "\"")
                     .option("escape", "\"").csv(inputPath);
-            // inferSchema may read numeric columns as strings; force them to double
-            RowColumn[] numericColumns = reportFormat == ReportFormat.FOCUS
-                    ? new RowColumn[]{FOCUSColumn.CONSUMED_QUANTITY, FOCUSColumn.BILLED_COST}
-                    : new RowColumn[]{AzureColumn.QUANTITY, AzureColumn.COST_IN_BILLING_CURRENCY};
-            java.util.List<String> columns = java.util.Arrays.asList(dataframe.columns());
-            for (RowColumn column : numericColumns) {
-                if (columns.contains(column.getLabel())) {
-                    dataframe = dataframe.withColumn(column.getLabel(),
-                            dataframe.col(column.getLabel()).cast("double"));
-                }
-            }
-            // EA cost details exports carry Tags as a JSON fragment missing the enclosing braces
-            // (https://github.com/microsoft/finops-toolkit/discussions/2053); wrap it so the
-            // column always holds a valid JSON object, as in MCA and FOCUS exports
-            if (columns.contains("Tags")) {
-                org.apache.spark.sql.Column tags = dataframe.col("Tags");
-                dataframe = dataframe.withColumn("Tags",
-                        when(tags.isNotNull().and(not(tags.startsWith("{"))),
-                                concat(lit("{"), tags, lit("}")))
-                                .otherwise(tags));
-            }
+            dataframe = normalizeAzureColumns(dataframe, reportFormat);
         } else {
             dataframe = spark.read().parquet(inputPath);
         }

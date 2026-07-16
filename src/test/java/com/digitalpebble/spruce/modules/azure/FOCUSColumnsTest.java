@@ -12,6 +12,8 @@ import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 import org.junit.jupiter.api.Test;
 
+import java.sql.Date;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,7 +40,7 @@ public class FOCUSColumnsTest {
 
     @Test
     void mapsAllColumns() {
-        Row row = generateRow(12.5, "Storage", "Usage", "sub-123", "2026-06-23");
+        Row row = generateRow(12.5, "Storage", "Usage", "sub-123", Date.valueOf("2026-06-23"));
         Map<Column, Object> enriched = new HashMap<>();
         enriched.put(REGION, "eastus");
 
@@ -55,7 +57,7 @@ public class FOCUSColumnsTest {
 
     @Test
     void chargePeriodEndIsNextDay() {
-        Row row = generateRow(1.0, "Storage", "Usage", "sub-123", "2026-12-31");
+        Row row = generateRow(1.0, "Storage", "Usage", "sub-123", Date.valueOf("2026-12-31"));
         Map<Column, Object> enriched = new HashMap<>();
 
         module.enrich(row, enriched);
@@ -65,8 +67,30 @@ public class FOCUSColumnsTest {
     }
 
     @Test
+    void acceptsLocalDateValues() {
+        Row row = generateRow(1.0, "Storage", "Usage", "sub-123", LocalDate.parse("2026-06-23"));
+        Map<Column, Object> enriched = new HashMap<>();
+
+        module.enrich(row, enriched);
+
+        assertEquals("2026-06-23", enriched.get(CHARGE_PERIOD_START));
+        assertEquals("2026-06-24", enriched.get(CHARGE_PERIOD_END));
+    }
+
+    @Test
+    void normalisesStringDates() {
+        Row row = generateRow(1.0, "Storage", "Usage", "sub-123", "06/23/2026");
+        Map<Column, Object> enriched = new HashMap<>();
+
+        module.enrich(row, enriched);
+
+        assertEquals("2026-06-23", enriched.get(CHARGE_PERIOD_START));
+        assertEquals("2026-06-24", enriched.get(CHARGE_PERIOD_END));
+    }
+
+    @Test
     void regionIdComesFromEnrichedRegion() {
-        Row row = generateRow(1.0, "Storage", "Usage", "sub-123", "2026-06-23");
+        Row row = generateRow(1.0, "Storage", "Usage", "sub-123", Date.valueOf("2026-06-23"));
         Map<Column, Object> enriched = new HashMap<>();
         enriched.put(REGION, "westeurope");
 
@@ -82,11 +106,12 @@ public class FOCUSColumnsTest {
                 new StructField("MeterCategory", DataTypes.StringType, true, Metadata.empty()),
                 new StructField("ChargeType", DataTypes.StringType, true, Metadata.empty()),
                 new StructField("SubscriptionId", DataTypes.StringType, true, Metadata.empty()),
-                new StructField("Date", DataTypes.StringType, true, Metadata.empty()),
+                new StructField("Date", DataTypes.DateType, true, Metadata.empty()),
                 new StructField("ResourceLocation", DataTypes.StringType, true, Metadata.empty())
         });
         Row row = new GenericRowWithSchema(
-                new Object[]{1.0, "Storage", "Usage", "sub-123", "2026-06-23", "EastUS"}, withLocation);
+                new Object[]{1.0, "Storage", "Usage", "sub-123", Date.valueOf("2026-06-23"), "EastUS"},
+                withLocation);
         Map<Column, Object> enriched = new HashMap<>();
 
         module.enrich(row, enriched);
@@ -96,7 +121,7 @@ public class FOCUSColumnsTest {
 
     @Test
     void nullCostProducesNoBilledCost() {
-        Row row = generateRow(null, "Storage", "Usage", "sub-123", "2026-06-23");
+        Row row = generateRow(null, "Storage", "Usage", "sub-123", Date.valueOf("2026-06-23"));
         Map<Column, Object> enriched = new HashMap<>();
 
         module.enrich(row, enriched);
@@ -105,19 +130,19 @@ public class FOCUSColumnsTest {
     }
 
     @Test
-    void unparseableDateLeavesEndNull() {
+    void unparseableDateLeavesChargePeriodNull() {
         Row row = generateRow(1.0, "Storage", "Usage", "sub-123", "not-a-date");
         Map<Column, Object> enriched = new HashMap<>();
 
         module.enrich(row, enriched);
 
-        assertEquals("not-a-date", enriched.get(CHARGE_PERIOD_START));
+        assertNull(enriched.get(CHARGE_PERIOD_START));
         assertNull(enriched.get(CHARGE_PERIOD_END));
     }
 
     @Test
     void missingRegionLeavesRegionIdNull() {
-        Row row = generateRow(1.0, "Storage", "Usage", "sub-123", "2026-06-23");
+        Row row = generateRow(1.0, "Storage", "Usage", "sub-123", Date.valueOf("2026-06-23"));
         Map<Column, Object> enriched = new HashMap<>();
 
         module.enrich(row, enriched);
@@ -138,10 +163,11 @@ public class FOCUSColumnsTest {
     /**
      * Builds a row matching the module schema: the columnsNeeded() come first
      * (CostInBillingCurrency, MeterCategory, ChargeType, SubscriptionId, Date),
-     * followed by the columnsAdded() left null.
+     * followed by the columnsAdded() left null. The date is usually a java.sql.Date, matching
+     * what Spark passes for a DateType column, but the module also tolerates strings.
      **/
     private Row generateRow(Double cost, String meterCategory, String chargeType,
-                            String subscriptionId, String date) {
+                            String subscriptionId, Object date) {
         Object[] values = new Object[]{
                 cost, meterCategory, chargeType, subscriptionId, date,
                 null, null, null, null, null, null, null
