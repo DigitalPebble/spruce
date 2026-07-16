@@ -1673,7 +1673,7 @@ written by earlier ones, which is why the order in the configuration file matter
     B --&gt; C("&lt;b&gt;Energy &amp;amp; embodied&lt;/b&gt;&lt;br&gt;Storage, Networking,&lt;br&gt;Serverless, Accelerators,&lt;br&gt;Boavizta, EcoLogits")
     C --&gt; D("&lt;b&gt;Factors&lt;/b&gt;&lt;br&gt;PWUE,&lt;br&gt;AverageCarbonIntensity")
     D --&gt; E("&lt;b&gt;Impacts&lt;/b&gt;&lt;br&gt;OperationalEmissions,&lt;br&gt;Water")
-    E --&gt; F("&lt;b&gt;Normalisation&lt;/b&gt;&lt;br&gt;FOCUSColumns&lt;br&gt;(legacy Azure only)")
+    E --&gt; F("&lt;b&gt;Normalisation&lt;/b&gt;&lt;br&gt;FOCUSColumns&lt;br&gt;(native formats only)")
     F --&gt; G[Enriched row]</code></pre>
 <table>
 <thead>
@@ -1753,7 +1753,7 @@ written by earlier ones, which is why the order in the configuration file matter
 </tr>
 <tr>
 <td><a href="#focuscolumns">FOCUSColumns</a></td>
-<td>Azure (legacy format)</td>
+<td>AWS, Azure (native formats)</td>
 <td><a href="https://focus.finops.org/">FOCUS</a> columns</td>
 <td>—</td>
 </tr>
@@ -2258,14 +2258,78 @@ the preceding modules:</p>
 </table>
 <h2 id="stage-5-output-normalisation">Stage 5 — Output normalisation<a class="headerlink" href="#stage-5-output-normalisation" title="Permanent link">&para;</a></h2>
 <h3 id="focuscolumns">FOCUSColumns<a class="headerlink" href="#focuscolumns" title="Permanent link">&para;</a></h3>
-<p>Bridges Azure-native billing columns to provider-neutral <a href="https://focus.finops.org/">FOCUS</a>
+<p>Bridges provider-native billing columns to provider-neutral <a href="https://focus.finops.org/">FOCUS</a>
 (FinOps Open Cost &amp; Usage Specification) columns, so the reporting scripts and dashboard can
-consume Azure-enriched data with the same column names as other providers. Runs last in the
-Azure pipeline, after <code>region</code> has been set by <a href="#regionextraction">RegionExtraction</a>.</p>
-<p>This module is only needed for the legacy cost details format: a FOCUS report already carries
-these columns on input, so the FOCUS pipeline does not include it.</p>
-<p>Columns that already carry a FOCUS-compatible name in the Azure input (<code>BillingCurrency</code>,
-<code>Tags</code>) are left untouched and pass through unchanged.</p>
+consume enriched data with the same column names whatever the input format. Only the columns
+the reporting scripts and dashboard rely on are covered — this is not a full native-to-FOCUS
+conversion, and values are copied as-is (e.g. <code>ChargeCategory</code> carries the raw
+<code>line_item_line_item_type</code> / <code>ChargeType</code> vocabulary). Runs last in the pipeline, after
+<code>region</code> has been set by <a href="#regionextraction">RegionExtraction</a>.</p>
+<p>These modules are only needed for the native formats: a FOCUS report already carries
+these columns on input, so the FOCUS pipelines do not include them.</p>
+<p>For AWS CURs:</p>
+<table>
+<thead>
+<tr>
+<th>FOCUS column</th>
+<th>AWS source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>BilledCost</code></td>
+<td><code>line_item_unblended_cost</code></td>
+</tr>
+<tr>
+<td><code>ListCost</code></td>
+<td><code>pricing_public_on_demand_cost</code></td>
+</tr>
+<tr>
+<td><code>RegionId</code></td>
+<td><code>region</code> (normalised by RegionExtraction)</td>
+</tr>
+<tr>
+<td><code>ServiceName</code></td>
+<td><code>product_servicecode</code></td>
+</tr>
+<tr>
+<td><code>ChargeCategory</code></td>
+<td><code>line_item_line_item_type</code></td>
+</tr>
+<tr>
+<td><code>SubAccountId</code></td>
+<td><code>line_item_usage_account_id</code></td>
+</tr>
+<tr>
+<td><code>ChargePeriodStart</code></td>
+<td><code>line_item_usage_start_date</code></td>
+</tr>
+<tr>
+<td><code>ChargePeriodEnd</code></td>
+<td><code>line_item_usage_end_date</code></td>
+</tr>
+<tr>
+<td><code>Tags</code></td>
+<td><code>resource_tags</code>, copied as a map of tag key/values as in AWS FOCUS exports</td>
+</tr>
+<tr>
+<td><code>SkuMeter</code></td>
+<td><code>line_item_usage_type</code> (e.g. <code>EUW2-BoxUsage:t3.xlarge</code>, from which reporting derives instance types)</td>
+</tr>
+<tr>
+<td><code>x_ServiceCode</code></td>
+<td><code>line_item_product_code</code></td>
+</tr>
+<tr>
+<td><code>x_Operation</code></td>
+<td><code>line_item_operation</code></td>
+</tr>
+</tbody>
+</table>
+<p>For Azure cost details exports (columns that already carry a FOCUS-compatible name in the
+input, such as <code>BillingCurrency</code> and <code>Tags</code>, pass through unchanged — except that <code>Tags</code>,
+which EA exports truncate to a JSON fragment without the enclosing braces, is wrapped back
+into a valid JSON object when the report is loaded):</p>
 <table>
 <thead>
 <tr>
@@ -2313,16 +2377,16 @@ these columns on input, so the FOCUS pipeline does not include it.</p>
 </thead>
 <tbody>
 <tr>
-<td><strong>Class</strong></td>
-<td><code>com.digitalpebble.spruce.modules.azure.FOCUSColumns</code></td>
+<td><strong>Classes</strong></td>
+<td><code>com.digitalpebble.spruce.modules.aws.FOCUSColumns</code><br><code>com.digitalpebble.spruce.modules.azure.FOCUSColumns</code></td>
 </tr>
 <tr>
 <td><strong>Reads</strong></td>
-<td><code>region</code> and the Azure-native columns above</td>
+<td><code>region</code> and the provider-native columns above</td>
 </tr>
 <tr>
 <td><strong>Writes</strong></td>
-<td><code>BilledCost</code>, <code>RegionId</code>, <code>ServiceName</code>, <code>ChargeCategory</code>, <code>SubAccountId</code>, <code>ChargePeriodStart</code>, <code>ChargePeriodEnd</code></td>
+<td><code>BilledCost</code>, <code>ListCost</code>, <code>RegionId</code>, <code>ServiceName</code>, <code>ChargeCategory</code>, <code>SubAccountId</code>, <code>ChargePeriodStart</code>, <code>ChargePeriodEnd</code>, <code>Tags</code>, <code>SkuMeter</code>, <code>x_ServiceCode</code>, <code>x_Operation</code></td>
 </tr>
 </tbody>
 </table>
