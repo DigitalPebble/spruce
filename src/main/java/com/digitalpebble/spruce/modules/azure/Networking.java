@@ -29,6 +29,8 @@ import static com.digitalpebble.spruce.SpruceColumn.ENERGY_USED;
  *  traffic. The consequences of reducing networking are probably negligible but since the
  *  approach in SPRUCE is attributional, we do the same for networking in order to be consistent.
  *
+ *  Egress via Microsoft Premium Global Network is treated as inter-region as it is supposed to be efficient.
+ *
  *  @see <a href="https://azure.microsoft.com/en-us/pricing/details/bandwidth/">Azure documentation</a>
  **/
 
@@ -69,8 +71,18 @@ public class Networking extends com.digitalpebble.spruce.modules.aws.Networking{
 
         double network_coefficient = 0d;
 
-        if ("Inter-Region".equals(transfer_type)) {
+        if (transfer_type == null){
+            return;
+        }
+
+        if (transfer_type.contains("Inter-Region")) {
             network_coefficient = network_coefficient_inter;
+        } else if (transfer_type.startsWith("Rtn Preference: MGN")) {
+            network_coefficient = network_coefficient_inter;
+        }
+        // ISP - less efficient
+        else if (transfer_type.startsWith("Rtn Preference: ")) {
+            network_coefficient = network_coefficient_extra;
         }
         // TODO detect other types
         else {
