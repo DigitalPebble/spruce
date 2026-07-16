@@ -4,6 +4,7 @@ package com.digitalpebble.spruce;
 
 import org.apache.spark.sql.types.DataType;
 
+import static org.apache.spark.sql.types.DataTypes.DateType;
 import static org.apache.spark.sql.types.DataTypes.DoubleType;
 import static org.apache.spark.sql.types.DataTypes.StringType;
 
@@ -19,7 +20,7 @@ public class AzureColumn extends RowColumn {
     public static AzureColumn QUANTITY = new AzureColumn("Quantity", DoubleType);
     public static AzureColumn COST_IN_BILLING_CURRENCY = new AzureColumn("CostInBillingCurrency", DoubleType);
     public static AzureColumn SUBSCRIPTION_ID = new AzureColumn("SubscriptionId", StringType);
-    public static AzureColumn DATE = new AzureColumn("Date", StringType);
+    public static AzureColumn DATE = new AzureColumn("Date", DateType);
 
     AzureColumn(String l, DataType t) {
         super(l, t);

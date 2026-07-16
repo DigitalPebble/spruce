@@ -1,0 +1,3 @@
+Date,ChargeType,MeterCategory,SubscriptionId,ResourceLocation,Quantity,CostInBillingCurrency,Tags
+2026-06-29,Usage,Storage,sub-123,spaincentral,4.2,0.05,"""env"": ""prod"""
+2026-06-26,Usage,Virtual Machines,sub-123,spaincentral,24,2.208747,
