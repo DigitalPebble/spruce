@@ -8,7 +8,7 @@ reads the same inputs as `report.py` and runs DuckDB queries locally.
 
 ## Automated report
 
-The easiest way to explore SPRUCE output is `report.py`, a Python script that reads enriched Parquet files, runs all the analyses described on this page automatically, and writes a formatted report — no SQL required.
+The easiest way to explore SPRUCE output is `report.py`, a Python script that reads enriched Parquet files, runs all the analyses described on this page automatically, and writes a formatted report — no SQL required. Its queries use the FOCUS columns emitted by all SPRUCE pipelines, so it works on the enriched output of every supported input format (AWS CUR, AWS FOCUS, Azure cost details, Azure FOCUS). If the input is not partitioned by `BILLING_PERIOD`, the billing periods are inferred from the FOCUS `ChargePeriodStart` column.
 
 ### Installation
 
@@ -44,14 +44,14 @@ The report covers the following sections, drawn from the queries documented belo
 | Section | What it shows                                                                                                |
 |---|--------------------------------------------------------------------------------------------------------------|
 | Summary by Billing Period | Energy (kWh), operational CO₂ (kg), embodied CO₂ (kg), water usage (l)                                       |
-| Top Emitters by Service | Top 20 product/service/operation combinations by operational CO₂                                             |
-| Top Instance Types | Top 20 instance families by operational + embodied CO₂                                                       |
-| Coverage | % of unblended costs that have emissions data; top 20 uncovered services by cost                             |
-| Regional Analysis | CO₂, energy, carbon intensity, water, PUE, and gCO₂/$ per AWS region                                         |
+| Top Emitters by Service | Top 20 services by operational CO₂                                                                           |
+| Top Instance Types | Top 20 instance families by operational + embodied CO₂ (derived from `SkuMeter`, where populated)            |
+| Coverage | % of billed costs that have emissions data; top 20 uncovered services by cost                                |
+| Regional Analysis | CO₂, energy, carbon intensity, water, PUE, and gCO₂/$ per region                                             |
 | Tag Breakdown | Interactive: emissions split by any resource tag present in the data                                         |
 | Recommendations | Automatically generated from coverage gaps, regional carbon intensity, instance families, and billing trends |
 
-After the fixed sections, the script scans `resource_tags` and presents an interactive menu of the most consistently used tag keys, ordered by the percentage of line items that carry a non-empty value. Select a tag to see the emissions breakdown by tag value; press Enter when done. If no tags are found, the report states this clearly.
+After the fixed sections, the script scans the `Tags` column and presents an interactive menu of the most consistently used tag keys, ordered by the percentage of line items that carry a non-empty value. Select a tag to see the emissions breakdown by tag value; press Enter when done. If no tags are found, the report states this clearly.
 
 Recommendations are generated automatically from the data:
 
@@ -65,7 +65,9 @@ Recommendations are generated automatically from the data:
 ## Manual queries
 
 As an alternative to the script above, you can also write equivalent SQL queries using [DuckDB](https://duckdb.org/) locally
- (or [Athena](https://docs.aws.amazon.com/athena/latest/ug/what-is.html) if the output was [written to S3](../howto/s3.md)):
+ (or [Athena](https://docs.aws.amazon.com/athena/latest/ug/what-is.html) if the output was [written to S3](../howto/s3.md)).
+The examples below use the native AWS CUR columns, which pass through into the enriched output alongside the FOCUS ones;
+on the output of another pipeline, substitute the corresponding provider or FOCUS columns (e.g. `ServiceName`, `BilledCost`):
 
 ### Breakdown by billing period
 

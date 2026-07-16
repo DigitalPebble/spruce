@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
 """
-AWS Environmental Impact Report
+Cloud Environmental Impact Report
 Reads enriched Parquet output, runs analytical queries via DuckDB,
 and produces a Markdown report with recommendations.
+
+Queries use the FOCUS (FinOps Open Cost & Usage Specification) columns emitted
+by all SPRUCE pipelines (AWS CUR, AWS FOCUS, Azure, Azure FOCUS); columns a
+given input does not carry are added as NULLs so every query runs everywhere.
 """
 
 import argparse
@@ -16,6 +20,71 @@ except ImportError:
     sys.exit("duckdb is required — run: pip install -r requirements-report.txt")
 
 import equivalences
+
+
+# Columns the queries below rely on. Any of them missing from the input is
+# added as a typed NULL so the same queries run on the output of every
+# pipeline (SkuMeter is not populated by Azure exports; ListCost is absent
+# from Azure non-FOCUS exports). Tags is handled separately as its type
+# differs per provider (MAP on AWS, JSON string on Azure).
+REPORT_COLUMN_DEFAULTS = {
+    "BILLING_PERIOD": "VARCHAR",
+    "region": "VARCHAR",
+    "ServiceName": "VARCHAR",
+    "ChargeCategory": "VARCHAR",
+    "BilledCost": "DOUBLE",
+    "ListCost": "DOUBLE",
+    "SkuMeter": "VARCHAR",
+    "operational_energy_kwh": "DOUBLE",
+    "operational_emissions_co2eq_g": "DOUBLE",
+    "embodied_emissions_co2eq_g": "DOUBLE",
+    "water_cooling_l": "DOUBLE",
+    "water_electricity_production_l": "DOUBLE",
+    "water_consumption_stress_area_l": "DOUBLE",
+    "carbon_intensity": "DOUBLE",
+    "power_usage_effectiveness": "DOUBLE",
+}
+
+
+# When the input is not hive-partitioned by BILLING_PERIOD, the YYYY-MM split
+# is inferred from the FOCUS ChargePeriodStart column, which pipelines emit as
+# a timestamp, an ISO 8601 string, or a US-style date string.
+BILLING_PERIOD_FROM_CHARGE_PERIOD = r"""
+    CASE WHEN regexp_matches(CAST(ChargePeriodStart AS VARCHAR), '^\d{4}-\d{2}')
+         THEN substr(CAST(ChargePeriodStart AS VARCHAR), 1, 7)
+         ELSE strftime(coalesce(
+                  try_strptime(CAST(ChargePeriodStart AS VARCHAR), '%m/%d/%Y'),
+                  try_strptime(CAST(ChargePeriodStart AS VARCHAR), '%-m/%-d/%Y')),
+              '%Y-%m')
+    END
+""".strip()
+
+
+def create_cur_table(con, parquet_glob):
+    source = f"read_parquet('{parquet_glob}', hive_partitioning=true)"
+    schema_rows = con.execute(f"DESCRIBE SELECT * FROM {source}").fetchall()
+    existing = [str(row[0]) for row in schema_rows]
+    existing_lower = {c.lower() for c in existing}
+    # Inputs may carry a known column under a different case (e.g. a
+    # billing_period parquet column instead of the BILLING_PERIOD hive
+    # partition); alias it to the canonical name the queries use.
+    canonical = {name.lower(): name for name in REPORT_COLUMN_DEFAULTS}
+    exprs = []
+    for c in existing:
+        quoted = '"' + c.replace('"', '""') + '"'
+        wanted = canonical.get(c.lower())
+        if wanted is not None and wanted != c:
+            exprs.append(f'{quoted} AS "{wanted}"')
+        else:
+            exprs.append(quoted)
+    for name, sql_type in REPORT_COLUMN_DEFAULTS.items():
+        if name.lower() in existing_lower:
+            continue
+        if name == "BILLING_PERIOD" and "chargeperiodstart" in existing_lower:
+            exprs.append(f'{BILLING_PERIOD_FROM_CHARGE_PERIOD} AS "{name}"')
+        else:
+            exprs.append(f'CAST(NULL AS {sql_type}) AS "{name}"')
+    con.execute(f"CREATE TABLE cur AS SELECT {', '.join(exprs)} FROM {source}")
 
 
 # ---------------------------------------------------------------------------
@@ -66,32 +135,44 @@ def q_billing_summary(con):
 def q_top_emitters(con):
     sql = """
         SELECT
-            line_item_product_code,
-            product_servicecode,
-            line_item_operation,
+            ServiceName,
             round(sum(operational_emissions_co2eq_g) / 1000, 2) AS co2_usage_kg,
             round(sum(operational_energy_kwh), 2)                AS energy_kwh,
             round(sum(embodied_emissions_co2eq_g) / 1000, 2)    AS co2_embodied_kg,
             round(coalesce(sum(water_cooling_l), 0) + coalesce(sum(water_electricity_production_l), 0), 2) AS water_usage_l
         FROM cur
         WHERE operational_emissions_co2eq_g is not null
-        GROUP BY 1, 2, 3
-        ORDER BY co2_usage_kg DESC, co2_embodied_kg DESC, energy_kwh DESC, line_item_operation
+        GROUP BY 1
+        ORDER BY co2_usage_kg DESC, co2_embodied_kg DESC, energy_kwh DESC, ServiceName
         LIMIT 20
     """
     return con.execute(sql).fetchall()
 
 
 def q_top_instance_types(con):
-    sql = """
+    # The instance type is derived from SkuMeter (FOCUS 1.2). On AWS it
+    # carries the usage type (e.g. EUW2-BoxUsage:t3.xlarge) and the instance
+    # type is the dot-separated lowercase token after the colon. Providers
+    # that do not populate SkuMeter yield no rows for this section.
+    sql = r"""
+        WITH derived AS (
+            SELECT
+                regexp_extract(SkuMeter, ':((?:[a-z][a-z0-9-]*\.)+[a-z0-9]+)$', 1)
+                    AS instance_type,
+                operational_emissions_co2eq_g,
+                embodied_emissions_co2eq_g,
+                water_cooling_l,
+                water_electricity_production_l
+            FROM cur
+        )
         SELECT
-            product_instance_type,
+            instance_type,
             round(sum(operational_emissions_co2eq_g) / 1000, 2) AS co2_usage_kg,
             round(sum(embodied_emissions_co2eq_g) / 1000, 2)    AS co2_embodied_kg,
             round(coalesce(sum(water_cooling_l), 0) + coalesce(sum(water_electricity_production_l), 0), 2) AS water_usage_l
-        FROM cur
-        WHERE len(product_instance_type) > 0
-        GROUP BY product_instance_type
+        FROM derived
+        WHERE len(instance_type) > 0
+        GROUP BY instance_type
         ORDER BY co2_usage_kg DESC
         LIMIT 20
     """
@@ -107,11 +188,11 @@ def q_coverage(con):
             round("total_cost", 2) AS total_cost
         FROM (
             SELECT
-                sum(line_item_unblended_cost) AS "total_cost",
-                sum(line_item_unblended_cost)
+                sum(BilledCost) AS "total_cost",
+                sum(BilledCost)
                     FILTER (WHERE operational_emissions_co2eq_g IS NOT NULL) AS covered
             FROM cur
-            WHERE line_item_line_item_type LIKE '%Usage'
+            WHERE ChargeCategory LIKE '%Usage'
         )
     """
     row = con.execute(sql).fetchone()
@@ -121,14 +202,12 @@ def q_coverage(con):
 def q_uncovered_services(con):
     sql = """
         SELECT
-            line_item_product_code,
-            product_servicecode,
-            line_item_operation,
-            round(sum(line_item_unblended_cost), 2) AS cost
+            ServiceName,
+            round(sum(BilledCost), 2) AS cost
         FROM cur
         WHERE operational_emissions_co2eq_g IS NULL
-          AND line_item_line_item_type LIKE '%Usage'
-        GROUP BY 1, 2, 3
+          AND ChargeCategory LIKE '%Usage'
+        GROUP BY 1
         ORDER BY cost DESC
         LIMIT 20
     """
@@ -143,7 +222,7 @@ def q_regional(con):
                 sum(operational_emissions_co2eq_g)  AS operational_g,
                 sum(embodied_emissions_co2eq_g)     AS embodied_g,
                 sum(operational_energy_kwh)         AS energy_kwh,
-                sum(pricing_public_on_demand_cost)  AS public_cost,
+                sum(ListCost)                       AS public_cost,
                 avg(carbon_intensity)               AS avg_ci,
                 avg(power_usage_effectiveness)      AS pue,
                 coalesce(sum(water_cooling_l), 0) + coalesce(sum(water_electricity_production_l), 0) AS water_l,
@@ -170,13 +249,35 @@ def q_regional(con):
 # Tag discovery
 # ---------------------------------------------------------------------------
 
-def find_tags_by_coverage(con, top_n):
+def tag_value_expr(con):
+    """SQL expression extracting a tag value from the Tags column, with a {key}
+    placeholder for the SQL-escaped tag key. AWS outputs carry Tags as a MAP,
+    Azure ones as a JSON string. Returns None when Tags is absent."""
+    row = con.execute(
+        "SELECT column_type FROM (DESCRIBE cur) WHERE lower(column_name) = 'tags'"
+    ).fetchone()
+    if row is None:
+        return None
+    if row[0].upper().startswith("MAP"):
+        return "Tags['{key}']"
+    return "json_extract_string(TRY_CAST(Tags AS JSON), '$.\"{key}\"')"
+
+
+def escape_tag_key(key):
+    return key.replace("'", "''")
+
+
+def find_tags_by_coverage(con, value_expr, top_n):
     """Return list of (key, coverage_pct) ordered by coverage desc, limited to top_n."""
+    if value_expr is None:
+        return []
+    keys_expr = ("map_keys(Tags)" if value_expr.startswith("Tags[")
+                 else "json_keys(TRY_CAST(Tags AS JSON))")
     try:
-        keys_rows = con.execute("""
-            SELECT DISTINCT unnest(map_keys(resource_tags)) AS tag_key
+        keys_rows = con.execute(f"""
+            SELECT DISTINCT unnest({keys_expr}) AS tag_key
             FROM cur
-            WHERE resource_tags IS NOT NULL
+            WHERE Tags IS NOT NULL
         """).fetchall()
     except Exception:
         return []
@@ -191,11 +292,12 @@ def find_tags_by_coverage(con, top_n):
 
     scored = []
     for key in keys:
+        value = value_expr.format(key=escape_tag_key(key))
         try:
             count = con.execute(f"""
                 SELECT COUNT(*) FROM cur
-                WHERE resource_tags['{key}'] IS NOT NULL
-                  AND resource_tags['{key}'] != ''
+                WHERE {value} IS NOT NULL
+                  AND {value} != ''
             """).fetchone()[0]
             pct = round(count * 100.0 / total, 1)
             if pct > 0:
@@ -207,10 +309,10 @@ def find_tags_by_coverage(con, top_n):
     return scored[:top_n]
 
 
-def q_tag_breakdown(con, key):
+def q_tag_breakdown(con, value_expr, key):
     sql = f"""
         SELECT
-            resource_tags['{key}']                                          AS tag_value,
+            {value_expr.format(key=escape_tag_key(key))}                    AS tag_value,
             round(sum(operational_energy_kwh), 2)                           AS energy_kwh,
             round(sum(operational_emissions_co2eq_g) / 1000, 2)            AS operational_kg,
             round(sum(embodied_emissions_co2eq_g) / 1000, 2)               AS embodied_kg,
@@ -240,10 +342,10 @@ def build_recommendations(coverage_pct, uncovered_rows, regional_rows, billing_r
 
     # Coverage
     if coverage_pct is not None and coverage_pct < 80:
-        top_uncovered = [r for r in uncovered_rows if r[3] and float(r[3]) > 0][:3]
+        top_uncovered = [r for r in uncovered_rows if r[1] and float(r[1]) > 0][:3]
         for r in top_uncovered:
-            svc = r[1] or r[0] or "unknown"
-            cost = r[3]
+            svc = r[0] or "unknown"
+            cost = r[1]
             recs.append(f"⚠ Coverage gap: **{svc}** (${cost:,} uncovered) — SPRUCE does not yet model this service")
 
     # Region carbon intensity
@@ -370,10 +472,7 @@ def main():
         con.execute("LOAD httpfs")
         con.execute("CREATE SECRET (TYPE s3, PROVIDER credential_chain)")
     try:
-        con.execute(f"""
-            CREATE TABLE cur AS
-            SELECT * FROM read_parquet('{parquet_glob}', hive_partitioning=true)
-        """)
+        create_cur_table(con, parquet_glob)
     except Exception as exc:
         sys.exit(f"Failed to load Parquet data from '{parquet_glob}': {exc}")
 
@@ -395,7 +494,8 @@ def main():
     tag_sections = []  # list of (key, coverage_pct, breakdown_rows)
 
     if args.top_tags >= 1:
-        available_tags = find_tags_by_coverage(con, args.top_tags)
+        value_expr = tag_value_expr(con)
+        available_tags = find_tags_by_coverage(con, value_expr, args.top_tags)
 
         if not available_tags:
             sys.stderr.write("\nNo consistent resource tags found in the data.\n")
@@ -414,7 +514,7 @@ def main():
                     idx = int(choice) - 1
                     if 0 <= idx < len(remaining):
                         key, pct = remaining.pop(idx)
-                        breakdown = q_tag_breakdown(con, key)
+                        breakdown = q_tag_breakdown(con, value_expr, key)
                         tag_sections.append((key, pct, breakdown))
                         sys.stderr.write(f"\n### Tag: {key}  ({pct} % coverage)\n\n")
                         sys.stderr.write(md_table(breakdown, ["tag_value", "energy_kwh", "operational_kg", "embodied_kg", "water_usage_l"]))
@@ -431,7 +531,7 @@ def main():
     parts = []
 
     parts.append(
-        f"# AWS Environmental Impact Report\n"
+        f"# Cloud Environmental Impact Report\n"
         f"_{today} | Rows: {row_count:,}_\n\n"
         f"Enriched with [SPRUCE](http://opensourcegreenops.cloud/)\n"
     )
@@ -486,8 +586,7 @@ def main():
     parts.append(section(
         "Top Emitters by Service",
         md_table(emitter_rows, [
-            "product_code", "service_code", "operation",
-            "co2_usage_kg", "energy_kwh", "co2_embodied_kg", "water_usage_l"
+            "service", "co2_usage_kg", "energy_kwh", "co2_embodied_kg", "water_usage_l"
         ])
     ))
 
@@ -502,7 +601,7 @@ def main():
         coverage_body = f"- **{coverage_pct} %** of unblended costs have emissions data\n\n"
     else:
         coverage_body = "- _Coverage data unavailable_\n\n"
-    coverage_body += md_table(uncovered_rows, ["product_code", "service_code", "operation", "cost_usd"])
+    coverage_body += md_table(uncovered_rows, ["service", "cost_usd"])
     parts.append(section("Coverage", coverage_body))
 
     # Regional

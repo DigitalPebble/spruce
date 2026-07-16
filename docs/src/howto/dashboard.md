@@ -3,7 +3,9 @@
 The repository includes `reporting/dashboard.py`, a [Streamlit](https://streamlit.io/)
 example that reads SPRUCE-enriched Parquet output and runs interactive DuckDB
 queries locally to explore cost, energy, emissions, water, region, and tag
-breakdowns.
+breakdowns. Like `report.py`, it queries the FOCUS columns emitted by all
+SPRUCE pipelines, so it works on the enriched output of every supported input
+format (AWS CUR, AWS FOCUS, Azure cost details, Azure FOCUS).
 
 ## Install
 
@@ -49,11 +51,11 @@ python scripts/gen_synthetic.py -o output/synth.parquet --force
 |---|---|
 | Overview | Total usage cost, energy, operational emissions, embodied emissions, water usage, and cost coverage for the full input, plus everyday equivalences (car km, flights, home-years, cups of tea, pools, baths) |
 | Trend | Separate energy, total emissions, and water charts by billing period |
-| Top emitters | Sorted top product/service/operation combinations as a table-first view |
+| Top emitters | Sorted top service/region combinations as a table-first view |
 | Regions | Emissions share by region, plus regional KPI cards and detail table |
-| Tags | Sorted tag-value chart and table for a selected `resource_tags` key |
+| Tags | Sorted tag-value chart and table for a selected `Tags` key |
 
-Use the sidebar to filter by billing period and region. If `resource_tags` are
+Use the sidebar to filter by billing period and region. If `Tags` are
 present, choose one tag key to break down emissions by tag value. The cost
 coverage KPI matches `report.py` and is calculated across the full input, not
 only the currently selected filters.

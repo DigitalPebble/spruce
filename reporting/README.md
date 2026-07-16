@@ -1,6 +1,6 @@
 # SPRUCE Reporting Tools
 
-This directory contains Python scripts for generating reports and interactive dashboards from SPRUCE-enriched AWS Cost & Usage Report (CUR) data.
+This directory contains Python scripts for generating reports and interactive dashboards from SPRUCE-enriched billing data. The queries use the [FOCUS](https://focus.finops.org/) (FinOps Open Cost & Usage Specification) columns emitted by all SPRUCE pipelines, so the same tools work on the output of every supported input format (AWS CUR, AWS FOCUS, Azure cost details, Azure FOCUS).
 
 ## Prerequisites
 
@@ -18,7 +18,9 @@ pip install -r reporting/requirements-dashboard.txt
 
 Both tools expect SPRUCE-enriched Parquet files as input. These files contain:
 
-- Original AWS CUR columns (cost, usage, resource metadata)
+- The original provider columns (cost, usage, resource metadata)
+- FOCUS columns, present natively in FOCUS exports and added by the
+  `FOCUSColumns` bridge modules for native exports
 - SPRUCE-added sustainability metrics:
   - `operational_energy_kwh` - Energy consumption
   - `operational_emissions_co2eq_g` - Operational carbon emissions
@@ -32,28 +34,28 @@ Both tools expect SPRUCE-enriched Parquet files as input. These files contain:
 
 ## Report Generator
 
-Generate a static HTML report with summary statistics and visualizations:
+Generate a static report with summary statistics and recommendations:
 
 ```bash
-python3 reporting/report.py --input path/to/enriched.parquet --output report.html
+python3 reporting/report.py --input path/to/enriched/ --output report.md
 ```
 
 ### Options
 
-- `--input`: Path to enriched Parquet file or directory (supports glob patterns)
-- `--output`: Output HTML file path (default: `report.html`)
-- `--title`: Report title (default: "SPRUCE Report")
-- `--period`: Filter by billing period (e.g., "2024-01")
-- `--region`: Filter by region (e.g., "us-east-1")
+- `-i / --input`: Path to enriched Parquet file, directory, glob pattern, or S3 URI (required)
+- `-o / --output`: Output file; format inferred from the suffix (`.md`, `.html`, `.pdf`); defaults to Markdown on stdout
+- `-t / --top-tags`: Maximum number of resource tags offered for interactive breakdown (default 10; 0 disables)
 
 ### Output
 
 The generated report includes:
-- Summary metrics (total cost, emissions, energy, water)
-- Time series charts for emissions, energy, and water usage
-- Top emitters breakdown
+- Summary by billing period (energy, emissions, water) with everyday equivalences
+- Top emitters by service
+- Top instance types (derived from `SkuMeter`, where populated)
+- Coverage (% of billed costs with emissions data, top uncovered services)
 - Regional analysis
-- Service breakdown
+- Interactive tag breakdowns
+- Recommendations generated from the data
 
 ## Interactive Dashboard
 
@@ -67,9 +69,9 @@ streamlit run reporting/dashboard.py -- --input path/to/enriched/
 
 - **Overview**: Summary metrics and coverage statistics
 - **Trend**: Time series visualization of emissions, energy, and water usage
-- **Top Emitters**: Breakdown of highest-emitting services and resources
+- **Top Emitters**: Breakdown of highest-emitting services per region
 - **Regions**: Regional analysis with emissions distribution
-- **Tags**: Resource tag-based breakdowns (when `resource_tags` column is available)
+- **Tags**: Resource tag-based breakdowns (when the `Tags` column is available)
 
 ### Navigation
 
@@ -92,20 +94,19 @@ Requires AWS credentials configured in your environment.
 
 ## Data Requirements
 
-### Required Columns
+### Columns Used
 
-The tools expect these columns to be present in the enriched data:
+The queries rely on standard FOCUS columns and SPRUCE-generated columns only
+(no provider-specific `x_` columns):
 
 ```
 BILLING_PERIOD
 region
-product_region_code
-line_item_product_code
-product_servicecode
-line_item_operation
-line_item_line_item_type
-line_item_unblended_cost
-pricing_public_on_demand_cost
+ServiceName
+ChargeCategory
+BilledCost
+ListCost
+SkuMeter
 operational_energy_kwh
 operational_emissions_co2eq_g
 embodied_emissions_co2eq_g
@@ -116,11 +117,18 @@ carbon_intensity
 power_usage_effectiveness
 ```
 
+Any of these columns missing from the input is added as a typed NULL, so the
+same queries run on the output of every pipeline — the corresponding report
+sections simply come out empty. When the input is not hive-partitioned by
+`BILLING_PERIOD`, the YYYY-MM billing periods are inferred from the FOCUS
+`ChargePeriodStart` column.
+
 ### Optional Columns
 
-- `resource_tags`: MAP<VARCHAR,VARCHAR> column for tag-based breakdowns
+- `Tags`: resource tags for tag-based breakdowns. AWS outputs carry it as a
+  `MAP<VARCHAR,VARCHAR>`, Azure ones as a JSON string; both are supported.
 
-If `resource_tags` is not present, the Tags tab will not be displayed in the dashboard.
+If `Tags` is not present, the Tags tab will not be displayed in the dashboard.
 
 ## Output Format
 
