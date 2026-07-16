@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """
-Interactive dashboard for SPRUCE-enriched CUR output.
+Interactive dashboard for SPRUCE-enriched output.
+
+Queries use the FOCUS (FinOps Open Cost & Usage Specification) columns emitted
+by all SPRUCE pipelines (AWS CUR, AWS FOCUS, Azure, Azure FOCUS); columns a
+given input does not carry are added as NULLs so every query runs everywhere.
 
 Run with:
     streamlit run reporting/dashboard.py -- --input output/
@@ -67,16 +71,17 @@ QUERY_CACHE_TTL_SECONDS = 300
 CONNECTION_CACHE_MAX_ENTRIES = 2
 PLOT_CONFIG = {"displaylogo": False, "scrollZoom": True}
 
+# Columns the queries below rely on. Any of them missing from the input is
+# added as a typed NULL so the same queries run on the output of every
+# pipeline. Tags is handled separately as its type differs per provider
+# (MAP on AWS, JSON string on Azure).
 DASHBOARD_COLUMN_DEFAULTS = MappingProxyType(
     {
         "BILLING_PERIOD": "VARCHAR",
         "region": "VARCHAR",
-        "line_item_product_code": "VARCHAR",
-        "product_servicecode": "VARCHAR",
-        "line_item_operation": "VARCHAR",
-        "line_item_line_item_type": "VARCHAR",
-        "line_item_unblended_cost": "DOUBLE",
-        "pricing_public_on_demand_cost": "DOUBLE",
+        "ServiceName": "VARCHAR",
+        "ChargeCategory": "VARCHAR",
+        "BilledCost": "DOUBLE",
         "operational_energy_kwh": "DOUBLE",
         "operational_emissions_co2eq_g": "DOUBLE",
         "embodied_emissions_co2eq_g": "DOUBLE",
@@ -165,15 +170,47 @@ def parquet_source_sql(parquet_path: str) -> str:
     return f"read_parquet({sql_literal(parquet_path)}, hive_partitioning=true)"
 
 
+# When the input is not hive-partitioned by BILLING_PERIOD, the YYYY-MM split
+# is inferred from the FOCUS ChargePeriodStart column, which pipelines emit as
+# a timestamp, an ISO 8601 string, or a US-style date string.
+BILLING_PERIOD_FROM_CHARGE_PERIOD = r"""
+    CASE WHEN regexp_matches(CAST(ChargePeriodStart AS VARCHAR), '^\d{4}-\d{2}')
+         THEN substr(CAST(ChargePeriodStart AS VARCHAR), 1, 7)
+         ELSE strftime(coalesce(
+                  try_strptime(CAST(ChargePeriodStart AS VARCHAR), '%m/%d/%Y'),
+                  try_strptime(CAST(ChargePeriodStart AS VARCHAR), '%-m/%-d/%Y')),
+              '%Y-%m')
+    END
+""".strip()
+
+
 def create_dashboard_view(con: duckdb.DuckDBPyConnection, parquet_path: str) -> None:
     source_sql = parquet_source_sql(parquet_path)
     schema_rows = con.execute(f"DESCRIBE SELECT * FROM {source_sql}").fetchall()
     existing_columns = [str(row[0]) for row in schema_rows]
-    existing_set = set(existing_columns)
+    existing_lower = {column.lower() for column in existing_columns}
 
-    select_exprs = [sql_identifier(column) for column in existing_columns]
+    # Inputs may carry a known column under a different case (e.g. a
+    # billing_period parquet column instead of the BILLING_PERIOD hive
+    # partition); alias it so pandas lookups on the canonical name work.
+    canonical = {name.lower(): name for name in DASHBOARD_COLUMN_DEFAULTS}
+    select_exprs = []
+    for column in existing_columns:
+        wanted = canonical.get(column.lower())
+        if wanted is not None and wanted != column:
+            select_exprs.append(
+                f"{sql_identifier(column)} AS {sql_identifier(wanted)}"
+            )
+        else:
+            select_exprs.append(sql_identifier(column))
     for column_name, column_type in DASHBOARD_COLUMN_DEFAULTS.items():
-        if column_name not in existing_set:
+        if column_name.lower() in existing_lower:
+            continue
+        if column_name == "BILLING_PERIOD" and "chargeperiodstart" in existing_lower:
+            select_exprs.append(
+                f"{BILLING_PERIOD_FROM_CHARGE_PERIOD} AS {sql_identifier(column_name)}"
+            )
+        else:
             select_exprs.append(
                 f"CAST(NULL AS {column_type}) AS {sql_identifier(column_name)}"
             )
@@ -228,23 +265,46 @@ def get_filter_options(input_path: str) -> tuple[list[str], list[str]]:
 
 
 @st.cache_data(show_spinner=False, ttl=QUERY_CACHE_TTL_SECONDS)
+def tags_column_kind(input_path: str) -> str | None:
+    """Return 'map' or 'json' depending on how the Tags column is stored
+    (MAP on AWS outputs, JSON string on Azure ones), or None when the input
+    has no Tags column."""
+    con = load_connection(input_path)
+    row = con.execute(
+        "SELECT column_type FROM (DESCRIBE cur) WHERE lower(column_name) = 'tags'"
+    ).fetchone()
+    if row is None:
+        return None
+    return "map" if str(row[0]).upper().startswith("MAP") else "json"
+
+
+def tag_value_sql_and_param(kind: str, tag_key: str) -> tuple[str, str]:
+    """SQL expression extracting the value of one tag from Tags, plus the
+    bind parameter to pass for each ? placeholder it contains."""
+    if kind == "map":
+        return "Tags[?]", tag_key
+    return (
+        "json_extract_string(TRY_CAST(Tags AS JSON), ?)",
+        '$."' + tag_key.replace('"', '\\"') + '"',
+    )
+
+
+@st.cache_data(show_spinner=False, ttl=QUERY_CACHE_TTL_SECONDS)
 def get_tag_keys(input_path: str) -> list[str]:
+    kind = tags_column_kind(input_path)
+    if kind is None:
+        return []
+    keys_expr = (
+        "map_keys(Tags)" if kind == "map" else "json_keys(TRY_CAST(Tags AS JSON))"
+    )
     try:
-        # Check if resource_tags column exists first
-        con = load_connection(input_path)
-        columns = con.execute("SELECT column_name FROM information_schema.columns WHERE table_name = 'cur'").fetchall()
-        column_names = [str(row[0]) for row in columns]
-        
-        if 'resource_tags' not in column_names:
-            return []
-        
         return (
             query_df(
                 input_path,
-                """
-            SELECT DISTINCT unnest(map_keys(resource_tags)) AS tag_key
+                f"""
+            SELECT DISTINCT unnest({keys_expr}) AS tag_key
             FROM cur
-            WHERE resource_tags IS NOT NULL
+            WHERE Tags IS NOT NULL
             ORDER BY tag_key
             """,
             )["tag_key"]
@@ -252,7 +312,7 @@ def get_tag_keys(input_path: str) -> list[str]:
             .astype(str)
             .tolist()
         )
-    except duckdb.Error as exc:
+    except duckdb.Error:
         return []
 
 
@@ -265,32 +325,32 @@ def overview_query(where: str) -> str:
         ), filtered_agg AS (
             SELECT
                 count(*) AS row_count,
-                sum(line_item_unblended_cost)
-                    FILTER (WHERE line_item_line_item_type LIKE '%Usage') AS total_cost,
+                sum(BilledCost)
+                    FILTER (WHERE ChargeCategory LIKE '%Usage') AS total_cost,
                 sum(operational_energy_kwh)
-                    FILTER (WHERE line_item_line_item_type LIKE '%Usage') AS energy_kwh,
+                    FILTER (WHERE ChargeCategory LIKE '%Usage') AS energy_kwh,
                 sum(operational_emissions_co2eq_g)
-                    FILTER (WHERE line_item_line_item_type LIKE '%Usage') AS operational_g,
+                    FILTER (WHERE ChargeCategory LIKE '%Usage') AS operational_g,
                 sum(embodied_emissions_co2eq_g)
-                    FILTER (WHERE line_item_line_item_type LIKE '%Usage') AS embodied_g,
+                    FILTER (WHERE ChargeCategory LIKE '%Usage') AS embodied_g,
                 coalesce(
                     sum(water_cooling_l)
-                        FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                        FILTER (WHERE ChargeCategory LIKE '%Usage'),
                     0
                 )
                 + coalesce(
                     sum(water_electricity_production_l)
-                        FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                        FILTER (WHERE ChargeCategory LIKE '%Usage'),
                     0
                 ) AS water_l
             FROM filtered
         ), coverage AS (
             SELECT
-                sum(line_item_unblended_cost)
-                    FILTER (WHERE line_item_line_item_type LIKE '%Usage') AS usage_cost,
-                sum(line_item_unblended_cost)
+                sum(BilledCost)
+                    FILTER (WHERE ChargeCategory LIKE '%Usage') AS usage_cost,
+                sum(BilledCost)
                     FILTER (
-                        WHERE line_item_line_item_type LIKE '%Usage'
+                        WHERE ChargeCategory LIKE '%Usage'
                           AND operational_emissions_co2eq_g IS NOT NULL
                     ) AS covered_cost
             FROM cur
@@ -318,35 +378,35 @@ def billing_query(where: str) -> str:
         SELECT
             BILLING_PERIOD,
             round(
-                sum(line_item_unblended_cost)
-                    FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                sum(BilledCost)
+                    FILTER (WHERE ChargeCategory LIKE '%Usage'),
                 2
             ) AS total_cost,
             round(
                 sum(operational_energy_kwh)
-                    FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                    FILTER (WHERE ChargeCategory LIKE '%Usage'),
                 2
             ) AS energy_kwh,
             round(
                 sum(operational_emissions_co2eq_g)
-                    FILTER (WHERE line_item_line_item_type LIKE '%Usage') / 1000,
+                    FILTER (WHERE ChargeCategory LIKE '%Usage') / 1000,
                 2
             ) AS operational_kg,
             round(
                 sum(embodied_emissions_co2eq_g)
-                    FILTER (WHERE line_item_line_item_type LIKE '%Usage') / 1000,
+                    FILTER (WHERE ChargeCategory LIKE '%Usage') / 1000,
                 2
             ) AS embodied_kg,
             round(
                 (
                     coalesce(
                         sum(operational_emissions_co2eq_g)
-                            FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                            FILTER (WHERE ChargeCategory LIKE '%Usage'),
                         0
                     )
                     + coalesce(
                         sum(embodied_emissions_co2eq_g)
-                            FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                            FILTER (WHERE ChargeCategory LIKE '%Usage'),
                         0
                     )
                 ) / 1000,
@@ -355,12 +415,12 @@ def billing_query(where: str) -> str:
             round(
                 coalesce(
                     sum(water_cooling_l)
-                        FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                        FILTER (WHERE ChargeCategory LIKE '%Usage'),
                     0
                 )
                 + coalesce(
                     sum(water_electricity_production_l)
-                        FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                        FILTER (WHERE ChargeCategory LIKE '%Usage'),
                     0
                 ),
                 2
@@ -377,38 +437,33 @@ def top_emitters_query(where: str) -> str:
             SELECT *, {REGION_EXPR} AS dashboard_region FROM cur {where}
         )
         SELECT
-            coalesce(nullif(line_item_product_code, ''), 'Unknown product')
-                AS line_item_product_code,
-            coalesce(nullif(product_servicecode, ''), 'Unknown service')
-                AS product_servicecode,
-            coalesce(nullif(line_item_operation, ''), 'Unknown operation')
-                AS line_item_operation,
+            coalesce(nullif(ServiceName, ''), 'Unknown service') AS service_name,
             coalesce(nullif(dashboard_region, ''), 'Unknown region') AS region,
             round(
-                sum(line_item_unblended_cost)
-                    FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                sum(BilledCost)
+                    FILTER (WHERE ChargeCategory LIKE '%Usage'),
                 2
             ) AS total_cost,
             round(
                 sum(operational_emissions_co2eq_g)
-                    FILTER (WHERE line_item_line_item_type LIKE '%Usage') / 1000,
+                    FILTER (WHERE ChargeCategory LIKE '%Usage') / 1000,
                 2
             ) AS co2_usage_kg,
             round(
                 sum(embodied_emissions_co2eq_g)
-                    FILTER (WHERE line_item_line_item_type LIKE '%Usage') / 1000,
+                    FILTER (WHERE ChargeCategory LIKE '%Usage') / 1000,
                 2
             ) AS co2_embodied_kg,
             round(
                 (
                     coalesce(
                         sum(operational_emissions_co2eq_g)
-                            FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                            FILTER (WHERE ChargeCategory LIKE '%Usage'),
                         0
                     )
                     + coalesce(
                         sum(embodied_emissions_co2eq_g)
-                            FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                            FILTER (WHERE ChargeCategory LIKE '%Usage'),
                         0
                     )
                 ) / 1000,
@@ -416,25 +471,25 @@ def top_emitters_query(where: str) -> str:
             ) AS total_emissions_kg,
             round(
                 sum(operational_energy_kwh)
-                    FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                    FILTER (WHERE ChargeCategory LIKE '%Usage'),
                 2
             ) AS energy_kwh,
             round(
                 coalesce(
                     sum(water_cooling_l)
-                        FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                        FILTER (WHERE ChargeCategory LIKE '%Usage'),
                     0
                 )
                 + coalesce(
                     sum(water_electricity_production_l)
-                        FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                        FILTER (WHERE ChargeCategory LIKE '%Usage'),
                     0
                 ),
                 2
             ) AS water_usage_l
         FROM filtered
         WHERE operational_emissions_co2eq_g IS NOT NULL
-        GROUP BY 1, 2, 3, 4
+        GROUP BY 1, 2
         ORDER BY total_emissions_kg DESC, co2_usage_kg DESC, energy_kwh DESC
         LIMIT ?
     """
@@ -448,42 +503,42 @@ def regional_query(where: str) -> str:
             SELECT
                 coalesce(nullif(dashboard_region, ''), 'Unknown region') AS region,
                 sum(operational_emissions_co2eq_g)
-                    FILTER (WHERE line_item_line_item_type LIKE '%Usage') AS operational_g,
+                    FILTER (WHERE ChargeCategory LIKE '%Usage') AS operational_g,
                 sum(embodied_emissions_co2eq_g)
-                    FILTER (WHERE line_item_line_item_type LIKE '%Usage') AS embodied_g,
+                    FILTER (WHERE ChargeCategory LIKE '%Usage') AS embodied_g,
                 sum(operational_energy_kwh)
-                    FILTER (WHERE line_item_line_item_type LIKE '%Usage') AS energy_kwh,
-                sum(line_item_unblended_cost)
-                    FILTER (WHERE line_item_line_item_type LIKE '%Usage') AS usage_cost,
+                    FILTER (WHERE ChargeCategory LIKE '%Usage') AS energy_kwh,
+                sum(BilledCost)
+                    FILTER (WHERE ChargeCategory LIKE '%Usage') AS usage_cost,
                 sum(operational_energy_kwh * carbon_intensity)
-                    FILTER (WHERE line_item_line_item_type LIKE '%Usage'
+                    FILTER (WHERE ChargeCategory LIKE '%Usage'
                               AND operational_energy_kwh IS NOT NULL
                               AND carbon_intensity IS NOT NULL) AS ci_weighted_num,
                 sum(operational_energy_kwh)
-                    FILTER (WHERE line_item_line_item_type LIKE '%Usage'
+                    FILTER (WHERE ChargeCategory LIKE '%Usage'
                               AND operational_energy_kwh IS NOT NULL
                               AND carbon_intensity IS NOT NULL) AS ci_weighted_den,
                 sum(operational_energy_kwh * power_usage_effectiveness)
-                    FILTER (WHERE line_item_line_item_type LIKE '%Usage'
+                    FILTER (WHERE ChargeCategory LIKE '%Usage'
                               AND operational_energy_kwh IS NOT NULL
                               AND power_usage_effectiveness IS NOT NULL) AS pue_weighted_num,
                 sum(operational_energy_kwh)
-                    FILTER (WHERE line_item_line_item_type LIKE '%Usage'
+                    FILTER (WHERE ChargeCategory LIKE '%Usage'
                               AND operational_energy_kwh IS NOT NULL
                               AND power_usage_effectiveness IS NOT NULL) AS pue_weighted_den,
                 coalesce(
                     sum(water_cooling_l)
-                        FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                        FILTER (WHERE ChargeCategory LIKE '%Usage'),
                     0
                 )
                 + coalesce(
                     sum(water_electricity_production_l)
-                        FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                        FILTER (WHERE ChargeCategory LIKE '%Usage'),
                     0
                 ) AS water_l,
                 coalesce(
                     sum(water_consumption_stress_area_l)
-                        FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                        FILTER (WHERE ChargeCategory LIKE '%Usage'),
                     0
                 ) AS water_stress_l
             FROM filtered
@@ -512,43 +567,43 @@ def regional_query(where: str) -> str:
     """
 
 
-def tag_breakdown_query(where: str) -> str:
+def tag_breakdown_query(where: str, tag_value_sql: str) -> str:
     return f"""
         WITH filtered AS (
             SELECT * FROM cur {where}
         )
         SELECT
-            resource_tags[?] AS tag_value,
+            {tag_value_sql} AS tag_value,
             round(
-                sum(line_item_unblended_cost)
-                    FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                sum(BilledCost)
+                    FILTER (WHERE ChargeCategory LIKE '%Usage'),
                 2
             ) AS total_cost,
             round(
                 sum(operational_energy_kwh)
-                    FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                    FILTER (WHERE ChargeCategory LIKE '%Usage'),
                 2
             ) AS energy_kwh,
             round(
                 sum(operational_emissions_co2eq_g)
-                    FILTER (WHERE line_item_line_item_type LIKE '%Usage') / 1000,
+                    FILTER (WHERE ChargeCategory LIKE '%Usage') / 1000,
                 2
             ) AS operational_kg,
             round(
                 sum(embodied_emissions_co2eq_g)
-                    FILTER (WHERE line_item_line_item_type LIKE '%Usage') / 1000,
+                    FILTER (WHERE ChargeCategory LIKE '%Usage') / 1000,
                 2
             ) AS embodied_kg,
             round(
                 (
                     coalesce(
                         sum(operational_emissions_co2eq_g)
-                            FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                            FILTER (WHERE ChargeCategory LIKE '%Usage'),
                         0
                     )
                     + coalesce(
                         sum(embodied_emissions_co2eq_g)
-                            FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                            FILTER (WHERE ChargeCategory LIKE '%Usage'),
                         0
                     )
                 ) / 1000,
@@ -557,20 +612,20 @@ def tag_breakdown_query(where: str) -> str:
             round(
                 coalesce(
                     sum(water_cooling_l)
-                        FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                        FILTER (WHERE ChargeCategory LIKE '%Usage'),
                     0
                 )
                 + coalesce(
                     sum(water_electricity_production_l)
-                        FILTER (WHERE line_item_line_item_type LIKE '%Usage'),
+                        FILTER (WHERE ChargeCategory LIKE '%Usage'),
                     0
                 ),
                 2
             ) AS water_usage_l
         FROM filtered
-        WHERE resource_tags IS NOT NULL
-          AND resource_tags[?] IS NOT NULL
-          AND resource_tags[?] != ''
+        WHERE Tags IS NOT NULL
+          AND {tag_value_sql} IS NOT NULL
+          AND {tag_value_sql} != ''
         GROUP BY 1
         ORDER BY total_emissions_kg DESC NULLS LAST
     """
@@ -932,14 +987,7 @@ def render_top_emitters(emitters: pd.DataFrame) -> None:
         return
 
     table = emitters.copy()
-    table["emitter"] = table.apply(
-        lambda row: chart_label(
-            row["line_item_product_code"],
-            row["product_servicecode"],
-            row["line_item_operation"],
-        ),
-        axis=1,
-    )
+    table["emitter"] = table["service_name"].map(chart_label)
     table = table.sort_values("total_emissions_kg", ascending=False)
 
     top = table.iloc[0]
@@ -1079,14 +1127,20 @@ def render_tags(
         st.error(f"Tag '{tag_key}' is not present in the loaded data.")
         return
 
+    kind = tags_column_kind(input_path)
+    if kind is None:
+        st.error("The loaded data has no Tags column.")
+        return
+
+    tag_value_sql, tag_param = tag_value_sql_and_param(kind, tag_key)
     try:
         tags = query_df(
             input_path,
-            tag_breakdown_query(where),
-            params + (tag_key, tag_key, tag_key),
+            tag_breakdown_query(where, tag_value_sql),
+            params + (tag_param, tag_param, tag_param),
         )
     except duckdb.Error as exc:
-        st.error(f"Could not read resource_tags for tag '{tag_key}': {exc}")
+        st.error(f"Could not read Tags for tag '{tag_key}': {exc}")
         return
 
     if tags.empty:
