@@ -71,7 +71,6 @@ DASHBOARD_COLUMN_DEFAULTS = MappingProxyType(
     {
         "BILLING_PERIOD": "VARCHAR",
         "region": "VARCHAR",
-        "product_region_code": "VARCHAR",
         "line_item_product_code": "VARCHAR",
         "product_servicecode": "VARCHAR",
         "line_item_operation": "VARCHAR",

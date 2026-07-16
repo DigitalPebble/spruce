@@ -3,6 +3,7 @@
 package com.digitalpebble.spruce;
 
 import org.apache.spark.sql.types.DataType;
+import org.apache.spark.sql.types.DataTypes;
 
 import java.util.Map;
 
@@ -31,8 +32,11 @@ public class FOCUSColumn extends RowColumn {
     public static FOCUSColumn SUB_ACCOUNT_ID = new FOCUSColumn("SubAccountId", StringType);
     public static FOCUSColumn CHARGE_PERIOD_START = new FOCUSColumn("ChargePeriodStart", StringType);
     public static FOCUSColumn CHARGE_PERIOD_END = new FOCUSColumn("ChargePeriodEnd", StringType);
-    public static FOCUSColumn TAGS = new FOCUSColumn("Tags", StringType);
+    /** Map of tag key/values, as in AWS FOCUS exports. Azure reports (native and FOCUS) carry
+     *  their tags as a JSON string instead and do not use this constant. */
+    public static FOCUSColumn TAGS = new FOCUSColumn("Tags", DataTypes.createMapType(StringType, StringType));
     public static FOCUSColumn CONSUMED_QUANTITY = new FOCUSColumn("ConsumedQuantity", DoubleType);
+    public static FOCUSColumn LIST_COST = new FOCUSColumn("ListCost", DoubleType);
     public static FOCUSColumn PRICING_UNIT = new FOCUSColumn("PricingUnit", StringType);
     /** FOCUS 1.1 column, present in AWS FOCUS 1.2 exports (the 1.0 export carries
      *  {@code x_UsageType} instead) where it carries the same values as the CUR

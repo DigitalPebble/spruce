@@ -10,7 +10,10 @@ import scala.Option;
 import java.io.IOException;
 import java.nio.file.Paths;
 
+import static org.apache.spark.sql.functions.concat;
 import static org.apache.spark.sql.functions.lit;
+import static org.apache.spark.sql.functions.not;
+import static org.apache.spark.sql.functions.when;
 
 public class SparkJob {
 
@@ -84,6 +87,16 @@ public class SparkJob {
                     dataframe = dataframe.withColumn(column.getLabel(),
                             dataframe.col(column.getLabel()).cast("double"));
                 }
+            }
+            // EA cost details exports carry Tags as a JSON fragment missing the enclosing braces
+            // (https://github.com/microsoft/finops-toolkit/discussions/2053); wrap it so the
+            // column always holds a valid JSON object, as in MCA and FOCUS exports
+            if (columns.contains("Tags")) {
+                org.apache.spark.sql.Column tags = dataframe.col("Tags");
+                dataframe = dataframe.withColumn("Tags",
+                        when(tags.isNotNull().and(not(tags.startsWith("{"))),
+                                concat(lit("{"), tags, lit("}")))
+                                .otherwise(tags));
             }
         } else {
             dataframe = spark.read().parquet(inputPath);
