@@ -1,0 +1,8 @@
+**/__pycache__
+target/
+data/
+output-*
+azure-examples/
+artifacts/
+docs/site/
+*.log
