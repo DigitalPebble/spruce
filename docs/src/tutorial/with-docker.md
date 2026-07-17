@@ -60,3 +60,28 @@ The options `-p` (cloud provider) and `-f` (report format) are described in [Qui
 
 The directory _output_ contains an enriched copy of the input reports. See [Explore the results](results.md) to understand
 what the output contains.
+
+## Reporting with Docker
+
+The same image contains the [reporting tools](https://github.com/DigitalPebble/spruce/tree/main/reporting),
+so you can generate a report or explore the enriched output interactively without installing Python.
+
+Generate a static report (format inferred from the suffix: `.md`, `.html` or `.pdf`):
+
+```shell
+docker run --rm -v $(pwd):/workspace -w /workspace \
+ghcr.io/digitalpebble/spruce \
+report -i output -o report.html
+```
+
+Launch the interactive dashboard, then open [http://localhost:8501](http://localhost:8501):
+
+```shell
+docker run --rm -p 8501:8501 -v $(pwd):/workspace -w /workspace \
+ghcr.io/digitalpebble/spruce \
+dashboard -i output
+```
+
+The image version determines both the SPRUCE jar and the reporting scripts, so when
+enriching and reporting are done at different times, use the same explicit tag
+(e.g. `ghcr.io/digitalpebble/spruce:1.1`) for both steps rather than relying on `latest`.

@@ -14,6 +14,9 @@ pip install -r reporting/requirements-report.txt
 pip install -r reporting/requirements-dashboard.txt
 ```
 
+Alternatively, run the tools from the SPRUCE Docker image without installing
+anything — see [Running with Docker](#running-with-docker) below.
+
 ## Input Data
 
 Both tools expect SPRUCE-enriched Parquet files as input. These files contain:
@@ -91,6 +94,27 @@ streamlit run reporting/dashboard.py -- --input s3://bucket/path/to/enriched/
 ```
 
 Requires AWS credentials configured in your environment.
+
+## Running with Docker
+
+The `ghcr.io/digitalpebble/spruce` image ships these scripts and their
+dependencies alongside the SPRUCE jar, so the reporting tools always match the
+version of SPRUCE that produced the enriched output. The first argument selects
+the tool (`report` or `dashboard`); anything else is passed to `spark-submit`
+for enrichment.
+
+```bash
+# Static report
+docker run --rm -v $(pwd):/workspace -w /workspace \
+  ghcr.io/digitalpebble/spruce report -i output -o report.html
+
+# Interactive dashboard on http://localhost:8501
+docker run --rm -p 8501:8501 -v $(pwd):/workspace -w /workspace \
+  ghcr.io/digitalpebble/spruce dashboard -i output
+```
+
+When enriching and reporting at different times, pin the same image tag for
+both steps rather than relying on `latest`.
 
 ## Data Requirements
 
