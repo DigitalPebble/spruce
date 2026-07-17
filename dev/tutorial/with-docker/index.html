@@ -467,6 +467,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#reporting-with-docker" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Reporting with Docker
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1153,6 +1164,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#reporting-with-docker" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Reporting with Docker
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1222,6 +1244,22 @@ The <code>-o</code> parameter specifies the location of enriched Parquet files g
 The options <code>-p</code> (cloud provider) and <code>-f</code> (report format) are described in <a href="../with-spark/">Quick start using Apache Spark</a>.</p>
 <p>The directory <em>output</em> contains an enriched copy of the input reports. See <a href="../results/">Explore the results</a> to understand
 what the output contains.</p>
+<h2 id="reporting-with-docker">Reporting with Docker<a class="headerlink" href="#reporting-with-docker" title="Permanent link">&para;</a></h2>
+<p>The same image contains the <a href="https://github.com/DigitalPebble/spruce/tree/main/reporting">reporting tools</a>,
+so you can generate a report or explore the enriched output interactively without installing Python.</p>
+<p>Generate a static report (format inferred from the suffix: <code>.md</code>, <code>.html</code> or <code>.pdf</code>):</p>
+<div class="language-shell highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>-v<span class="w"> </span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>:/workspace<span class="w"> </span>-w<span class="w"> </span>/workspace<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>ghcr.io/digitalpebble/spruce<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>report<span class="w"> </span>-i<span class="w"> </span>output<span class="w"> </span>-o<span class="w"> </span>report.html
+</span></code></pre></div>
+<p>Launch the interactive dashboard, then open <a href="http://localhost:8501">http://localhost:8501</a>:</p>
+<div class="language-shell highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>-p<span class="w"> </span><span class="m">8501</span>:8501<span class="w"> </span>-v<span class="w"> </span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>:/workspace<span class="w"> </span>-w<span class="w"> </span>/workspace<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>ghcr.io/digitalpebble/spruce<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>dashboard<span class="w"> </span>-i<span class="w"> </span>output
+</span></code></pre></div>
+<p>The image version determines both the SPRUCE jar and the reporting scripts, so when
+enriching and reporting are done at different times, use the same explicit tag
+(e.g. <code>ghcr.io/digitalpebble/spruce:1.1</code>) for both steps rather than relying on <code>latest</code>.</p>
 
 
 
