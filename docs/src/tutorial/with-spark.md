@@ -19,7 +19,7 @@ aws s3 cp s3://{bucket}/{prefix}/{data_export_name}/data/ curs --recursive
 To run SPRUCE locally, you need [Apache Spark](https://spark.apache.org/) installed and added to the $PATH.
 
 Finally, you need the JAR containing the code and resources for SPRUCE.  You can copy it from the [latest release](https://github.com/DigitalPebble/spruce/releases) or alternatively, build from source,
-which requires Apache Maven and Java 17 or above.
+which requires Apache Maven and Java 21 or above.
 
 ```shell
 mvn clean package
