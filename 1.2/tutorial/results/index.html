@@ -1,0 +1,2076 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Estimate the environmental impact of your cloud usage.">
+      
+      
+        <meta name="author" content="DigitalPebble Ltd">
+      
+      
+        <link rel="canonical" href="https://opensourcegreenops.cloud/1.2/tutorial/results/">
+      
+      
+        <link rel="prev" href="../with-spark/">
+      
+      
+        <link rel="next" href="../../methodology/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="zensical-0.0.51">
+    
+    
+      
+        <title>Explore the results 🔎 - SPRUCE documentation</title>
+      
+    
+    
+      
+        
+      
+      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.62c9b9cc.min.css">
+      
+        
+          
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/modern/palette.dfe2e883.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,500,500i,700,700i%7CJetBrains+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_scope.pathname.endsWith("/")||(__md_scope=new URL(__md_scope.pathname+"/",location)),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,_=__md_scope)=>JSON.parse(t.getItem(_.pathname+"."+e)),__md_set=(e,t,_=localStorage,a=__md_scope)=>{try{_.setItem(a.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="light-green" data-md-color-accent="light-green">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer" aria-label="Navigation"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#explore-the-results" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+        <aside class="md-banner">
+          <div class="md-banner__inner md-grid md-typeset">
+            
+              <button class="md-banner__button md-icon" aria-label="Don't show this again">
+                
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+              </button>
+            
+            
+  SPRUCE now ingests <strong>FOCUS</strong> exports from AWS and Azure —
+  <a href="../../howto/generate_cur/">get started</a>
+
+          </div>
+          
+            <script>var el=document.querySelector("[data-md-component=announce]");if(el){var content=el.querySelector(".md-typeset");__md_hash(content.innerHTML)===__md_get("__announce")&&(el.hidden=!0)}</script>
+          
+        </aside>
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="SPRUCE documentation" class="md-header__button md-logo" aria-label="SPRUCE documentation" data-md-component="logo">
+      
+  <img src="../../images/logo.png" alt="SPRUCE documentation">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer" aria-label="Navigation">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-menu" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            SPRUCE documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Explore the results 🔎
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="none" data-md-color-scheme="default" data-md-color-primary="light-green" data-md-color-accent="light-green"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="none" data-md-color-scheme="slate" data-md-color-primary="light-green" data-md-color-accent="light-green"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-moon" viewBox="0 0 24 24"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search" aria-label="Search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog" aria-label="Search">
+  <button type="button" class="md-search__button">
+    Search
+  </button>
+</div>
+      
+    
+    <div class="md-header__source">
+      
+        <a href="https://github.com/digitalpebble/spruce" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      
+    </div>
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="SPRUCE documentation" class="md-nav__button md-logo" aria-label="SPRUCE documentation" data-md-component="logo">
+      
+  <img src="../../images/logo.png" alt="SPRUCE documentation">
+
+    </a>
+    SPRUCE documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/digitalpebble/spruce" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../.." class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Introduction
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Introduction
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Tutorials 🚀
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Tutorials 🚀
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../with-docker/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Quick start using Docker 🐳
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../with-spark/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Quick start using Apache Spark⚡
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Explore the results 🔎
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="././" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Explore the results 🔎
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#interactive-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Interactive dashboard
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#automated-report" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Automated report
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Automated report">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Installation
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Usage
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#docker" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Docker
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-it-produces" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        What it produces
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#manual-queries" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Manual queries
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Manual queries">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#breakdown-by-billing-period" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Breakdown by billing period
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#breakdown-per-product-service-and-operation" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Breakdown per product, service and operation
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cost-coverage" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Cost coverage
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#breakdown-per-region" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Breakdown per region
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#breakdown-per-user-tag" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Breakdown per user tag
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Explanations 📚
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Explanations 📚
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../methodology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Methodology
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../modules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Enrichment modules
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../comparison/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Comparison with other open source tools
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  How-to 💡
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  How-to 💡
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../howto/generate_cur/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Generate usage reports
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../howto/emr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Run SPRUCE on AWS EMR Serverless
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../howto/s3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Read / write to S3
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../howto/config_modules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Configure the modules
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../howto/write_module/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Write a New Module
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../howto/config_logging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Configure logging
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../howto/splits/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Split Impact Allocation Data
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../howto/dashboard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Build a simple dashboard
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../howto/contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Contribute to SPRUCE
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Resources
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Resources
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../resources/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Resources
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  
+                    
+                    
+                    
+                      
+                    
+                    
+                      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+                      <div class="md-sidebar-button__wrapper">
+                        <label class="md-sidebar-button" for="__toc"></label>
+                      </div>
+                    
+                  
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#interactive-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Interactive dashboard
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#automated-report" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Automated report
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Automated report">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Installation
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Usage
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#docker" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Docker
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-it-produces" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        What it produces
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#manual-queries" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Manual queries
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Manual queries">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#breakdown-by-billing-period" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Breakdown by billing period
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#breakdown-per-product-service-and-operation" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Breakdown per product, service and operation
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cost-coverage" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Cost coverage
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#breakdown-per-region" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Breakdown per region
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#breakdown-per-user-tag" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Breakdown per user tag
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+  
+  
+
+
+<h1 id="explore-the-results">Explore the results 🔎<a class="headerlink" href="#explore-the-results" title="Permanent link">&para;</a></h1>
+<h2 id="interactive-dashboard">Interactive dashboard<a class="headerlink" href="#interactive-dashboard" title="Permanent link">&para;</a></h2>
+<p>For an interactive view of SPRUCE-enriched Parquet output, use the Streamlit
+example described in <a href="../../howto/dashboard/">Build a simple dashboard</a>. It
+reads the same inputs as <code>report.py</code> and runs DuckDB queries locally.</p>
+<h2 id="automated-report">Automated report<a class="headerlink" href="#automated-report" title="Permanent link">&para;</a></h2>
+<p>The easiest way to explore SPRUCE output is <code>report.py</code>, a Python script that reads enriched Parquet files, runs all the analyses described on this page automatically, and writes a formatted report — no SQL required. Its queries use the FOCUS columns emitted by all SPRUCE pipelines, so it works on the enriched output of every supported input format (AWS CUR, AWS FOCUS, Azure cost details, Azure FOCUS). If the input is not partitioned by <code>BILLING_PERIOD</code>, the billing periods are inferred from the FOCUS <code>ChargePeriodStart</code> column.</p>
+<h3 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h3>
+<div class="language-shell highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>reporting/requirements-report.txt<span class="w">   </span><span class="c1"># duckdb (+ markdown, weasyprint for html/pdf)</span>
+</span></code></pre></div>
+<h3 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h3>
+<div class="language-shell highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Markdown to stdout</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>python<span class="w"> </span>reporting/report.py<span class="w"> </span>-i<span class="w"> </span>output/
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># Write to a file — format is inferred from the suffix</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>python<span class="w"> </span>reporting/report.py<span class="w"> </span>-i<span class="w"> </span>output/<span class="w"> </span>-o<span class="w"> </span>report.md
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>python<span class="w"> </span>reporting/report.py<span class="w"> </span>-i<span class="w"> </span>output/<span class="w"> </span>-o<span class="w"> </span>report.html
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>python<span class="w"> </span>reporting/report.py<span class="w"> </span>-i<span class="w"> </span>output/<span class="w"> </span>-o<span class="w"> </span>report.pdf
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="c1"># Read directly from S3 (uses ambient AWS credentials)</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>python<span class="w"> </span>reporting/report.py<span class="w"> </span>-i<span class="w"> </span>s3://my-bucket/spruced/<span class="w"> </span>-o<span class="w"> </span>report.html
+</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-i / --input</code></td>
+<td>required</td>
+<td>Local directory, glob, or S3 URI</td>
+</tr>
+<tr>
+<td><code>-o / --output</code></td>
+<td>stdout</td>
+<td>Output file; format inferred from suffix (<code>.md</code>, <code>.html</code>, <code>.pdf</code>)</td>
+</tr>
+<tr>
+<td><code>-t / --top-tags</code></td>
+<td>10</td>
+<td>Maximum number of resource tags offered for interactive breakdown</td>
+</tr>
+</tbody>
+</table>
+<h3 id="docker">Docker<a class="headerlink" href="#docker" title="Permanent link">&para;</a></h3>
+<p>Instead of installing Python and its dependencies, you can simply use the Docker image to generate the reports:</p>
+<div class="language-shell highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>docker<span class="w"> </span>run<span class="w"> </span>-it<span class="w"> </span>--rm<span class="w"> </span>-v<span class="w"> </span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>:/workspace<span class="w"> </span>-w<span class="w"> </span>/workspace<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>ghcr.io/digitalpebble/spruce<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>report<span class="w"> </span>-i<span class="w"> </span>output<span class="w"> </span>-o<span class="w"> </span>report.html
+</span></code></pre></div>
+<h3 id="what-it-produces">What it produces<a class="headerlink" href="#what-it-produces" title="Permanent link">&para;</a></h3>
+<p>The report covers the following sections, drawn from the queries documented below:</p>
+<table>
+<thead>
+<tr>
+<th>Section</th>
+<th>What it shows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Summary by Billing Period</td>
+<td>Energy (kWh), operational CO₂ (kg), embodied CO₂ (kg), water usage (l)</td>
+</tr>
+<tr>
+<td>Top Emitters by Service</td>
+<td>Top 20 services by operational CO₂</td>
+</tr>
+<tr>
+<td>Top Instance Types</td>
+<td>Top 20 instance families by operational + embodied CO₂ (derived from <code>SkuMeter</code>, where populated)</td>
+</tr>
+<tr>
+<td>Coverage</td>
+<td>% of billed costs that have emissions data; top 20 uncovered services by cost</td>
+</tr>
+<tr>
+<td>Regional Analysis</td>
+<td>CO₂, energy, carbon intensity, water, PUE, and gCO₂/$ per region</td>
+</tr>
+<tr>
+<td>Tag Breakdown</td>
+<td>Interactive: emissions split by any resource tag present in the data</td>
+</tr>
+<tr>
+<td>Recommendations</td>
+<td>Automatically generated from coverage gaps, regional carbon intensity, instance families, and billing trends</td>
+</tr>
+</tbody>
+</table>
+<p>After the fixed sections, the script scans the <code>Tags</code> column and presents an interactive menu of the most consistently used tag keys, ordered by the percentage of line items that carry a non-empty value. Select a tag to see the emissions breakdown by tag value; press Enter when done. If no tags are found, the report states this clearly.</p>
+<p>Recommendations are generated automatically from the data:</p>
+<table>
+<thead>
+<tr>
+<th>Signal</th>
+<th>Condition</th>
+<th>Message</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Coverage gap</td>
+<td>&lt; 80 % of costs covered</td>
+<td>Lists top uncovered services by cost</td>
+</tr>
+<tr>
+<td>Carbon intensity</td>
+<td>Region &gt; 300 gCO₂/kWh with a lower-intensity alternative present</td>
+<td>Suggests migration</td>
+</tr>
+<tr>
+<td>Instance family</td>
+<td>Top emitter is an x86 family with a Graviton equivalent</td>
+<td>Names the Graviton replacement</td>
+</tr>
+<tr>
+<td>Emissions trend</td>
+<td>≥ 2 billing periods, last &gt; first × 1.10</td>
+<td>Flags the percentage increase</td>
+</tr>
+</tbody>
+</table>
+<h2 id="manual-queries">Manual queries<a class="headerlink" href="#manual-queries" title="Permanent link">&para;</a></h2>
+<p>As an alternative to the script above, you can also write equivalent SQL queries using <a href="https://duckdb.org/">DuckDB</a> locally
+ (or <a href="https://docs.aws.amazon.com/athena/latest/ug/what-is.html">Athena</a> if the output was <a href="../../howto/s3/">written to S3</a>).
+The examples below use the native AWS CUR columns, which pass through into the enriched output alongside the FOCUS ones;
+on the output of another pipeline, substitute the corresponding provider or FOCUS columns (e.g. <code>ServiceName</code>, <code>BilledCost</code>):</p>
+<h3 id="breakdown-by-billing-period">Breakdown by billing period<a class="headerlink" href="#breakdown-by-billing-period" title="Permanent link">&para;</a></h3>
+<div class="language-sql highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">create</span><span class="w"> </span><span class="k">table</span><span class="w"> </span><span class="n">enriched_curs</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="k">select</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">from</span><span class="w"> </span><span class="s1">&#39;output/**/*.parquet&#39;</span><span class="p">;</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="k">select</span><span class="w"> </span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">       </span><span class="n">BILLING_PERIOD</span><span class="p">,</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">       </span><span class="n">round</span><span class="p">(</span><span class="k">sum</span><span class="p">(</span><span class="n">operational_emissions_co2eq_g</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">1000</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">co2_usage_kg</span><span class="p">,</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">       </span><span class="n">round</span><span class="p">(</span><span class="k">sum</span><span class="p">(</span><span class="n">embodied_emissions_co2eq_g</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">1000</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">co2_embodied_kg</span><span class="p">,</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">       </span><span class="n">round</span><span class="p">(</span><span class="k">sum</span><span class="p">(</span><span class="n">operational_energy_kwh</span><span class="p">),</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">energy_usage_kwh</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">       </span><span class="k">from</span><span class="w"> </span><span class="n">enriched_curs</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">       </span><span class="k">group</span><span class="w"> </span><span class="k">by</span><span class="w"> </span><span class="n">BILLING_PERIOD</span>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">       </span><span class="k">order</span><span class="w"> </span><span class="k">by</span><span class="w"> </span><span class="n">BILLING_PERIOD</span><span class="p">;</span>
+</span></code></pre></div>
+<p>This should give an output similar to</p>
+<table>
+<thead>
+<tr>
+<th>BILLING_PERIOD</th>
+<th style="text-align: right;">co2_usage_kg</th>
+<th style="text-align: right;">co2_embodied_kg</th>
+<th style="text-align: right;">energy_usage_kwh</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2025-05</td>
+<td style="text-align: right;">863.51</td>
+<td style="text-align: right;">89.73</td>
+<td style="text-align: right;">2029.15</td>
+</tr>
+<tr>
+<td>2025-06</td>
+<td style="text-align: right;">774.01</td>
+<td style="text-align: right;">85.01</td>
+<td style="text-align: right;">1811.98</td>
+</tr>
+<tr>
+<td>2025-07</td>
+<td style="text-align: right;">812.07</td>
+<td style="text-align: right;">87.19</td>
+<td style="text-align: right;">1901.13</td>
+</tr>
+<tr>
+<td>2025-08</td>
+<td style="text-align: right;">848.7</td>
+<td style="text-align: right;">88.15</td>
+<td style="text-align: right;">1982.56</td>
+</tr>
+<tr>
+<td>2025-09</td>
+<td style="text-align: right;">866.24</td>
+<td style="text-align: right;">86.76</td>
+<td style="text-align: right;">2017.36</td>
+</tr>
+</tbody>
+</table>
+<h3 id="breakdown-per-product-service-and-operation">Breakdown per product, service and operation<a class="headerlink" href="#breakdown-per-product-service-and-operation" title="Permanent link">&para;</a></h3>
+<div class="language-sql highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">select</span><span class="w"> </span><span class="n">line_item_product_code</span><span class="p">,</span><span class="w"> </span><span class="n">product_servicecode</span><span class="p">,</span><span class="w"> </span><span class="n">line_item_operation</span><span class="p">,</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">       </span><span class="n">round</span><span class="p">(</span><span class="k">sum</span><span class="p">(</span><span class="n">operational_emissions_co2eq_g</span><span class="p">)</span><span class="o">/</span><span class="mi">1000</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">co2_usage_kg</span><span class="p">,</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">       </span><span class="n">round</span><span class="p">(</span><span class="k">sum</span><span class="p">(</span><span class="n">embodied_emissions_co2eq_g</span><span class="p">)</span><span class="o">/</span><span class="mi">1000</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">co2_embodied_kg</span><span class="p">,</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">       </span><span class="n">round</span><span class="p">(</span><span class="k">sum</span><span class="p">(</span><span class="n">operational_energy_kwh</span><span class="p">),</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">energy_usage_kwh</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">       </span><span class="k">from</span><span class="w"> </span><span class="n">enriched_curs</span><span class="w"> </span><span class="k">where</span><span class="w"> </span><span class="n">operational_emissions_co2eq_g</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">.</span><span class="mi">01</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">       </span><span class="k">group</span><span class="w"> </span><span class="k">by</span><span class="w"> </span><span class="k">all</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">       </span><span class="k">order</span><span class="w"> </span><span class="k">by</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="k">desc</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="k">desc</span><span class="p">,</span><span class="w"> </span><span class="mi">6</span><span class="w"> </span><span class="k">desc</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span>
+</span></code></pre></div>
+<p>This should give an output similar to</p>
+<table>
+<thead>
+<tr>
+<th>line_item_product_code</th>
+<th>product_servicecode</th>
+<th>line_item_operation</th>
+<th style="text-align: right;">co2_usage_kg</th>
+<th>co2_embodied_kg</th>
+<th style="text-align: right;">energy_usage_kwh</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AmazonECS</td>
+<td>AmazonECS</td>
+<td>FargateTask</td>
+<td style="text-align: right;">1499.93</td>
+<td>NULL</td>
+<td style="text-align: right;">3784.91</td>
+</tr>
+<tr>
+<td>AmazonEC2</td>
+<td>AmazonEC2</td>
+<td>RunInstances</td>
+<td style="text-align: right;">1365.7</td>
+<td>433.57</td>
+<td style="text-align: right;">3068.87</td>
+</tr>
+<tr>
+<td>AmazonS3</td>
+<td>AmazonS3</td>
+<td>GlacierInstantRetrievalStorage</td>
+<td style="text-align: right;">554.85</td>
+<td>NULL</td>
+<td style="text-align: right;">1224.13</td>
+</tr>
+<tr>
+<td>AmazonS3</td>
+<td>AmazonS3</td>
+<td>OneZoneIAStorage</td>
+<td style="text-align: right;">249.22</td>
+<td>NULL</td>
+<td style="text-align: right;">548.48</td>
+</tr>
+<tr>
+<td>AmazonS3</td>
+<td>AmazonS3</td>
+<td>StandardStorage</td>
+<td style="text-align: right;">210.57</td>
+<td>NULL</td>
+<td style="text-align: right;">469.54</td>
+</tr>
+<tr>
+<td>AmazonEC2</td>
+<td>AmazonEC2</td>
+<td>CreateVolume-Gp3</td>
+<td style="text-align: right;">102.27</td>
+<td>NULL</td>
+<td style="text-align: right;">230.39</td>
+</tr>
+<tr>
+<td>AmazonEC2</td>
+<td>AmazonEC2</td>
+<td>RunInstances:SV001</td>
+<td style="text-align: right;">66.41</td>
+<td>3.27</td>
+<td style="text-align: right;">146.15</td>
+</tr>
+<tr>
+<td>AmazonDocDB</td>
+<td>AmazonDocDB</td>
+<td>CreateCluster</td>
+<td style="text-align: right;">49.93</td>
+<td>NULL</td>
+<td style="text-align: right;">109.89</td>
+</tr>
+<tr>
+<td>AmazonS3</td>
+<td>AmazonS3</td>
+<td>IntelligentTieringAIAStorage</td>
+<td style="text-align: right;">17.02</td>
+<td>NULL</td>
+<td style="text-align: right;">37.47</td>
+</tr>
+<tr>
+<td>AmazonEC2</td>
+<td>AmazonEC2</td>
+<td>CreateVolume-Gp2</td>
+<td style="text-align: right;">11.03</td>
+<td>NULL</td>
+<td style="text-align: right;">34.37</td>
+</tr>
+<tr>
+<td>AmazonS3</td>
+<td>AmazonS3</td>
+<td>StandardIAStorage</td>
+<td style="text-align: right;">9.02</td>
+<td>NULL</td>
+<td style="text-align: right;">19.85</td>
+</tr>
+<tr>
+<td>AmazonEC2</td>
+<td>AmazonEC2</td>
+<td>CreateSnapshot</td>
+<td style="text-align: right;">8.05</td>
+<td>NULL</td>
+<td style="text-align: right;">20.6</td>
+</tr>
+<tr>
+<td>AmazonECR</td>
+<td>AmazonECR</td>
+<td>TimedStorage-ByteHrs</td>
+<td style="text-align: right;">6.96</td>
+<td>NULL</td>
+<td style="text-align: right;">15.31</td>
+</tr>
+<tr>
+<td>AmazonEC2</td>
+<td>AWSDataTransfer</td>
+<td>RunInstances</td>
+<td style="text-align: right;">2.8</td>
+<td>NULL</td>
+<td style="text-align: right;">6.25</td>
+</tr>
+<tr>
+<td>AmazonS3</td>
+<td>AmazonS3</td>
+<td>OneZoneIASizeOverhead</td>
+<td style="text-align: right;">2.23</td>
+<td>NULL</td>
+<td style="text-align: right;">4.9</td>
+</tr>
+<tr>
+<td>AmazonS3</td>
+<td>AWSDataTransfer</td>
+<td>GetObjectForRepl</td>
+<td style="text-align: right;">1.84</td>
+<td>NULL</td>
+<td style="text-align: right;">4.06</td>
+</tr>
+<tr>
+<td>AmazonS3</td>
+<td>AWSDataTransfer</td>
+<td>UploadPartForRepl</td>
+<td style="text-align: right;">1.66</td>
+<td>NULL</td>
+<td style="text-align: right;">3.64</td>
+</tr>
+<tr>
+<td>AmazonS3</td>
+<td>AmazonS3</td>
+<td>DeleteObject</td>
+<td style="text-align: right;">1.45</td>
+<td>NULL</td>
+<td style="text-align: right;">3.2</td>
+</tr>
+<tr>
+<td>AmazonMQ</td>
+<td>AmazonMQ</td>
+<td>CreateBroker:0001</td>
+<td style="text-align: right;">1.16</td>
+<td>NULL</td>
+<td style="text-align: right;">2.55</td>
+</tr>
+<tr>
+<td>AmazonECR</td>
+<td>AmazonECR</td>
+<td>EUW2-TimedStorage-ByteHrs</td>
+<td style="text-align: right;">0.43</td>
+<td>NULL</td>
+<td style="text-align: right;">2.16</td>
+</tr>
+<tr>
+<td>AmazonS3</td>
+<td>AmazonS3</td>
+<td>StandardIASizeOverhead</td>
+<td style="text-align: right;">0.3</td>
+<td>NULL</td>
+<td style="text-align: right;">0.65</td>
+</tr>
+<tr>
+<td>AmazonS3</td>
+<td>AWSDataTransfer</td>
+<td>PutObjectForRepl</td>
+<td style="text-align: right;">0.19</td>
+<td>NULL</td>
+<td style="text-align: right;">0.42</td>
+</tr>
+<tr>
+<td>AWSBackup</td>
+<td>AWSBackup</td>
+<td>Storage</td>
+<td style="text-align: right;">0.13</td>
+<td>NULL</td>
+<td style="text-align: right;">0.64</td>
+</tr>
+<tr>
+<td>AmazonS3</td>
+<td>AmazonS3GlacierDeepArchive</td>
+<td>DeepArchiveStorage</td>
+<td style="text-align: right;">0.1</td>
+<td>NULL</td>
+<td style="text-align: right;">0.22</td>
+</tr>
+<tr>
+<td>AmazonS3</td>
+<td>AWSDataTransfer</td>
+<td>PutObject</td>
+<td style="text-align: right;">0.08</td>
+<td>NULL</td>
+<td style="text-align: right;">0.17</td>
+</tr>
+<tr>
+<td>AmazonECR</td>
+<td>AWSDataTransfer</td>
+<td>downloadLayer</td>
+<td style="text-align: right;">0.07</td>
+<td>NULL</td>
+<td style="text-align: right;">0.19</td>
+</tr>
+<tr>
+<td>AmazonEC2</td>
+<td>AWSDataTransfer</td>
+<td>PublicIP-In</td>
+<td style="text-align: right;">0.06</td>
+<td>NULL</td>
+<td style="text-align: right;">0.14</td>
+</tr>
+<tr>
+<td>AmazonCloudWatch</td>
+<td>AmazonCloudWatch</td>
+<td>HourlyStorageMetering</td>
+<td style="text-align: right;">0.02</td>
+<td>NULL</td>
+<td style="text-align: right;">0.05</td>
+</tr>
+<tr>
+<td>AmazonEFS</td>
+<td>AmazonEFS</td>
+<td>Storage</td>
+<td style="text-align: right;">0.01</td>
+<td>NULL</td>
+<td style="text-align: right;">0.03</td>
+</tr>
+</tbody>
+</table>
+<h3 id="cost-coverage">Cost coverage<a class="headerlink" href="#cost-coverage" title="Permanent link">&para;</a></h3>
+<p>To measure the proportion of the costs for which emissions were calculated</p>
+<div class="language-sql highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">select</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="n">round</span><span class="p">(</span><span class="n">covered</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">100</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="ss">&quot;total costs&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">percentage_costs_covered</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="k">from</span><span class="w"> </span><span class="p">(</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span><span class="k">select</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">    </span><span class="k">sum</span><span class="p">(</span><span class="n">line_item_unblended_cost</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="ss">&quot;total costs&quot;</span><span class="p">,</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">    </span><span class="k">sum</span><span class="p">(</span><span class="n">line_item_unblended_cost</span><span class="p">)</span><span class="w"> </span><span class="n">filter</span><span class="w"> </span><span class="p">(</span><span class="k">where</span><span class="w"> </span><span class="n">operational_emissions_co2eq_g</span><span class="w"> </span><span class="k">is</span><span class="w"> </span><span class="k">not</span><span class="w"> </span><span class="k">null</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">covered</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">  </span><span class="k">from</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">    </span><span class="n">enriched_curs</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">  </span><span class="k">where</span>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">    </span><span class="n">line_item_line_item_type</span><span class="w"> </span><span class="k">like</span><span class="w"> </span><span class="s1">&#39;%Usage&#39;</span>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="p">);</span>
+</span></code></pre></div>
+<p>The figure will vary depending on the services you use. We have measured up to <em>77%</em> coverage for some users. </p>
+<h3 id="breakdown-per-region">Breakdown per region<a class="headerlink" href="#breakdown-per-region" title="Permanent link">&para;</a></h3>
+<div class="language-sql highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">with</span><span class="w"> </span><span class="n">agg</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="p">(</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">    </span><span class="k">select</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">        </span><span class="n">region</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">region_code</span><span class="p">,</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">        </span><span class="k">sum</span><span class="p">(</span><span class="n">operational_emissions_co2eq_g</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">operational_emissions_g</span><span class="p">,</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">        </span><span class="k">sum</span><span class="p">(</span><span class="n">embodied_emissions_co2eq_g</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">embodied_emissions_g</span><span class="p">,</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">        </span><span class="k">sum</span><span class="p">(</span><span class="n">operational_energy_kwh</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">energy_kwh</span><span class="p">,</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">        </span><span class="k">sum</span><span class="p">(</span><span class="n">pricing_public_on_demand_cost</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">public_cost</span><span class="p">,</span>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">        </span><span class="k">avg</span><span class="p">(</span><span class="n">carbon_intensity</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">avg_carbon_intensity</span><span class="p">,</span>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">        </span><span class="k">avg</span><span class="p">(</span><span class="n">power_usage_effectiveness</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">pue</span>
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">    </span><span class="k">from</span><span class="w"> </span><span class="n">enriched_curs</span>
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">    </span><span class="k">where</span><span class="w"> </span><span class="n">operational_emissions_co2eq_g</span><span class="w"> </span><span class="k">is</span><span class="w"> </span><span class="k">not</span><span class="w"> </span><span class="k">null</span>
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="w">    </span><span class="k">group</span><span class="w"> </span><span class="k">by</span><span class="w"> </span><span class="mi">1</span>
+</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="p">)</span>
+</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="k">select</span>
+</span><span id="__span-6-15"><a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="w">    </span><span class="n">region_code</span><span class="p">,</span>
+</span><span id="__span-6-16"><a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="w">    </span><span class="n">round</span><span class="p">(</span><span class="n">operational_emissions_g</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">1000</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">co2_usage_kg</span><span class="p">,</span>
+</span><span id="__span-6-17"><a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="w">    </span><span class="n">round</span><span class="p">(</span><span class="n">energy_kwh</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">energy_usage_kwh</span><span class="p">,</span>
+</span><span id="__span-6-18"><a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a><span class="w">    </span><span class="n">round</span><span class="p">(</span><span class="n">avg_carbon_intensity</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">carbon_intensity</span><span class="p">,</span>
+</span><span id="__span-6-19"><a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a><span class="w">    </span><span class="n">round</span><span class="p">(</span><span class="n">pue</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">pue</span><span class="p">,</span>
+</span><span id="__span-6-20"><a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a><span class="w">    </span><span class="n">round</span><span class="p">((</span><span class="n">operational_emissions_g</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">embodied_emissions_g</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">public_cost</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">g_co2_per_dollar</span>
+</span><span id="__span-6-21"><a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a><span class="k">from</span><span class="w"> </span><span class="n">agg</span>
+</span><span id="__span-6-22"><a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a><span class="k">order</span><span class="w"> </span><span class="k">by</span><span class="w"> </span><span class="n">energy_usage_kwh</span><span class="w"> </span><span class="k">desc</span><span class="p">,</span><span class="w"> </span><span class="n">co2_usage_kg</span><span class="w"> </span><span class="k">desc</span><span class="p">,</span><span class="w"> </span><span class="n">region_code</span><span class="w"> </span><span class="k">desc</span><span class="p">;</span>
+</span></code></pre></div>
+<p><em>g_co2_per_dollar</em> being the total emissions (usage + embodied) divided by the public on demand cost.</p>
+<p>Below is an example of what the results might look like.</p>
+<table>
+<thead>
+<tr>
+<th>region_code</th>
+<th style="text-align: right;">co2_usage_kg</th>
+<th style="text-align: right;">energy_usage_kwh</th>
+<th style="text-align: right;">carbon_intensity</th>
+<th style="text-align: right;">pue</th>
+<th style="text-align: right;">g_co2_per_dollar</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>us-east-1</td>
+<td style="text-align: right;">9292.05</td>
+<td style="text-align: right;">17969.69</td>
+<td style="text-align: right;">400.33</td>
+<td style="text-align: right;">1.15</td>
+<td style="text-align: right;">33.94</td>
+</tr>
+<tr>
+<td>us-east-2</td>
+<td style="text-align: right;">1569.79</td>
+<td style="text-align: right;">3089.49</td>
+<td style="text-align: right;">400.33</td>
+<td style="text-align: right;">1.13</td>
+<td style="text-align: right;">164.47</td>
+</tr>
+<tr>
+<td>eu-west-2</td>
+<td style="text-align: right;">583.54</td>
+<td style="text-align: right;">2674.09</td>
+<td style="text-align: right;">175.03</td>
+<td style="text-align: right;">1.11</td>
+<td style="text-align: right;">22.32</td>
+</tr>
+<tr>
+<td>eu-north-1</td>
+<td style="text-align: right;">0.35</td>
+<td style="text-align: right;">13.95</td>
+<td style="text-align: right;">20.42</td>
+<td style="text-align: right;">1.1</td>
+<td style="text-align: right;">6.84</td>
+</tr>
+</tbody>
+</table>
+<h3 id="breakdown-per-user-tag">Breakdown per user tag<a class="headerlink" href="#breakdown-per-user-tag" title="Permanent link">&para;</a></h3>
+<p><a href="https://docs.aws.amazon.com/tag-editor/latest/userguide/tagging.html">User tags</a> are how environmental impacts can be allocated to a business unit, team, product, environment etc... It is as fundamental for a GreenOps practice as it is for <a href="https://www.finops.org/wg/cloud-cost-allocation/">FinOps</a>.
+By enriching data at the finest possible level, SPRUCE allows to aggregate the impacts by the tags that are relevant for a given organisation. The syntax to do so for a tag <code>cost_category_top_level</code> would be for instance </p>
+<div class="language-sql highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">select</span><span class="w"> </span><span class="n">resource_tags</span><span class="p">[</span><span class="s1">&#39;cost_category_top_level&#39;</span><span class="p">],</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">       </span><span class="n">round</span><span class="p">(</span><span class="k">sum</span><span class="p">(</span><span class="n">operational_energy_kwh</span><span class="p">),</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">energie_kwh</span><span class="p">,</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">       </span><span class="n">round</span><span class="p">(</span><span class="k">sum</span><span class="p">(</span><span class="n">operational_emissions_co2eq_g</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">1000</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">operational_kg</span><span class="p">,</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">       </span><span class="n">round</span><span class="p">(</span><span class="k">sum</span><span class="p">(</span><span class="n">embodied_emissions_co2eq_g</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">1000</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="w">    </span><span class="k">as</span><span class="w"> </span><span class="n">embodied_kg</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">       </span><span class="k">from</span><span class="w"> </span><span class="n">enriched_curs</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">       </span><span class="k">group</span><span class="w"> </span><span class="k">by</span><span class="w"> </span><span class="mi">1</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">       </span><span class="k">order</span><span class="w"> </span><span class="k">by</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="k">desc</span><span class="p">;</span>
+</span></code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-circle-arrow-up" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16 12-4-4-4 4M12 16V8"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../with-spark/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Quick start using Apache Spark⚡">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7M19 12H5"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Quick start using Apache Spark⚡
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../../methodology/" class="md-footer__link md-footer__link--next" aria-label="Next: Methodology">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Methodology
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 DigitalPebble Ltd
+
+    </div>
+  
+  
+    Made with
+    <a href="https://zensical.org/" target="_blank" rel="noopener">
+      Zensical
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["announce.dismiss","content.code.annotate","content.code.copy","content.code.select","content.footnote.tooltips","content.tabs.link","content.tooltips","navigation.footer","navigation.indexes","navigation.instant","navigation.instant.prefetch","navigation.path","navigation.sections","navigation.top","navigation.tracking","search.highlight"],"search":"../../assets/javascripts/workers/search.b6b7e04f.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"alias":true,"default":"latest","provider":"mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7f30b55.min.js"></script>
+      
+    
+  </body>
+</html>
