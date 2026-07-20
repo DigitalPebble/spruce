@@ -690,17 +690,14 @@ def render_header() -> None:
         if logo_src
         else ""
     )
-    st.markdown(
-        f"""
-        <div class="spruce-header">
-            {logo_html}
-            <div>
-                <h1>SPRUCE dashboard</h1>
-                <p>Scalable Platform for Reporting Usage and Cloud Emissions</p>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
+    render_html(
+        f"""<div class="spruce-header">
+{logo_html}
+<div>
+<h1>SPRUCE dashboard</h1>
+<p>Scalable Platform for Reporting Usage and Cloud Emissions</p>
+</div>
+</div>"""
     )
 
 
