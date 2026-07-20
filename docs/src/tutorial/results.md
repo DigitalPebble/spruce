@@ -37,6 +37,17 @@ python reporting/report.py -i s3://my-bucket/spruced/ -o report.html
 | `-o / --output` | stdout | Output file; format inferred from suffix (`.md`, `.html`, `.pdf`) |
 | `-t / --top-tags` | 10 | Maximum number of resource tags offered for interactive breakdown |
 
+
+### Docker
+
+Instead of installing Python and its dependencies, you can simply use the Docker image to generate the reports:
+
+```shell
+docker run -it --rm -v $(pwd):/workspace -w /workspace \
+ghcr.io/digitalpebble/spruce \
+report -i output -o report.html
+```
+
 ### What it produces
 
 The report covers the following sections, drawn from the queries documented below:

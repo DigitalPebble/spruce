@@ -69,7 +69,7 @@ so you can generate a report or explore the enriched output interactively withou
 Generate a static report (format inferred from the suffix: `.md`, `.html` or `.pdf`):
 
 ```shell
-docker run --rm -v $(pwd):/workspace -w /workspace \
+docker run -it --rm -v $(pwd):/workspace -w /workspace \
 ghcr.io/digitalpebble/spruce \
 report -i output -o report.html
 ```

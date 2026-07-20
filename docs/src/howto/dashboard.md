@@ -45,6 +45,17 @@ If `output/synth.parquet` already exists, pass `--force` to overwrite it:
 python scripts/gen_synthetic.py -o output/synth.parquet --force
 ```
 
+## Docker
+
+Instead of installing Python and the prerequisites above, you can simply use the Docker image to 
+launch the interactive dashboard, then open [http://localhost:8501](http://localhost:8501):
+
+```shell
+docker run --rm -p 8501:8501 -v $(pwd):/workspace -w /workspace \
+ghcr.io/digitalpebble/spruce \
+dashboard -i output
+```
+
 ## What it shows
 
 | Section | What it shows |
