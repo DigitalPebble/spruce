@@ -1,9 +1,9 @@
-FROM maven:3.9.12-eclipse-temurin-17 AS build
+FROM maven:3.9.16-eclipse-temurin-21 AS build
 COPY src /home/app/src
 COPY pom.xml /home/app
 RUN mvn -B -ntp -Dmaven.test.skip=true -f /home/app/pom.xml clean package
 
-FROM apache/spark:4.1.2-java17
+FROM apache/spark:4.2.0-java21-python3
 
 USER root
 # python3-venv for the reporting tools; pango/cairo/gdk-pixbuf and fonts for
