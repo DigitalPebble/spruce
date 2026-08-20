@@ -13,7 +13,7 @@ case "$1" in
       --browser.gatherUsageStats=false -- "$@"
     ;;
   *)
-    exec /opt/spark/bin/spark-submit --driver-memory 4g --master "local[*]" \
+    exec /opt/spark/bin/spark-submit --driver-memory "${SPRUCE_DRIVER_MEMORY:-4g}" --master "local[*]" \
       /usr/local/lib/spruce.jar "$@"
     ;;
 esac
