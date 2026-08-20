@@ -61,6 +61,32 @@ The options `-p` (cloud provider) and `-f` (report format) are described in [Qui
 The directory _output_ contains an enriched copy of the input reports. See [Explore the results](results.md) to understand
 what the output contains.
 
+## Allocating more memory
+
+The container runs SPRUCE with Spark in local mode, where a single JVM (the Spark driver) does all
+the work. It defaults to 4 GB of heap, which is enough for the tutorial data but can be too little
+for large reports — typically showing up as `java.lang.OutOfMemoryError: Java heap space` or as jobs
+slowing down to a crawl in garbage collection.
+
+Set the `SPRUCE_DRIVER_MEMORY` environment variable to give the driver a larger heap:
+
+```shell
+docker run --rm -v $(pwd):/workspace -w /workspace \
+-e SPRUCE_DRIVER_MEMORY=16g \
+ghcr.io/digitalpebble/spruce \
+-i curs -o output
+```
+
+The value is passed to `spark-submit --driver-memory`, so it takes the usual Spark suffixes
+(`512m`, `8g`, ...).
+
+Make sure the container is actually allowed to use that much: on Docker Desktop the VM has its own
+memory limit, and if you constrain the container with `--memory`, keep the heap comfortably below it
+so there is room for the JVM's off-heap memory.
+
+`SPRUCE_DRIVER_MEMORY` only applies to the enrichment job. The `report` and `dashboard` commands do
+not run Spark and ignore it.
+
 ## Reporting with Docker
 
 The same image contains the [reporting tools](https://github.com/DigitalPebble/spruce/tree/main/reporting),
