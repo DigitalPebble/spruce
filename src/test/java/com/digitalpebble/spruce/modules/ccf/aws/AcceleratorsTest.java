@@ -43,7 +43,12 @@ class AcceleratorsTest {
             Arguments.of("g5.xlarge", "RunInstances", "AmazonEC2", 2.0d, 0.171d),
             Arguments.of("g4dn.xlarge", "RunInstances", "AmazonEC2", 1.0d, 0.0395d),
             Arguments.of("c5.xlarge", "RunInstances", "AmazonEC2", 1.0d, null),
-            Arguments.of("g6.8xlarge", "RunInstances", "AmazonEC2", 1.0d, 0.04d)
+            Arguments.of("g6.8xlarge", "RunInstances", "AmazonEC2", 1.0d, 0.04d),
+            // fractional GPUs: an L4 at 50% draws 40W, g6f.large gets an eighth of it
+            Arguments.of("g6f.large", "RunInstances", "AmazonEC2", 1.0d, 0.005d),
+            Arguments.of("g6f.2xlarge", "RunInstances", "AmazonEC2", 1.0d, 0.01d),
+            Arguments.of("g6f.4xlarge", "RunInstances", "AmazonEC2", 2.0d, 0.04d),
+            Arguments.of("gr6f.4xlarge", "RunInstances", "AmazonEC2", 1.0d, 0.02d)
         );
     }
 
@@ -61,6 +66,19 @@ class AcceleratorsTest {
         } else {
             assertFalse(enriched.containsKey(ENERGY_USED));
         }
+    }
+
+    /** The utilisation rate can be given as a float in the configuration. */
+    @Test
+    void fractionalUtilisationPercent() {
+        Accelerators module = new Accelerators();
+        module.init(Map.of("gpu_utilisation_percent", 12.5d));
+        assertEquals(12.5d, module.gpu_utilisation_percent, 0.0001);
+        // A10G: 18 + 0.125 * (153 - 18) = 34.875W
+        Object[] values = new Object[]{"g5.xlarge", "RunInstances", "AmazonEC2", 1.0d, null};
+        Map<Column, Object> enriched = new HashMap<>();
+        module.enrich(new GenericRowWithSchema(values, schema), enriched);
+        assertEquals(0.034875d, (Double) enriched.get(ENERGY_USED), 0.0001);
     }
 
     /**
@@ -95,6 +113,12 @@ class AcceleratorsTest {
         void processGpuInstance() {
             Map<Column, Object> enriched = enrich("EUW2-BoxUsage:g5.xlarge", "RunInstances", "AmazonEC2", 1.0d);
             assertEquals(0.0855d, (Double) enriched.get(ENERGY_USED), 0.0001);
+        }
+
+        @Test
+        void processFractionalGpuInstance() {
+            Map<Column, Object> enriched = enrich("EUW2-BoxUsage:g6f.large", "RunInstances", "AmazonEC2", 1.0d);
+            assertEquals(0.005d, (Double) enriched.get(ENERGY_USED), 0.0001);
         }
 
         @Test

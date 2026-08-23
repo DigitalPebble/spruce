@@ -31,7 +31,7 @@ public class Accelerators implements EnrichmentModule {
 
     private static final Logger LOG = LoggerFactory.getLogger(Accelerators.class);
 
-    public int gpu_utilisation_percent = 50;
+    public double gpu_utilisation_percent = 50;
     public Map<String, Map> gpu_instance_types;
     public Map<String, Map> gpu_info;
 
@@ -56,9 +56,9 @@ public class Accelerators implements EnrichmentModule {
 
     public void init(Map<String, Object> params) {
         // specify a gpu utilisation
-        Integer val = (Integer) params.get("gpu_utilisation_percent");
+        Number val = (Number) params.get("gpu_utilisation_percent");
         if (val != null) {
-            gpu_utilisation_percent = val;
+            gpu_utilisation_percent = val.doubleValue();
         }
         LOG.info("gpu_utilisation_percent: {}", gpu_utilisation_percent);
 
@@ -125,15 +125,16 @@ public class Accelerators implements EnrichmentModule {
         }
 
         String gpu = instanceTypeInfo.get("type").toString();
-        int quantity = (Integer)instanceTypeInfo.get("quantity");
+        // instance types can expose a fraction of a physical GPU, e.g. 0.25
+        double quantity = ((Number) instanceTypeInfo.get("quantity")).doubleValue();
 
         // get the min max range for the GPU
-        int minWatts = (Integer) gpu_info.get(gpu).get("min");
-        int maxWatts = (Integer) gpu_info.get(gpu).get("max");
+        double minWatts = ((Number) gpu_info.get(gpu).get("min")).doubleValue();
+        double maxWatts = ((Number) gpu_info.get(gpu).get("max")).doubleValue();
 
         // work out the estimated usage
         // minWatts + (gpu_utilisation_percent / 100) * (maxWatts - minWatts)
-        double energy_used = minWatts + ((double) gpu_utilisation_percent / 100) * (maxWatts - minWatts);
+        double energy_used = minWatts + (gpu_utilisation_percent / 100) * (maxWatts - minWatts);
 
         double amount = usageAmount.getDouble(row);
 
