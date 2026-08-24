@@ -2,3 +2,6 @@
 # Key is the model key extracted from line_item_usage_type (e.g. EUN1-Claude-output-tokens → Claude)
 label,provider,model_name
 Claude,test-provider,test-claude
+# Azure meter labels (AzureFoundryTokenEcoLogitsTest) - lowercased words extracted from MeterName
+gpt 5,test-provider,test-claude
+5 mini,test-provider,test-claude
