@@ -3,7 +3,8 @@
     "description": "GPU info for instance types",
     "sources": [
       "https://github.com/cloud-carbon-footprint/cloud-carbon-footprint/blob/trunk/packages/aws/src/lib/AWSInstanceTypes.ts#L1449",
-      "https://github.com/cloud-carbon-footprint/cloud-carbon-footprint/blob/trunk/packages/aws/src/domain/AwsFootprintEstimationConstants.ts#L97C1-L106C56"
+      "https://github.com/cloud-carbon-footprint/cloud-carbon-footprint/blob/trunk/packages/aws/src/domain/AwsFootprintEstimationConstants.ts#L97C1-L106C56",
+      "https://aws.amazon.com/ec2/instance-types/g6/ (g6f/gr6f fractional vGPU sizes)"
     ]
   },
   "GPU_INSTANCES_TYPES": {
@@ -229,6 +230,26 @@
     },
     "g6.48xlarge": {
       "quantity": 8,
+      "type": "NVIDIA_L4"
+    },
+    "g6f.large": {
+      "quantity": 0.125,
+      "type": "NVIDIA_L4"
+    },
+    "g6f.xlarge": {
+      "quantity": 0.125,
+      "type": "NVIDIA_L4"
+    },
+    "g6f.2xlarge": {
+      "quantity": 0.25,
+      "type": "NVIDIA_L4"
+    },
+    "g6f.4xlarge": {
+      "quantity": 0.5,
+      "type": "NVIDIA_L4"
+    },
+    "gr6f.4xlarge": {
+      "quantity": 0.5,
       "type": "NVIDIA_L4"
     },
     "g6e.xlarge": {

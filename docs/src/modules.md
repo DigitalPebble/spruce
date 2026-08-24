@@ -145,6 +145,10 @@ Estimates the energy used by accelerators (GPUs), following the approach of the
 project: the power draw is interpolated between the minimum and maximum wattage of the
 accelerator at an assumed utilisation rate.
 
+Instance types which expose only a fraction of a physical GPU (e.g. `g6f.large`, which gets an
+eighth of an NVIDIA L4) are supported: their share of the GPU is a decimal number and the power
+draw is scaled accordingly.
+
 | | |
 |---|---|
 | **Class** | `com.digitalpebble.spruce.modules.ccf.aws.Accelerators` |
@@ -154,7 +158,7 @@ accelerator at an assumed utilisation rate.
 
 | Key | Default | Description |
 |---|---|---|
-| `gpu_utilisation_percent` | 50 | Assumed GPU utilisation rate |
+| `gpu_utilisation_percent` | 50 | Assumed GPU utilisation rate; decimals are allowed (e.g. `12.5`) |
 
 ### Compute — Boavizta
 
