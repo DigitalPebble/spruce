@@ -225,6 +225,27 @@ Accelerators module remains the only source of GPU electricity) and whether
 the bundled `instanceTypes.csv` needs regenerating with
 `com.digitalpebble.spruce.modules.boavizta.APITester`.
 
+### `compare_gpu_accelerators_aws.py`
+
+Checks the same `accelerators.json` against the instance types EC2 actually
+offers, so that new GPU generations don't silently go without an
+`operational_energy_kwh` estimate. Reports instance types AWS offers that the
+file doesn't cover (and whether their GPU model already has wattage data in
+`GPU_INFO`), instance types the queried regions no longer offer, disagreements
+on the GPU count — fractional GPUs included, e.g. `g6f.large` gets 0.125 of an
+L4 — or on the GPU model, plus unused or undefined `GPU_INFO` entries.
+
+Instance types are region-specific, so pass every region you care about:
+
+```sh
+python3 scripts/compare_gpu_accelerators_aws.py --region us-east-1 --region eu-west-2
+```
+
+Needs the AWS CLI with credentials allowing `ec2:DescribeInstanceTypes`, a
+read-only call. `--strict` exits 1 when something is missing or disagrees
+(instance types simply not offered in the queried regions don't count), which
+is what you want if this ever runs in CI.
+
 ## Requirements
 
 - `bash` 4+
@@ -232,6 +253,7 @@ the bundled `instanceTypes.csv` needs regenerating with
 - `jq`
 - `awk` (BSD awk on macOS or GNU awk both work)
 - Python 3.8+, `openpyxl` (`pip install openpyxl`)
+- AWS CLI with credentials, for `compare_gpu_accelerators_aws.py` only
 - Network access to `files.ember-energy.org`, `cloudinfrastructuremap.com`,
   `files.wri.org`, and `nominatim.openstreetmap.org`.
 

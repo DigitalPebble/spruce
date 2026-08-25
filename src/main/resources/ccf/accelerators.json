@@ -3,7 +3,8 @@
     "description": "GPU info for instance types",
     "sources": [
       "https://github.com/cloud-carbon-footprint/cloud-carbon-footprint/blob/trunk/packages/aws/src/lib/AWSInstanceTypes.ts#L1449",
-      "https://github.com/cloud-carbon-footprint/cloud-carbon-footprint/blob/trunk/packages/aws/src/domain/AwsFootprintEstimationConstants.ts#L97C1-L106C56"
+      "https://github.com/cloud-carbon-footprint/cloud-carbon-footprint/blob/trunk/packages/aws/src/domain/AwsFootprintEstimationConstants.ts#L97C1-L106C56",
+      "https://aws.amazon.com/ec2/instance-types/g6/ (g6f/gr6f fractional vGPU sizes)"
     ]
   },
   "GPU_INSTANCES_TYPES": {
@@ -62,6 +63,10 @@
     "p6-b200.48xlarge": {
       "quantity": 8,
       "type": "NVIDIA_B200"
+    },
+    "p6-b300.48xlarge": {
+      "quantity": 8,
+      "type": "NVIDIA_B300"
     },
     "g2.2xlarge": {
       "quantity": 1,
@@ -169,27 +174,27 @@
     },
     "g5g.xlarge": {
       "quantity": 1,
-      "type": "NVIDIA_T4"
+      "type": "NVIDIA_T4G"
     },
     "g5g.2xlarge": {
       "quantity": 1,
-      "type": "NVIDIA_T4"
+      "type": "NVIDIA_T4G"
     },
     "g5g.4xlarge": {
       "quantity": 1,
-      "type": "NVIDIA_T4"
+      "type": "NVIDIA_T4G"
     },
     "g5g.8xlarge": {
       "quantity": 1,
-      "type": "NVIDIA_T4"
+      "type": "NVIDIA_T4G"
     },
     "g5g.16xlarge": {
       "quantity": 2,
-      "type": "NVIDIA_T4"
+      "type": "NVIDIA_T4G"
     },
     "g5g.metal": {
       "quantity": 2,
-      "type": "NVIDIA_T4"
+      "type": "NVIDIA_T4G"
     },
     "g6.xlarge": {
       "quantity": 1,
@@ -231,6 +236,26 @@
       "quantity": 8,
       "type": "NVIDIA_L4"
     },
+    "g6f.large": {
+      "quantity": 0.125,
+      "type": "NVIDIA_L4"
+    },
+    "g6f.xlarge": {
+      "quantity": 0.125,
+      "type": "NVIDIA_L4"
+    },
+    "g6f.2xlarge": {
+      "quantity": 0.25,
+      "type": "NVIDIA_L4"
+    },
+    "g6f.4xlarge": {
+      "quantity": 0.5,
+      "type": "NVIDIA_L4"
+    },
+    "gr6f.4xlarge": {
+      "quantity": 0.5,
+      "type": "NVIDIA_L4"
+    },
     "g6e.xlarge": {
       "quantity": 1,
       "type": "NVIDIA_L40S"
@@ -262,6 +287,54 @@
     "g6e.48xlarge": {
       "quantity": 8,
       "type": "NVIDIA_L40S"
+    },
+    "g7.2xlarge": {
+      "quantity": 1,
+      "type": "NVIDIA_RTX_PRO_4500"
+    },
+    "g7.4xlarge": {
+      "quantity": 1,
+      "type": "NVIDIA_RTX_PRO_4500"
+    },
+    "g7.8xlarge": {
+      "quantity": 1,
+      "type": "NVIDIA_RTX_PRO_4500"
+    },
+    "g7.12xlarge": {
+      "quantity": 2,
+      "type": "NVIDIA_RTX_PRO_4500"
+    },
+    "g7.24xlarge": {
+      "quantity": 4,
+      "type": "NVIDIA_RTX_PRO_4500"
+    },
+    "g7.48xlarge": {
+      "quantity": 8,
+      "type": "NVIDIA_RTX_PRO_4500"
+    },
+    "g7e.2xlarge": {
+      "quantity": 1,
+      "type": "NVIDIA_RTX_PRO_Server_6000"
+    },
+    "g7e.4xlarge": {
+      "quantity": 1,
+      "type": "NVIDIA_RTX_PRO_Server_6000"
+    },
+    "g7e.8xlarge": {
+      "quantity": 1,
+      "type": "NVIDIA_RTX_PRO_Server_6000"
+    },
+    "g7e.12xlarge": {
+      "quantity": 2,
+      "type": "NVIDIA_RTX_PRO_Server_6000"
+    },
+    "g7e.24xlarge": {
+      "quantity": 4,
+      "type": "NVIDIA_RTX_PRO_Server_6000"
+    },
+    "g7e.48xlarge": {
+      "quantity": 8,
+      "type": "NVIDIA_RTX_PRO_Server_6000"
     }
   },
   "GPU_INFO": {
@@ -274,6 +347,10 @@
       "max": 153
     },
     "NVIDIA_T4": {
+      "min": 8,
+      "max": 71
+    },
+    "NVIDIA_T4G": {
       "min": 8,
       "max": 71
     },
@@ -303,6 +380,16 @@
       "min": 46,
       "max": 407
     },
+    "NVIDIA_RTX_PRO_4500": {
+      "source": "https://www.techpowerup.com/gpu-specs/rtx-pro-4500-blackwell-workstation.c4278; https://news.ycombinator.com/item?id=47885644",
+      "min": 9,
+      "max": 200
+    },
+    "NVIDIA_RTX_PRO_Server_6000": {
+      "source": "https://versus.com/en/nvidia-rtx-pro-4500-blackwell-vs-nvidia-rtx-pro-6000-blackwell-server-edition#record",
+      "min": 20,
+      "max": 600
+    },
     "NVIDIA_H100": {
       "source": "https://www.nvidia.com/en-us/data-center/h100/ (SXM TDP; min is an idle estimate)",
       "min": 60,
@@ -312,6 +399,11 @@
       "source": "https://www.nvidia.com/en-us/data-center/h200/ (SXM TDP; min is an idle estimate)",
       "min": 60,
       "max": 700
+    },
+    "NVIDIA_B300": {
+      "source": "https://www.nvidia.com/en-gb/data-center/dgx-b300/ (TDP; min is an idle estimate)",
+      "min": 180,
+      "max": 1400
     },
     "NVIDIA_B200": {
       "source": "https://www.nvidia.com/en-us/data-center/dgx-b200/ (TDP; min is an idle estimate)",
