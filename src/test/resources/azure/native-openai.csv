@@ -1,0 +1,7 @@
+Date,ChargeType,MeterCategory,MeterSubCategory,MeterName,UnitOfMeasure,Quantity,CostInBillingCurrency,SubscriptionId,ResourceLocation,Tags
+2026-08-01,Usage,Azure OpenAI,gpt-5,GPT 5 outpt Glbl 1M Tokens,1M,1000000,22.0,sub-1,swedencentral,
+2026-08-01,Usage,Azure OpenAI,gpt-5,5 mini pp Inp Gl 1M Tokens,1M,3000000,1.5,sub-1,swedencentral,
+2026-08-01,Usage,Azure OpenAI,gpt image,gpt img 1.5 out img DZ 1M Tokens,1M,2000000,4.0,sub-1,swedencentral,
+2026-08-01,Usage,Azure OpenAI,Code Interpreter,Code-Interpreter-global Session,1,5,0.15,sub-1,swedencentral,
+2026-08-01,Usage,Azure OpenAI,gpt-4.1,gpt 4.1 Outp regnl Tokens,1K,2000,0.02,sub-1,swedencentral,
+2026-08-01,Purchase,Azure OpenAI,gpt-5,GPT 5 outpt Glbl 1M Tokens,1M,7000000,70.0,sub-1,swedencentral,
