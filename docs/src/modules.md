@@ -43,7 +43,7 @@ flowchart LR
 | [Serverless](#serverless) | AWS | `operational_energy_kwh` | [Tailpipe](https://tailpipe.ai/methodology/serverless-explained/) |
 | [Accelerators](#accelerators) | AWS | `operational_energy_kwh` | [Cloud Carbon Footprint](https://www.cloudcarbonfootprint.org/) |
 | [Compute — Boavizta](#compute-boavizta) | AWS, Azure | `operational_energy_kwh`, `embodied_emissions_co2eq_g`, `embodied_adp_sbeq_g` | [BoaviztAPI](https://doc.api.boavizta.org/) |
-| [LLM inference — EcoLogits](#llm-inference-ecologits) | AWS | `operational_energy_kwh`, `embodied_emissions_co2eq_g` | [EcoLogits](https://ecologits.ai/) |
+| [LLM inference — EcoLogits](#llm-inference-ecologits) | AWS, Azure | `operational_energy_kwh`, `embodied_emissions_co2eq_g` | [EcoLogits](https://ecologits.ai/) |
 | [PWUE](#pwue) | AWS, Azure | `power_usage_effectiveness`, `water_usage_effectiveness` | Provider-published data |
 | [AverageCarbonIntensity](#averagecarbonintensity) | AWS, Azure | `carbon_intensity` | [Ember](https://ember-energy.org/) |
 | [OperationalEmissions](#operationalemissions) | AWS, Azure | `operational_emissions_co2eq_g` | — |
@@ -190,21 +190,34 @@ Each provider has two variants:
 
 ### LLM inference — EcoLogits
 
-Estimates the energy consumption and embodied emissions of LLM inference on **AWS Bedrock**,
-based on static per-model coefficients derived from the [EcoLogits](https://ecologits.ai/)
-project. Like `BoaviztAPIstatic`, a static data file bundled in the JAR is loaded at
-initialisation time; the module then matches Bedrock CUR rows to per-model coefficients.
+Estimates the energy consumption and embodied emissions of LLM inference on **AWS Bedrock**
+and **Azure AI Foundry** (initially the Azure OpenAI models), based on static per-model
+coefficients derived from the [EcoLogits](https://ecologits.ai/) project. Like `BoaviztAPIstatic`, a static data file
+bundled in the JAR is loaded at initialisation time; the modules then match billing rows to
+per-model coefficients.
 
-The module parses the `line_item_usage_type` field (format:
+**BedrockEcoLogits** parses the `line_item_usage_type` field (format:
 `{REGION}-{ModelKey}-{input|output}-tokens[-batch]`) to extract both the model key and the
 token type, then normalises the token count from `pricing_unit` (handling real-world values
 such as `1K tokens` or `1M tokens`). Only output-token rows are scored — the EcoLogits
 methodology attributes ~all generation cost to the autoregressive output phase, so
 input-token rows are skipped.
 
+**AzureFoundryTokenEcoLogits** does the same for token meters billed under the `Azure OpenAI` (or
+newer `Foundry Models`) category: the model label and token direction are extracted from
+`MeterName` (e.g. `GPT 5 outpt Glbl 1M Tokens`) and the token count is read from `Quantity`
+(`ConsumedQuantity` in FOCUS reports). Both hold the number of tokens consumed: the `1K`/`1M`
+unit in `UnitOfMeasure` only describes the pricing block and does not scale the quantity —
+Microsoft's FOCUS conversion defines `ConsumedQuantity = Quantity` and
+`ContractedCost = UnitPrice × Quantity / x_PricingBlockSize`. Provisioned throughput (PTU),
+hourly hosting and fine-tuning meters are not token-based and are not covered. The other
+Foundry model families (Mistral, Cohere, Llama, ...) bill through the same kind of token
+meters and only need `mapping.csv` entries verified against real exports — the module
+initially ships with Azure OpenAI mappings.
+
 | | |
 |---|---|
-| **Class** | `com.digitalpebble.spruce.modules.ecologits.BedrockEcoLogits` |
+| **Classes** | `com.digitalpebble.spruce.modules.ecologits.BedrockEcoLogits`<br>`com.digitalpebble.spruce.modules.ecologits.AzureFoundryTokenEcoLogits` |
 | **Writes** | `operational_energy_kwh`, `embodied_emissions_co2eq_g` |
 
 !!! note "Batch size assumption"
