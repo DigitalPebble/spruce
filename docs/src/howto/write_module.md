@@ -1,4 +1,9 @@
-# Write a New Module
+---
+title: "Write a new enrichment module"
+description: "Extend SPRUCE with your own EnrichmentModule to cover a new cloud service or a different estimation model."
+---
+
+# Write a new enrichment module
 
 An `EnrichmentModule` is the unit of extension in SPRUCE. Each module reads columns from
 the CUR input row and/or from values set by earlier modules, then writes its results into a

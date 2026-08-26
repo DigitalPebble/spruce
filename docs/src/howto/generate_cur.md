@@ -1,4 +1,9 @@
-# Generate usage reports
+---
+title: "Generate AWS CUR and Azure FOCUS billing exports"
+description: "Step by step: produce the billing exports SPRUCE needs from AWS Data Exports and Azure Cost Management, in the native or the FOCUS format."
+---
+
+# Generate AWS CUR, Azure cost details and FOCUS exports
 
 SPRUCE takes the billing exports produced by the cloud providers as input, either in the
 provider's native format or in the provider-neutral [FOCUS](https://focus.finops.org/)

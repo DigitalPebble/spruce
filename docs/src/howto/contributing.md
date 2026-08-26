@@ -1,3 +1,8 @@
+---
+title: "Contribute to SPRUCE"
+description: "How to report issues, propose changes and submit pull requests to the SPRUCE open source GreenOps project."
+---
+
 # Contribute to SPRUCE
 
 Thank you for your intention to contribute to SPRUCE. As an open-source community, we highly appreciate contributions to our project.

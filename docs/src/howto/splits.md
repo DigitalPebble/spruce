@@ -1,4 +1,9 @@
-# Split Impact Allocation Data
+---
+title: "Allocate shared cloud emissions across teams"
+description: "Use AWS Split Cost Allocation Data so the emissions of shared resources such as ECS and EKS are attributed to the workloads that caused them."
+---
+
+# Split Impact Allocation Data: attribute shared emissions to workloads
 
 ## SCAD
 

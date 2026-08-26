@@ -1,4 +1,9 @@
-# Quick start using Apache Spark⚡
+---
+title: "Run cloud carbon estimates on Apache Spark"
+description: "Enrich AWS CUR v2 and Azure cost exports with carbon, energy and water estimates using Apache Spark, locally or on a cluster."
+---
+
+# Quick start: cloud carbon estimates with Apache Spark ⚡
 
 Instead of using a container, you can run SPRUCE directly on [Apache Spark](https://spark.apache.org/) either locally or on a cluster.
 

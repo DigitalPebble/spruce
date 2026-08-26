@@ -1,3 +1,8 @@
+---
+title: "Run carbon estimates on AWS EMR Serverless"
+description: "Process Cost and Usage Reports at scale on AWS EMR Serverless so your billing data never leaves your own AWS account."
+---
+
 # Run SPRUCE on AWS EMR Serverless
 
 One of the benefits of using SPRUCE is that you can enrich usage reports within AWS without having to expose any of your data to an API or external service.
@@ -62,7 +67,7 @@ aws emr-serverless start-job-run \
 ```
 
 where `application-id` is the one you got when creating the application above.
-`entryPoint` is the location of the SPRUCE jar. The _entryPointArguments_ are where you specify the inputs and outputs of SPRUCE, as explained in the [tutorial](../tutorial/with-spark.md).
+`entryPoint` is the location of the SPRUCE jar. The _entryPointArguments_ are where you specify the inputs and outputs of SPRUCE, as explained in the [Apache Spark quick start](../tutorial/with-spark.md).
 
 Note the _job run ID_ returned in the output.
 
@@ -76,7 +81,7 @@ aws emr-serverless get-job-run \
     --job-run-id job-run-id
 ```
 
-Look at the tutorial for examples of how to [query](../tutorial/results.md) the enriched usage reports.
+Look at the tutorial for examples of how to [query the enriched usage reports](../tutorial/results.md).
 
 ## Use the AWS Console
 

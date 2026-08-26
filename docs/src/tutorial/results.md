@@ -1,4 +1,9 @@
-# Explore the results 🔎
+---
+title: "Query cloud carbon emissions by service and region"
+description: "Explore SPRUCE output with DuckDB and Streamlit: carbon emissions, energy, water and cost broken down by service, account, region and tag."
+---
+
+# Explore your cloud carbon emissions data 🔎
 
 ## Interactive dashboard
 

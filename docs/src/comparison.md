@@ -1,4 +1,9 @@
-# Comparison with other open source tools
+---
+title: "Cloud Carbon Footprint alternatives"
+description: "Cloud Carbon Footprint is no longer maintained. Compare SPRUCE with CCF, Boavizta CloudScanner, Kepler and Scaphandre for measuring cloud carbon emissions."
+---
+
+# Cloud Carbon Footprint alternatives and other open source cloud carbon tools
 
 SPRUCE is part of a growing ecosystem of open source tools focused on measuring and reducing the environmental impact of cloud computing. This page compares SPRUCE with other notable open source projects in this space.
 

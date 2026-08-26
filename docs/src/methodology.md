@@ -1,4 +1,9 @@
-# Methodology
+---
+title: "How cloud carbon and water estimates are calculated"
+description: "The methodology behind SPRUCE: embodied emissions from Boavizta, energy models from Cloud Carbon Footprint, Ember grid carbon intensity, PUE and WUE."
+---
+
+# How SPRUCE calculates cloud carbon, energy and water estimates
 
 SPRUCE uses third-party resources and models to estimate the environmental impact of cloud services. It enriches usage reports — AWS CUR, Azure cost details, or [FOCUS](https://focus.finops.org/) exports from either provider — with additional columns, allowing users to do GreenOps and build dashboards and reports.
 

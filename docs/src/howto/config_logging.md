@@ -1,4 +1,9 @@
-# Configure logging
+---
+title: "Configure Spark logging in SPRUCE"
+description: "Change the log levels used by SPRUCE and Spark with a log4j2 configuration file, useful when developing a new enrichment module."
+---
+
+# Configure Spark logging in SPRUCE
 
 It can be useful to change the log levels when implementing a new enrichment module. The logging in Spark is handled with 
 log4j.  You need to provide a configuration file and pass it to Spark, a good starting point is to copy the 

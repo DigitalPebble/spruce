@@ -11,13 +11,13 @@
 # The site_name is shown in the page header and the browser window title
 #
 # Read more: https://zensical.org/docs/setup/basics/#site_name
-site_name = "SPRUCE documentation"
+site_name = "SPRUCE"
 
 # The site_description is included in the HTML head and should contain a
 # meaningful description of the site content for use by search engines.
 #
 # Read more: https://zensical.org/docs/setup/basics/#site_description
-site_description = "Estimate the environmental impact of your cloud usage."
+site_description = "Open source tool that enriches AWS CUR, Azure cost details and FOCUS billing exports with carbon, energy and water estimates."
 
 # The site_author attribute. This is used in the HTML head element.
 #
@@ -48,29 +48,29 @@ repo_url = "https://github.com/digitalpebble/spruce"
 # Read more: https://zensical.org/docs/setup/navigation/
 
 nav = [
-  {"Introduction" = ["index.md"]},
+  {"Introduction" = [{"Overview" = "index.md"}]},
   {"Tutorials 🚀" = [
-    "tutorial/with-docker.md",
-    "tutorial/with-spark.md",
-    "tutorial/results.md"
+    {"Quick start using Docker 🐳" = "tutorial/with-docker.md"},
+    {"Quick start using Apache Spark ⚡" = "tutorial/with-spark.md"},
+    {"Explore the results 🔎" = "tutorial/results.md"}
   ]},
   {"Explanations 📚" = [
-    "methodology.md",
-    "modules.md",
-    "comparison.md"
+    {"Methodology" = "methodology.md"},
+    {"Enrichment modules" = "modules.md"},
+    {"Comparison with other tools" = "comparison.md"}
   ]},
   {"How-to 💡" = [
-     "howto/generate_cur.md",
-     "howto/emr.md",
-     "howto/s3.md",
-     "howto/config_modules.md",
-     "howto/write_module.md",
-     "howto/config_logging.md",
-     "howto/splits.md",
-     "howto/dashboard.md",
-     "howto/contributing.md"
+     {"Generate usage reports" = "howto/generate_cur.md"},
+     {"Run on AWS EMR Serverless" = "howto/emr.md"},
+     {"Read / write to S3" = "howto/s3.md"},
+     {"Configure the modules" = "howto/config_modules.md"},
+     {"Write a new module" = "howto/write_module.md"},
+     {"Configure logging" = "howto/config_logging.md"},
+     {"Split Impact Allocation Data" = "howto/splits.md"},
+     {"Build a simple dashboard" = "howto/dashboard.md"},
+     {"Contribute to SPRUCE" = "howto/contributing.md"}
   ]},
-  {"Resources" = ["resources.md"]}
+  {"Resources" = [{"Talks and datasets" = "resources.md"}]}
 ]
 
 # With the "extra_css" option you can add your own CSS styling to customize
