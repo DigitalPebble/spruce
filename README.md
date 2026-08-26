@@ -5,7 +5,7 @@
 # SPRUCE
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-![Build Status](https://github.com/apache/stormcrawler/actions/workflows/maven.yml/badge.svg)
+![Build Status](https://github.com/digitalpebble/spruce/actions/workflows/maven.yml/badge.svg)
 [![Java](https://img.shields.io/badge/Java-21+-orange.svg)](https://adoptium.net/temurin/releases/?version=21)
 
 **SPRUCE** helps estimate the environmental impact of your cloud usage. By leveraging open source models and data, it enriches
