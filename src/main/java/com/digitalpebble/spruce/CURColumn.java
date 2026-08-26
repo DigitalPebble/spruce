@@ -17,6 +17,8 @@ public class CURColumn extends RowColumn {
     public static CURColumn LINE_ITEM_PRODUCT_CODE = new CURColumn("line_item_product_code", StringType);
     public static CURColumn LINE_ITEM_TYPE = new CURColumn("line_item_line_item_type", StringType);
     public static CURColumn LINE_ITEM_USAGE_TYPE = new CURColumn("line_item_usage_type", StringType);
+    public static CURColumn LINE_ITEM_USAGE_START_DATE = new CURColumn("line_item_usage_start_date", StringType);
+    public static CURColumn LINE_ITEM_USAGE_END_DATE = new CURColumn("line_item_usage_end_date", StringType);
     public static CURColumn PRICING_UNIT= new CURColumn("pricing_unit", StringType);
     public static CURColumn PRODUCT = new CURColumn("product", MapType.apply(StringType,StringType));
     public static CURColumn PRODUCT_INSTANCE_TYPE = new CURColumn("product_instance_type", StringType);

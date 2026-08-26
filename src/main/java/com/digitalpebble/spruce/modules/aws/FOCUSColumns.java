@@ -16,6 +16,8 @@ import static com.digitalpebble.spruce.AWSFOCUSColumn.X_SERVICE_CODE;
 import static com.digitalpebble.spruce.CURColumn.LINE_ITEM_OPERATION;
 import static com.digitalpebble.spruce.CURColumn.LINE_ITEM_PRODUCT_CODE;
 import static com.digitalpebble.spruce.CURColumn.LINE_ITEM_TYPE;
+import static com.digitalpebble.spruce.CURColumn.LINE_ITEM_USAGE_END_DATE;
+import static com.digitalpebble.spruce.CURColumn.LINE_ITEM_USAGE_START_DATE;
 import static com.digitalpebble.spruce.CURColumn.LINE_ITEM_USAGE_TYPE;
 import static com.digitalpebble.spruce.CURColumn.PRODUCT_FROM_REGION_CODE;
 import static com.digitalpebble.spruce.CURColumn.PRODUCT_REGION_CODE;
@@ -50,8 +52,6 @@ public class FOCUSColumns implements EnrichmentModule {
 
     public static final CURColumn LINE_ITEM_UNBLENDED_COST = new CURColumn("line_item_unblended_cost", DataTypes.DoubleType);
     public static final CURColumn LINE_ITEM_USAGE_ACCOUNT_ID = new CURColumn("line_item_usage_account_id", DataTypes.StringType);
-    public static final CURColumn LINE_ITEM_USAGE_START_DATE = new CURColumn("line_item_usage_start_date", DataTypes.StringType);
-    public static final CURColumn LINE_ITEM_USAGE_END_DATE = new CURColumn("line_item_usage_end_date", DataTypes.StringType);
     public static final CURColumn RESOURCE_TAGS = new CURColumn("resource_tags", DataTypes.createMapType(DataTypes.StringType, DataTypes.StringType));
     public static final CURColumn PRICING_PUBLIC_ON_DEMAND_COST = new CURColumn("pricing_public_on_demand_cost", DataTypes.DoubleType);
 

@@ -243,27 +243,41 @@ factors that the impact modules in the next stage multiply the energy estimates 
 ### PWUE
 
 Loads both **Power Usage Effectiveness (PUE)** and **Water Usage Effectiveness (WUE)**
-factors from a CSV resource file bundled per provider: [`aws-pue-wue.csv`](https://github.com/DigitalPebble/spruce/blob/main/src/main/resources/aws-pue-wue.csv) uses the 2024 data
-[published by AWS](https://sustainability.aboutamazon.com/aws-wue-pue.csv), and
+factors from a CSV resource file bundled per provider: [`aws-pue-wue.csv`](https://github.com/DigitalPebble/spruce/blob/main/src/main/resources/aws-pue-wue.csv) carries the 2022&ndash;2025 figures
+[published by AWS](https://sustainability.aboutamazon.com/products-services/aws-cloud), and
 [`azure-pue-wue.csv`](https://github.com/DigitalPebble/spruce/blob/main/src/main/resources/azure-pue-wue.csv) is sourced from [Microsoft's data centre sustainability pages](https://datacenters.microsoft.com/sustainability/efficiency/).
+
+These factors are published per year and move noticeably from one year to the next, so they
+are keyed by region **and** year rather than applied as a blanket value. The year is that of
+the line item's usage date, read from whichever of `ChargePeriodStart`,
+`line_item_usage_start_date`, `Date` or `BILLING_PERIOD` the report carries.
 
 The lookup logic follows this priority:
 
 1. Exact region match (e.g. `us-east-1`)
-2. Regex pattern match (e.g. `us-.+`)
-3. Default configured value (fallback to 1.15 for PUE, null for WUE)
+2. Regex pattern match (e.g. `eu-.+`), i.e. the geography-level average
+3. The provider-wide `GLOBAL` average, where the CSV has one
+4. Default configured value (fallback to 1.15 for PUE, null for WUE)
+
+Within a tier the entry for the usage year is used; when that year is not covered &mdash; a
+region AWS started reporting on recently, a WUE only published from 2024 onwards, or a row
+with no usable date &mdash; the closest year available for that region is used instead.
+
+!!! note "Azure figures are not dated"
+    Microsoft does not break its PUE and WUE down by year, so the rows in
+    `azure-pue-wue.csv` leave the year empty and apply to every year.
 
 | | |
 |---|---|
 | **Class** | `com.digitalpebble.spruce.modules.PWUE` |
-| **Reads** | `region` |
+| **Reads** | `region`, the usage date of the line item |
 | **Writes** | `power_usage_effectiveness`, `water_usage_effectiveness` |
 
 **Configuration**:
 
 | Key | Default | Description |
 |---|---|---|
-| `default` | 1.15 | PUE used when a region matches neither an exact entry nor a pattern |
+| `default` | 1.15 | PUE used when a region matches no entry at any tier, global average included |
 
 ### AverageCarbonIntensity
 
