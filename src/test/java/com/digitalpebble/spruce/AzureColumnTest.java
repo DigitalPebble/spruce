@@ -5,21 +5,21 @@ package com.digitalpebble.spruce;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema;
 import org.apache.spark.sql.types.*;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-public class AzureColumnTest {
+class AzureColumnTest {
 
     @Test
-    public void testGetLabelAndType() {
+    void testGetLabelAndType() {
         AzureColumn col = new AzureColumn("field1", DataTypes.StringType);
         assertEquals("field1", col.getLabel());
         assertEquals(DataTypes.StringType, col.getType());
     }
 
     @Test
-    public void testGetStringAndIsNullAt() {
+    void testGetStringAndIsNullAt() {
         final String name = "sfield";
         StructType schema = new StructType(new StructField[]{new StructField(name, DataTypes.StringType, true, Metadata.empty())});
 
@@ -49,7 +49,7 @@ public class AzureColumnTest {
     }
 
     @Test
-    public void testGetDoubleAndIsNullAt() {
+    void testGetDoubleAndIsNullAt() {
         final String name = "dfield";
         StructType schema = new StructType(new StructField[]{new StructField(name, DataTypes.DoubleType, true, Metadata.empty())});
 
