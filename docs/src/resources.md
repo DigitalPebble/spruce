@@ -1,4 +1,9 @@
-# Resources
+---
+title: "GreenOps and cloud sustainability resources"
+description: "Talks, datasets and standards behind open source cloud carbon accounting: Boavizta, Ember, FOCUS and the SPRUCE community."
+---
+
+# GreenOps and cloud sustainability resources
 
 ## Talks
 - **"SPRUCE it up! Open Source GreenOps at scale"** at [BerlinBuzzwords - June 8th 2026](https://2026.berlinbuzzwords.de/session/spruce-it-up-open-source-greenops-at-scale/)

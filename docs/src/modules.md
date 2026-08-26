@@ -1,4 +1,9 @@
-# Enrichment modules
+---
+title: "Enrichment modules: AWS and Azure service coverage"
+description: "Reference for every SPRUCE enrichment module: which AWS and Azure services are covered, what each one estimates and how to configure it."
+---
+
+# Enrichment modules: AWS and Azure service coverage
 
 SPRUCE generates its estimates by chaining **EnrichmentModules**.
 An `EnrichmentModule` is the unit of extension in SPRUCE. Each module reads columns from

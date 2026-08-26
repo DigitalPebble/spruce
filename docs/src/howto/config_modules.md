@@ -1,4 +1,9 @@
-# Configure the modules
+---
+title: "Configure the enrichment modules"
+description: "Enable, disable and tune the SPRUCE enrichment modules with a per-provider JSON configuration file."
+---
+
+# Configure the enrichment modules
 
 The enrichment modules are configured in a per-provider JSON file bundled in the JAR.
 The file used at runtime is selected from the cloud provider (`-p / --provider` CLI

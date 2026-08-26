@@ -1,4 +1,9 @@
-# Build a simple dashboard
+---
+title: "Build a cloud carbon emissions dashboard"
+description: "Turn SPRUCE output into an interactive dashboard of carbon, energy, water and cost using Streamlit and DuckDB."
+---
+
+# Build a cloud carbon emissions dashboard
 
 The repository includes `reporting/dashboard.py`, a [Streamlit](https://streamlit.io/)
 example that reads SPRUCE-enriched Parquet output and runs interactive DuckDB

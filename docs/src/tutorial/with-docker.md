@@ -1,5 +1,9 @@
+---
+title: "Measure your cloud carbon footprint with Docker"
+description: "Run SPRUCE on an AWS CUR, Azure cost details or a FOCUS export with a single Docker command and get carbon, energy and water estimates per line item."
+---
 
-# Quick start using Docker 🐳
+# Quick start: measure your cloud carbon footprint with Docker 🐳
 
 ## Prerequisites
 
