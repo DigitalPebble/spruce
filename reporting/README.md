@@ -71,7 +71,7 @@ streamlit run reporting/dashboard.py -- --input path/to/enriched/
 ### Features
 
 - **Overview**: Summary metrics and coverage statistics
-- **Trend**: Time series visualization of emissions, energy, and water usage
+- **Trend**: Time series visualization of cost, emissions, energy, and water usage
 - **Top Emitters**: Breakdown of highest-emitting services per region
 - **Regions**: Regional analysis with emissions distribution
 - **Tags**: Resource tag-based breakdowns (when the `Tags` column is available)
