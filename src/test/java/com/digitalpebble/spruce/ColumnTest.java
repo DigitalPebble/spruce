@@ -5,21 +5,21 @@ package com.digitalpebble.spruce;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema;
 import org.apache.spark.sql.types.*;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-public class ColumnTest {
+class ColumnTest {
 
     @Test
-    public void testGetLabelAndType() {
+    void testGetLabelAndType() {
         CURColumn col = new CURColumn("field1", DataTypes.StringType);
         assertEquals("field1", col.getLabel());
         assertEquals(DataTypes.StringType, col.getType());
     }
 
     @Test
-    public void testGetStringAndIsNullAt() {
+    void testGetStringAndIsNullAt() {
         final String name = "sfield";
         StructType schema = new StructType(new StructField[]{new StructField(name, DataTypes.StringType, true, Metadata.empty())});
 
@@ -49,7 +49,7 @@ public class ColumnTest {
     }
 
     @Test
-    public void testResolveIndexOptionalCachesMisses() {
+    void testResolveIndexOptionalCachesMisses() {
         StructType withField = new StructType(new StructField[]{new StructField("afield", DataTypes.StringType, true, Metadata.empty())});
         StructType withoutField = new StructType(new StructField[]{new StructField("other", DataTypes.StringType, true, Metadata.empty())});
 
@@ -77,7 +77,7 @@ public class ColumnTest {
     }
 
     @Test
-    public void testGetDoubleAndIsNullAt() {
+    void testGetDoubleAndIsNullAt() {
         final String name = "dfield";
         StructType schema = new StructType(new StructField[]{new StructField(name, DataTypes.DoubleType, true, Metadata.empty())});
 
