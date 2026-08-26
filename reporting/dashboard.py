@@ -933,6 +933,11 @@ def render_trend(trend: pd.DataFrame) -> None:
         return
 
     st.plotly_chart(
+        line_area_chart(trend, "total_cost", "Cost", "USD", BRAND_COLOR, 410),
+        width="stretch",
+        config=PLOT_CONFIG,
+    )
+    st.plotly_chart(
         line_area_chart(trend, "energy_kwh", "Energy", "kWh", COLORS["energy"], 410),
         width="stretch",
         config=PLOT_CONFIG,
