@@ -4,3 +4,70 @@
   SPRUCE now ingests <strong>FOCUS</strong> exports from AWS and Azure —
   <a href="{{ 'howto/generate_cur/' | url }}">get started</a>
 {% endblock %}
+
+{#-
+  Open Graph / Twitter card tags and structured data.
+
+  Zensical does not ship a social-cards plugin yet, so these are emitted by hand.
+  Titles and descriptions come from the per-page front matter added in #268 and
+  fall back to the site-wide values for any page that lacks them.
+
+  Note: og:image and og:url must be absolute URLs — scrapers do not resolve
+  relative paths, so the `url` filter is deliberately not used for them.
+-#}
+{% block extrahead %}
+  {% set page_title = page.meta.title if page.meta and page.meta.title
+                      else (page.title | striptags if page.title else config.site_name) %}
+  {% set page_desc = page.meta.description if page.meta and page.meta.description
+                     else config.site_description %}
+  {% set page_url = page.canonical_url if page.canonical_url else config.site_url %}
+  {% set card_url = config.site_url ~ "images/social-card.png" %}
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="{{ config.site_name }}">
+  <meta property="og:locale" content="en_GB">
+  <meta property="og:title" content="{{ page_title }}">
+  <meta property="og:description" content="{{ page_desc }}">
+  <meta property="og:url" content="{{ page_url }}">
+  <meta property="og:image" content="{{ card_url }}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="SPRUCE — Scalable Platform for Reporting Usage and Cloud Emissions">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{ page_title }}">
+  <meta name="twitter:description" content="{{ page_desc }}">
+  <meta name="twitter:image" content="{{ card_url }}">
+  <meta name="twitter:image:alt" content="SPRUCE — Scalable Platform for Reporting Usage and Cloud Emissions">
+
+  {#- Zensical does not set page.is_homepage. The home page is the one with an empty
+      url; 404.html shares that but has no canonical_url, so it is excluded. -#}
+  {% if page.canonical_url and not page.url %}
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "SPRUCE",
+    "alternateName": "Scalable Platform for Reporting Usage and Cloud Emissions",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "Linux, macOS, Windows",
+    "description": {{ config.site_description | tojson }},
+    "url": {{ config.site_url | tojson }},
+    "image": {{ card_url | tojson }},
+    "codeRepository": {{ config.repo_url | tojson }},
+    "license": "https://www.apache.org/licenses/LICENSE-2.0",
+    "isAccessibleForFree": true,
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "GBP"
+    },
+    "author": {
+      "@type": "Organization",
+      "name": "DigitalPebble Ltd",
+      "url": "https://digitalpebble.com/"
+    }
+  }
+  </script>
+  {% endif %}
+{% endblock %}
