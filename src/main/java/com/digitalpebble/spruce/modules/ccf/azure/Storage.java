@@ -21,14 +21,26 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.digitalpebble.spruce.SpruceColumn.EMBODIED_EMISSIONS;
 import static com.digitalpebble.spruce.SpruceColumn.ENERGY_USED;
 
 /**
- * Provides an estimate of energy used for Azure storage capacity meters.
+ * Provides an estimate of energy used for Azure storage capacity meters, and of the embodied
+ * emissions of the drives holding the data.
  * The values read (meter names, units) are identical in legacy and FOCUS reports, only the
  * column labels differ: {@link #bindReportFormat(ReportFormat)} selects the bindings.
  *
+ * <p>The embodied emissions coefficients and their derivation are the same as for AWS, since they
+ * describe drives rather than anything provider specific; see
+ * {@link com.digitalpebble.spruce.modules.ccf.aws.Storage} for the sources and the reasoning
+ * behind modelling HDD per drive and SSD per GB.
+ *
+ * <p>Note that {@code hdd_capacity_gb} describes the physical drive, not a Managed Disk SKU. The
+ * provisioned size of a P10 or S4 volume says nothing about the drive underneath it, so the
+ * capacities in {@code MANAGED_DISKS} must not be substituted here.
+ *
  * @see <a href="https://www.cloudcarbonfootprint.org/docs/methodology#storage">CCF methodology</a>
+ * @see <a href="https://github.com/DigitalPebble/spruce/issues/102">issue #102</a>
  **/
 public class Storage implements EnrichmentModule {
 
@@ -72,6 +84,20 @@ public class Storage implements EnrichmentModule {
     //  1.2 Watt-Hours per Terabyte-Hour for SSD
     double ssd_gb_coefficient = 1.2 / 1024d;
 
+    /** Embodied emissions of one hard drive, in kg CO2eq; a constant per drive rather than a
+     *  rate per byte. */
+    double hdd_embodied_kg_per_drive = 30d;
+    /** Capacity assumed for one physical hard drive, in GB. */
+    double hdd_capacity_gb = 15_000d;
+    /** Embodied emissions of an SSD, in kg CO2eq per GB of capacity. */
+    double ssd_embodied_kg_per_gb = 0.055d;
+    /** Service life over which embodied emissions are amortised, in hours (5 years). */
+    double storage_lifetime_hours = 43_800d;
+
+    /** Grams CO2eq per GB-hour of stored data, derived in {@link #init(Map)}. */
+    double hdd_embodied_g_per_gb_hour;
+    double ssd_embodied_g_per_gb_hour;
+
     @Override
     @SuppressWarnings("unchecked")
     public void init(Map<String, Object> params) {
@@ -84,8 +110,19 @@ public class Storage implements EnrichmentModule {
             ssd_gb_coefficient = coef / 1024d;
         }
 
+        hdd_embodied_kg_per_drive = Utils.doubleParam(params, "hdd_embodied_kg_per_drive", hdd_embodied_kg_per_drive);
+        hdd_capacity_gb = Utils.doubleParam(params, "hdd_capacity_gb", hdd_capacity_gb);
+        ssd_embodied_kg_per_gb = Utils.doubleParam(params, "ssd_embodied_kg_per_gb", ssd_embodied_kg_per_gb);
+        storage_lifetime_hours = Utils.doubleParam(params, "storage_lifetime_hours", storage_lifetime_hours);
+
+        hdd_embodied_g_per_gb_hour =
+                hdd_embodied_kg_per_drive * 1000d / (hdd_capacity_gb * storage_lifetime_hours);
+        ssd_embodied_g_per_gb_hour = ssd_embodied_kg_per_gb * 1000d / storage_lifetime_hours;
+
         LOG.info("hdd_gb_coefficient: {}", hdd_gb_coefficient);
         LOG.info("ssd_gb_coefficient: {}", ssd_gb_coefficient);
+        LOG.info("hdd_embodied_g_per_gb_hour: {}", hdd_embodied_g_per_gb_hour);
+        LOG.info("ssd_embodied_g_per_gb_hour: {}", ssd_embodied_g_per_gb_hour);
 
         try {
             Map<String, Object> map = Utils.loadJSONResources("ccf/azure-storage.json");
@@ -106,7 +143,7 @@ public class Storage implements EnrichmentModule {
 
     @Override
     public Column[] columnsAdded() {
-        return new Column[]{ENERGY_USED};
+        return new Column[]{ENERGY_USED, EMBODIED_EMISSIONS};
     }
 
     @Override
@@ -212,6 +249,10 @@ public class Storage implements EnrichmentModule {
         double coefficient = isHDD ? hdd_gb_coefficient : ssd_gb_coefficient;
         double energyKwh = gbHours / 1000 * coefficient * replication;
         enrichedValues.put(ENERGY_USED, energyKwh);
+        // the replication factor applies to the hardware as well as to the energy: the same bytes
+        // occupy that many times more physical drives, and so that much more embodied carbon
+        double embodiedCoefficient = isHDD ? hdd_embodied_g_per_gb_hour : ssd_embodied_g_per_gb_hour;
+        enrichedValues.put(EMBODIED_EMISSIONS, gbHours * embodiedCoefficient * replication);
     }
 
     @SuppressWarnings("unchecked")

@@ -133,10 +133,10 @@ public class Storage implements EnrichmentModule {
             ssd_gb_coefficient = coef / 1024d;
         }
 
-        hdd_embodied_kg_per_drive = doubleParam(params, "hdd_embodied_kg_per_drive", hdd_embodied_kg_per_drive);
-        hdd_capacity_gb = doubleParam(params, "hdd_capacity_gb", hdd_capacity_gb);
-        ssd_embodied_kg_per_gb = doubleParam(params, "ssd_embodied_kg_per_gb", ssd_embodied_kg_per_gb);
-        storage_lifetime_hours = doubleParam(params, "storage_lifetime_hours", storage_lifetime_hours);
+        hdd_embodied_kg_per_drive = Utils.doubleParam(params, "hdd_embodied_kg_per_drive", hdd_embodied_kg_per_drive);
+        hdd_capacity_gb = Utils.doubleParam(params, "hdd_capacity_gb", hdd_capacity_gb);
+        ssd_embodied_kg_per_gb = Utils.doubleParam(params, "ssd_embodied_kg_per_gb", ssd_embodied_kg_per_gb);
+        storage_lifetime_hours = Utils.doubleParam(params, "storage_lifetime_hours", storage_lifetime_hours);
 
         hdd_embodied_g_per_gb_hour =
                 hdd_embodied_kg_per_drive * 1000d / (hdd_capacity_gb * storage_lifetime_hours);
@@ -168,12 +168,6 @@ public class Storage implements EnrichmentModule {
     @Override
     public Column[] columnsAdded() {
         return new Column[]{ENERGY_USED, EMBODIED_EMISSIONS};
-    }
-
-    /** Reads a numeric parameter, tolerating the integer literals JSON configs often carry. */
-    private static double doubleParam(Map<String, Object> params, String key, double fallback) {
-        Number value = (Number) params.get(key);
-        return value != null ? value.doubleValue() : fallback;
     }
 
     @Override

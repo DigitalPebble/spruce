@@ -84,7 +84,7 @@ from their provisioned capacity.
 | | |
 |---|---|
 | **Classes** | `com.digitalpebble.spruce.modules.ccf.aws.Storage`<br>`com.digitalpebble.spruce.modules.ccf.azure.Storage` |
-| **Writes** | `operational_energy_kwh`<br>`embodied_emissions_co2eq_g` (AWS only) |
+| **Writes** | `operational_energy_kwh`<br>`embodied_emissions_co2eq_g` |
 
 **Energy configuration** (in Wh per TB-hour):
 
@@ -93,7 +93,7 @@ from their provisioned capacity.
 | `hdd_coefficient_tb_h` | 0.65 | Energy per TB-hour for HDD storage |
 | `ssd_coefficient_tb_h` | 1.2  | Energy per TB-hour for SSD storage |
 
-**Embodied emissions configuration** (AWS only):
+**Embodied emissions configuration**:
 
 | Key | Default | Description |
 |---|---|---|
@@ -108,7 +108,8 @@ capacity, so its figure is a rate per GB. The defaults work out at 0.40 kg CO2eq
 HDD and 11 kg for SSD. The 30 kg per drive is where Boavizta, a Seagate Exos X22 LCA, Seagate's
 published per-TB-year figure and a meta-analysis of 24 vendor LCAs converge; the 0.055 kg/GB is
 where Boavizta's die-area formula and a 2025 3D NAND study agree. The 15 TB drive is the
-installed-fleet average from Backblaze's 2025 Drive Stats. See
+installed-fleet average from Backblaze's 2025 Drive Stats, and describes the physical drive
+rather than a provisioned volume, so it is not the same thing as an Azure Managed Disk size. See
 [issue #102](https://github.com/DigitalPebble/spruce/issues/102) for the full derivation.
 
 ### Networking

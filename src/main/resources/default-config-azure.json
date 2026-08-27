@@ -7,7 +7,11 @@
       "className": "com.digitalpebble.spruce.modules.ccf.azure.Storage",
       "config": {
         "hdd_coefficient_tb_h": 0.65,
-        "ssd_coefficient_tb_h": 1.2
+        "ssd_coefficient_tb_h": 1.2,
+        "hdd_embodied_kg_per_drive": 30.0,
+        "hdd_capacity_gb": 15000.0,
+        "ssd_embodied_kg_per_gb": 0.055,
+        "storage_lifetime_hours": 43800.0
       }
     },
     {

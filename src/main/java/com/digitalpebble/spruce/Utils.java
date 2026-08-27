@@ -108,6 +108,20 @@ public abstract class Utils {
     }
 
     /**
+     * Reads a numeric module parameter, tolerating the whole-number literals JSON configs
+     * routinely carry as integers rather than doubles.
+     *
+     * @param params module configuration
+     * @param key    parameter name
+     * @param fallback value returned when the parameter is absent
+     * @return the configured value, or {@code fallback}
+     */
+    public static double doubleParam(Map<String, Object> params, String key, double fallback) {
+        Number value = (Number) params.get(key);
+        return value != null ? value.doubleValue() : fallback;
+    }
+
+    /**
      * Utility conversions used throughout the codebase.
      *
      * <p>Contains helper methods to convert between different units of usage.

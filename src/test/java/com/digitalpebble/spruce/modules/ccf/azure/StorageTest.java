@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static com.digitalpebble.spruce.SpruceColumn.EMBODIED_EMISSIONS;
 import static com.digitalpebble.spruce.SpruceColumn.ENERGY_USED;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -83,7 +84,9 @@ class StorageTest {
                             double quantity, double gbHours, int replication, boolean isHDD) {
         Map<Column, Object> enriched = enrich(row(meterCategory, meterSubCategory, meterName, unit, quantity));
         double expected = expected(gbHours, replication, isHDD);
-        assertEquals(expected, (Double) enriched.get(ENERGY_USED), 0.0001);
+        assertEquals(expected, (Double) enriched.get(ENERGY_USED), 1e-12);
+        assertEquals(expectedEmbodied(gbHours, replication, isHDD),
+                (Double) enriched.get(EMBODIED_EMISSIONS), 1e-12);
     }
 
     @ParameterizedTest
@@ -92,6 +95,31 @@ class StorageTest {
                             Double quantity) {
         Map<Column, Object> enriched = enrich(row(meterCategory, meterSubCategory, meterName, unit, quantity));
         assertFalse(enriched.containsKey(ENERGY_USED));
+        assertFalse(enriched.containsKey(EMBODIED_EMISSIONS));
+    }
+
+    /**
+     * HDD embodied carbon is a constant per drive spread over the drive's capacity and life, SSD
+     * a rate per GB spread over its life. Defaults match the AWS module: 30 kg per 15 TB drive
+     * and 0.055 kg/GB, both over 43800 hours.
+     */
+    @Test
+    void embodiedCoefficientsDerivedFromDefaults() {
+        assertEquals(30_000d / (15_000d * 43_800d), storage.hdd_embodied_g_per_gb_hour, 1e-12);
+        assertEquals(55d / 43_800d, storage.ssd_embodied_g_per_gb_hour, 1e-12);
+    }
+
+    /** The drive size and life are assumptions, so they have to be overridable. */
+    @Test
+    void embodiedCoefficientsHonourConfig() {
+        Storage configured = new Storage();
+        configured.init(Map.of(
+                "hdd_embodied_kg_per_drive", 28.7d,
+                "hdd_capacity_gb", 22_000d,
+                "ssd_embodied_kg_per_gb", 0.052d,
+                "storage_lifetime_hours", 49_932d));
+        assertEquals(28_700d / (22_000d * 49_932d), configured.hdd_embodied_g_per_gb_hour, 1e-12);
+        assertEquals(52d / 49_932d, configured.ssd_embodied_g_per_gb_hour, 1e-12);
     }
 
     private Row row(String meterCategory, String meterSubCategory, String meterName, String unit, Double quantity) {
@@ -108,6 +136,11 @@ class StorageTest {
     private double expected(double gbHours, int replication, boolean isHDD) {
         double coefficient = isHDD ? storage.hdd_gb_coefficient : storage.ssd_gb_coefficient;
         return gbHours / 1000 * coefficient * replication;
+    }
+
+    private double expectedEmbodied(double gbHours, int replication, boolean isHDD) {
+        double coefficient = isHDD ? storage.hdd_embodied_g_per_gb_hour : storage.ssd_embodied_g_per_gb_hour;
+        return gbHours * coefficient * replication;
     }
 
     /**
@@ -144,13 +177,16 @@ class StorageTest {
             Map<Column, Object> enriched = enrich(row("Storage", "Tables", "LRS Data Stored", "1 GB/Month", 10d));
             double gbHours = Utils.Conversions.GBMonthsToGBHours(10d);
             double expected = gbHours / 1000 * focusStorage.ssd_gb_coefficient * 3;
-            assertEquals(expected, (Double) enriched.get(ENERGY_USED), 0.0001);
+            assertEquals(expected, (Double) enriched.get(ENERGY_USED), 1e-12);
+            assertEquals(gbHours * focusStorage.ssd_embodied_g_per_gb_hour * 3,
+                    (Double) enriched.get(EMBODIED_EMISSIONS), 1e-12);
         }
 
         @Test
         void processRowWithoutQuantity() {
             Map<Column, Object> enriched = enrich(row("Storage", "Tables", "LRS Data Stored", "1 GB/Month", null));
             assertFalse(enriched.containsKey(ENERGY_USED));
+            assertFalse(enriched.containsKey(EMBODIED_EMISSIONS));
         }
 
         private Row row(String meterCategory, String meterSubCategory, String meterName, String unit, Double quantity) {
