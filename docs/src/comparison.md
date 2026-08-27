@@ -33,7 +33,7 @@ SPRUCE is part of a growing ecosystem of open source tools focused on measuring 
 | **Data Privacy**       | Processes data locally, no external API calls for core functionality | Requires cloud provider credentials                   |
 | **Modularity**         | Highly modular with configurable enrichment pipelines                | Fixed calculation pipeline with configuration options |
 | **Output**             | Enriched Parquet/CSV files for custom analytics and visualization    | Pre-built dashboard and recommendations               |
-| **Embodied Carbon**    | Includes embodied emissions via Boavizta integration                 | Limited embodied carbon estimates                     |
+| **Embodied Carbon**    | Includes embodied emissions for compute via Boavizta, and for storage from drive LCAs | Limited embodied carbon estimates                     |
 | **Scalability**        | Designed for large-scale data processing with Apache Spark           | Suitable for smaller to medium deployments            |
 | **Carbon Intensity**   | Uses Ember average data                                              | Default factors outdated                              |
 | **Maintenance Status** | Actively maintained with regular updates                             | No longer actively maintained                         |
