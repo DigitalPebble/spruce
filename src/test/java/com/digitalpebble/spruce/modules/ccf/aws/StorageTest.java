@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static com.digitalpebble.spruce.SpruceColumn.EMBODIED_EMISSIONS;
 import static com.digitalpebble.spruce.SpruceColumn.ENERGY_USED;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -40,7 +41,8 @@ class StorageTest {
     private static Stream<Arguments> provideArgsWithType() {
         return Stream.of(
             Arguments.of("Storage", 0.1d, "EUW2-TimedStorage-ByteHrs", "AmazonS3", "GB-Mo", false),
-            Arguments.of("Storage", 0.1d, "SomeUsageType", "AmazonDocDB", "GB-Mo", false),
+            // AmazonDocDB is in SSD_SERVICES, so it takes the SSD coefficients
+            Arguments.of("Storage", 0.1d, "SomeUsageType", "AmazonDocDB", "GB-Mo", true),
             Arguments.of("CreateVolume", 10d, "EUW2-EBS:VolumeUsage", "AmazonEC2", "GB-Mo", false),
             Arguments.of("CreateVolume-Gp2", 10d, "EBS:VolumeUsage.gp2", "AmazonEC2", "GB-Mo", true),
             Arguments.of("CreateVolume-Gp3", 10d, "VolumeUsage.gp3", "AmazonEC2", "GB-Mo", true)
@@ -66,7 +68,54 @@ class StorageTest {
         int replication = storage.getReplicationFactor(service, usage);
         double coef = isSSD ? storage.ssd_gb_coefficient : storage.hdd_gb_coefficient;
         double expected = gb_hours * coef * replication / 1000;
-        assertEquals(expected, (Double) enriched.get(ENERGY_USED), 0.0001);
+        assertEquals(expected, (Double) enriched.get(ENERGY_USED), 1e-12);
+
+        double embodiedCoef = isSSD ? storage.ssd_embodied_g_per_gb_hour : storage.hdd_embodied_g_per_gb_hour;
+        double expectedEmbodied = gb_hours * embodiedCoef * replication;
+        assertEquals(expectedEmbodied, (Double) enriched.get(EMBODIED_EMISSIONS), 0.0001);
+    }
+
+    /** A row the module does not recognise gets neither impact, not a zero for one of them. */
+    @ParameterizedTest
+    @MethodSource("provideArgsWrongUnit")
+    void noEmbodiedWithoutEnergy(String operation, double amount, String usage, String service, String unit) {
+        Object[] values = new Object[]{operation, amount, usage, service, unit, null};
+        Row row = new GenericRowWithSchema(values, schema);
+        Map<Column, Object> enriched = new HashMap<>();
+        storage.enrich(row, enriched);
+        assertFalse(enriched.containsKey(EMBODIED_EMISSIONS));
+    }
+
+    /**
+     * HDD embodied carbon is a constant per drive spread over the drive's capacity and life,
+     * SSD a rate per GB spread over its life. Defaults: 30 kg per 15 TB drive and 0.055 kg/GB,
+     * both over 43800 hours.
+     */
+    @Test
+    void embodiedCoefficientsDerivedFromDefaults() {
+        assertEquals(30_000d / (15_000d * 43_800d), storage.hdd_embodied_g_per_gb_hour, 1e-12);
+        assertEquals(55d / 43_800d, storage.ssd_embodied_g_per_gb_hour, 1e-12);
+    }
+
+    /** The drive size and life are assumptions, so they have to be overridable. */
+    @Test
+    void embodiedCoefficientsHonourConfig() {
+        Storage configured = new Storage();
+        configured.init(Map.of(
+                "hdd_embodied_kg_per_drive", 28.7d,
+                "hdd_capacity_gb", 22_000d,
+                "ssd_embodied_kg_per_gb", 0.052d,
+                "storage_lifetime_hours", 49_932d));
+        assertEquals(28_700d / (22_000d * 49_932d), configured.hdd_embodied_g_per_gb_hour, 1e-12);
+        assertEquals(52d / 49_932d, configured.ssd_embodied_g_per_gb_hour, 1e-12);
+    }
+
+    /** JSON configs routinely carry whole numbers as integers rather than doubles. */
+    @Test
+    void embodiedConfigAcceptsIntegerLiterals() {
+        Storage configured = new Storage();
+        configured.init(Map.of("hdd_embodied_kg_per_drive", 30, "hdd_capacity_gb", 15000));
+        assertEquals(30_000d / (15_000d * 43_800d), configured.hdd_embodied_g_per_gb_hour, 1e-12);
     }
 
     @ParameterizedTest
@@ -126,6 +175,8 @@ class StorageTest {
             int replication = focusStorage.getReplicationFactor("AmazonS3", "TimedStorage-ByteHrs");
             double expected = gb_hours * focusStorage.hdd_gb_coefficient * replication / 1000;
             assertEquals(expected, (Double) enriched.get(ENERGY_USED), 0.0001);
+            assertEquals(gb_hours * focusStorage.hdd_embodied_g_per_gb_hour * replication,
+                    (Double) enriched.get(EMBODIED_EMISSIONS), 0.0001);
         }
 
         @Test

@@ -84,14 +84,32 @@ from their provisioned capacity.
 | | |
 |---|---|
 | **Classes** | `com.digitalpebble.spruce.modules.ccf.aws.Storage`<br>`com.digitalpebble.spruce.modules.ccf.azure.Storage` |
-| **Writes** | `operational_energy_kwh` |
+| **Writes** | `operational_energy_kwh`<br>`embodied_emissions_co2eq_g` (AWS only) |
 
-**Configuration** (in Wh per TB-hour):
+**Energy configuration** (in Wh per TB-hour):
 
 | Key | Default | Description |
 |---|---|---|
 | `hdd_coefficient_tb_h` | 0.65 | Energy per TB-hour for HDD storage |
 | `ssd_coefficient_tb_h` | 1.2  | Energy per TB-hour for SSD storage |
+
+**Embodied emissions configuration** (AWS only):
+
+| Key | Default | Description |
+|---|---|---|
+| `hdd_embodied_kg_per_drive` | 30.0 | Embodied emissions of one hard drive, in kg CO2eq |
+| `hdd_capacity_gb` | 15000.0 | Capacity assumed for one hard drive |
+| `ssd_embodied_kg_per_gb` | 0.055 | Embodied emissions of an SSD, per GB of capacity |
+| `storage_lifetime_hours` | 43800.0 | Service life the embodied emissions are amortised over (5 years) |
+
+A hard drive costs roughly the same to manufacture whatever its capacity, so its embodied
+emissions are a constant per drive divided by the assumed capacity; an SSD's die area scales with
+capacity, so its figure is a rate per GB. The defaults work out at 0.40 kg CO2eq per TB-year for
+HDD and 11 kg for SSD. The 30 kg per drive is where Boavizta, a Seagate Exos X22 LCA, Seagate's
+published per-TB-year figure and a meta-analysis of 24 vendor LCAs converge; the 0.055 kg/GB is
+where Boavizta's die-area formula and a 2025 3D NAND study agree. The 15 TB drive is the
+installed-fleet average from Backblaze's 2025 Drive Stats. See
+[issue #102](https://github.com/DigitalPebble/spruce/issues/102) for the full derivation.
 
 ### Networking
 
