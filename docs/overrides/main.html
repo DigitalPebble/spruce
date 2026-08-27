@@ -21,7 +21,10 @@
   {% set page_desc = page.meta.description if page.meta and page.meta.description
                      else config.site_description %}
   {% set page_url = page.canonical_url if page.canonical_url else config.site_url %}
-  {% set card_url = config.site_url ~ "images/social-card.png" %}
+  {#- mike rewrites site_url to carry the version segment and drops the trailing slash
+      (https://opensourcegreenops.cloud/dev), while the configured value keeps it. Join the
+      path onto either shape, then collapse the doubled slash the trailing form produces. -#}
+  {% set card_url = (config.site_url ~ "/images/social-card.png") | replace("//images/", "/images/") %}
 
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="{{ config.site_name }}">
