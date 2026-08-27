@@ -6,9 +6,13 @@ import org.apache.spark.sql.Row;
 import org.apache.spark.sql.types.DataType;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Abstract base class for native column types that work with Spark Row objects.
@@ -73,6 +77,44 @@ public abstract class RowColumn extends Column {
             }
         }
         return null;
+    }
+
+    /** Matches a four-digit year not embedded in a longer number, e.g. in 2025-01-01T00:00:00Z,
+     *  01/15/2025 or the yyyy-MM of a billing period. */
+    private static final Pattern YEAR = Pattern.compile("(?<!\\d)(?:19|20)\\d{2}(?!\\d)");
+
+    /**
+     * Returns the year of the date or timestamp held by this column in the given row, or null
+     * when the column is absent from the schema, holds null, or cannot be read as a date.
+     * Covers the representations the reports use: Spark timestamps and dates in Parquet, and
+     * strings in CSV exports (ISO instants, ISO or US-formatted dates, and yyyy-MM periods).
+     */
+    public Integer getYear(Row r) {
+        int index = resolveIndex(r, true);
+        if (index == -1) {
+            return null;
+        }
+        Object value = r.get(index);
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof java.sql.Timestamp timestamp) {
+            return timestamp.toLocalDateTime().getYear();
+        }
+        if (value instanceof java.time.Instant instant) {
+            return instant.atZone(ZoneOffset.UTC).getYear();
+        }
+        if (value instanceof java.sql.Date date) {
+            return date.toLocalDate().getYear();
+        }
+        if (value instanceof LocalDate date) {
+            return date.getYear();
+        }
+        if (value instanceof LocalDateTime dateTime) {
+            return dateTime.getYear();
+        }
+        Matcher matcher = YEAR.matcher(value.toString());
+        return matcher.find() ? Integer.valueOf(matcher.group()) : null;
     }
 
     /** Returns true if the value for this column is null in the given row. */
