@@ -94,6 +94,25 @@ class ServerlessTest {
         assertEquals(expected, enriched.get(ENERGY_USED));
     }
 
+    @Test
+    void processDocumentDBElasticvCPU() {
+        double quantity = 4d;
+        Row row = generateRow("CreateCluster", quantity, "USE1-ElasticCPUUsage");
+        Map<Column, Object> enriched = new HashMap<>();
+        serverless.enrich(row, enriched);
+        double expected = serverless.x86_cpu_coefficient_kwh * quantity;
+        assertEquals(expected, enriched.get(ENERGY_USED));
+    }
+
+    /** The storage and backup lines of the same clusters belong to the Storage module. */
+    @Test
+    void ignoresDocumentDBElasticStorage() {
+        Row row = generateRow("CreateCluster", 10d, "USE1-ElasticStorageUsage");
+        Map<Column, Object> enriched = new HashMap<>();
+        serverless.enrich(row, enriched);
+        assertFalse(enriched.containsKey(ENERGY_USED));
+    }
+
     private Row generateRow(String LINE_ITEM_OPERATION, Object USAGE_AMOUNT, String LINE_ITEM_USAGE_TYPE){
         Object[] values = new Object[] {LINE_ITEM_OPERATION, USAGE_AMOUNT, LINE_ITEM_USAGE_TYPE, null};
         return new GenericRowWithSchema(values, schema);
@@ -139,6 +158,16 @@ class ServerlessTest {
         void processFargatevCPU() {
             double quantity = 4d;
             Object[] values = new Object[]{"FargateTask", quantity, "USE1-Fargate-vCPU-Hours:perCPU", null};
+            Row row = new GenericRowWithSchema(values, focusSchema);
+            Map<Column, Object> enriched = new HashMap<>();
+            focusServerless.enrich(row, enriched);
+            assertEquals(focusServerless.x86_cpu_coefficient_kwh * quantity, enriched.get(ENERGY_USED));
+        }
+
+        @Test
+        void processDocumentDBElasticvCPU() {
+            double quantity = 4d;
+            Object[] values = new Object[]{"CreateCluster", quantity, "USE1-ElasticCPUUsage", null};
             Row row = new GenericRowWithSchema(values, focusSchema);
             Map<Column, Object> enriched = new HashMap<>();
             focusServerless.enrich(row, enriched);

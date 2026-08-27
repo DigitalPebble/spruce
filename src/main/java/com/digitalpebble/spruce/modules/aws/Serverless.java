@@ -19,7 +19,7 @@ import static com.digitalpebble.spruce.SpruceColumn.*;
 
 /**
  *  Estimates the energy usage for CPU and memory of serverless services
- *  such as Fargate or EMR
+ *  such as Fargate, EMR Serverless or DocumentDB Elastic
  *  Based on the TailPipe methodology
  *  https://tailpipe.ai/methodology/serverless-explained/
  *  as of 08/10/2025
@@ -135,6 +135,14 @@ public class Serverless implements EnrichmentModule {
                 enrichedValues.put(ENERGY_USED, energy);
                 return;
             }
+        }
+        // DocumentDB Elastic bills compute directly in vCPU-hours. The storage and backup lines of
+        // the same clusters are handled by the Storage module. AWS does not say what the underlying
+        // hardware is, so the x86 coefficient is used.
+        else if (usage_type.endsWith("ElasticCPUUsage")) {
+            double amount_vcpu = usageAmount.getDouble(row);
+            double energy = amount_vcpu * x86_cpu_coefficient_kwh;
+            enrichedValues.put(ENERGY_USED, energy);
         }
     }
 }

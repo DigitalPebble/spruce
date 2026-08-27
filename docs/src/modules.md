@@ -127,8 +127,13 @@ which map one-to-one to the CUR transfer types.
 
 ### Serverless
 
-Estimates the energy for the memory and vCPU usage of serverless services like Fargate or
-EMR. The default coefficients are taken from the [Tailpipe methodology](https://tailpipe.ai/methodology/serverless-explained/).
+Estimates the energy for the memory and vCPU usage of serverless services like Fargate,
+EMR Serverless or DocumentDB Elastic, which bill compute in vCPU-hours and GB-hours rather than
+by instance type. The default coefficients are taken from the [Tailpipe methodology](https://tailpipe.ai/methodology/serverless-explained/).
+
+DocumentDB Elastic clusters bill their compute as `ElasticCPUUsage` in vCPU-hours; the storage and
+backup lines of the same clusters are covered by [Storage](#storage) instead. AWS does not document
+the underlying hardware, so the x86 coefficient is applied.
 
 | | |
 |---|---|
@@ -168,12 +173,24 @@ draw is scaled accordingly.
 ### Compute — Boavizta
 
 Estimates the [final energy](https://www.eea.europa.eu/en/analysis/indicators/primary-and-final-energy-consumption)
-used for computation (e.g. EC2, OpenSearch, RDS on AWS; virtual machines on Azure), as well
-as the related embodied emissions and abiotic resource depletion, using the
+used for computation (e.g. EC2, OpenSearch, RDS, Amazon MQ, ElastiCache on AWS; virtual machines on
+Azure), as well as the related embodied emissions and abiotic resource depletion, using the
 [BoaviztAPI](https://doc.api.boavizta.org/).
 
 In a CUR, the instance type is read from `product_instance_type`; a FOCUS report does not carry
 it, so it is parsed from the `SkuMeter` column instead (e.g. `EUW2-BoxUsage:t3.xlarge`).
+
+Several managed services report their instance shape behind a service-specific prefix, which is
+removed before the lookup: `db.` for RDS, `mq.` for Amazon MQ, `cache.` for ElastiCache, and the
+`.search` suffix for OpenSearch. The two formats do not always agree on this, so both are
+normalised: `product_instance_type` already reads `m5.large` for an Amazon MQ broker, while the
+matching `SkuMeter` still reads `mq.m5.large`.
+
+Amazon MQ is also the one service here that does not bill per instance. A clustered deployment is
+charged one *cluster*-hour whatever its size, so a three-node RabbitMQ cluster running for an hour
+appears as a single unit of `USE1-RabbitMQ-3-InstanceUsage:mq.m5.large`. The node count is read
+back from the usage type and applied to both the energy and the embodied impacts; usage types
+carrying no such marker are treated as a single instance, and `Multi-AZ` as two.
 
 Each provider has two variants:
 

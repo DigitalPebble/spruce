@@ -32,7 +32,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Exercises the shared behaviour that lives in {@link AbstractBoaviztaAws} and its parent
- * {@code AbstractBoaviztaModule}: the AWS CUR extraction paths (EC2 / ESDomain / RDS), the
+ * {@code AbstractBoaviztaModule}: the AWS CUR extraction paths (EC2 / ESDomain / RDS / MQ /
+ * ElastiCache), the
  * declared input/output columns, the unknown-instance-type cache, and the impacts × usage
  * multiplication. Variant-specific behaviour (static CSV vs live API) is covered in
  * {@link BoaviztAPIstaticTest} and {@link BoaviztAPITest}.
@@ -56,7 +57,8 @@ class AbstractBoaviztaAwsTest {
                 CURColumn.PRODUCT_SERVICE_CODE,
                 CURColumn.LINE_ITEM_OPERATION,
                 CURColumn.LINE_ITEM_PRODUCT_CODE,
-                CURColumn.USAGE_AMOUNT
+                CURColumn.USAGE_AMOUNT,
+                CURColumn.LINE_ITEM_USAGE_TYPE
         }, module.columnsNeeded());
     }
 
@@ -100,6 +102,60 @@ class AbstractBoaviztaAwsTest {
         assertNotNull(enriched.get(SpruceColumn.ENERGY_USED));
     }
 
+    /** In a CUR the {@code mq.} prefix is already stripped from {@code product_instance_type}. */
+    @Test
+    void amazonMqCreateBrokerResolvesBrokerInstanceType() {
+        module.impactsByType.put("m5.large", new Impacts(1.0, 2.0, 3.0));
+        Map<Column, Object> enriched = enrich("m5.large", "AmazonMQ", "CreateBroker:0001", "AmazonMQ", 1.0,
+                "USE1-ActiveMQ-InstanceUsage:mq.m5.large");
+
+        assertEquals(1.0, (double) enriched.get(SpruceColumn.ENERGY_USED), 1e-12);
+    }
+
+    /**
+     * A RabbitMQ cluster bills one unit per cluster-hour, so the impacts of a single broker have to
+     * be multiplied by the number of nodes in the deployment.
+     */
+    @Test
+    void amazonMqClusterScalesUsageByNodeCount() {
+        module.impactsByType.put("m5.large", new Impacts(1.0, 2.0, 3.0));
+        Map<Column, Object> enriched = enrich("m5.large", "AmazonMQ", "CreateBroker:0001", "AmazonMQ", 10.0,
+                "USE1-RabbitMQ-3-InstanceUsage:mq.m5.large");
+
+        assertEquals(30.0, (double) enriched.get(SpruceColumn.ENERGY_USED), 1e-12);
+        assertEquals(60.0, (double) enriched.get(SpruceColumn.EMBODIED_EMISSIONS), 1e-12);
+        assertEquals(90.0, (double) enriched.get(SpruceColumn.EMBODIED_ADP), 1e-12);
+    }
+
+    @Test
+    void elastiCacheStripsCachePrefixBeforeLookup() {
+        module.impactsByType.put("t3.medium", new Impacts(1.0, 1.0, 1.0));
+        Map<Column, Object> enriched = enrich("cache.t3.medium", "AmazonElastiCache", "CreateCacheCluster:0001",
+                "AmazonElastiCache", 1.0, "NodeUsage:cache.t3.medium");
+
+        assertNotNull(enriched.get(SpruceColumn.ENERGY_USED));
+    }
+
+    @ParameterizedTest
+    @MethodSource("nodeCounts")
+    void nodeCountReadFromUsageType(String usageType, int expected) {
+        assertEquals(expected, AbstractBoaviztaAws.nodeCount(usageType));
+    }
+
+    static Stream<Arguments> nodeCounts() {
+        return Stream.of(
+                Arguments.of("USE1-RabbitMQ-3-InstanceUsage:mq.m5.large", 3),
+                Arguments.of("USE1-ActiveMQ-Multi-AZ-InstanceUsage:mq.m5.large", 2),
+                Arguments.of("USE1-ActiveMQ-InstanceUsage:mq.m5.large", 1),
+                Arguments.of("USE1-RabbitMQ-InstanceUsage:mq.m7g.large", 1),
+                // meters without the marker at all bill per instance
+                Arguments.of("EUW2-BoxUsage:t3.xlarge", 1),
+                Arguments.of("InstanceUsage:db.t3.micro", 1),
+                Arguments.of("NodeUsage:cache.t3.medium", 1),
+                Arguments.of(null, 1)
+        );
+    }
+
     @Test
     void unknownInstanceTypeIsCachedAndNotRetried() {
         Map<Column, Object> first = enrich("t3.unknown", "AmazonEC2", "RunInstances", "AmazonEC2", 1.0);
@@ -133,14 +189,23 @@ class AbstractBoaviztaAwsTest {
                 // EC2 path requires service code match — different service code skips
                 Arguments.of("t3.micro", "AmazonOther", "RunInstances", "AmazonEC2"),
                 // case-sensitive product code match
-                Arguments.of("t3.micro", "amazonec2", "RunInstances", "amazonec2")
+                Arguments.of("t3.micro", "amazonec2", "RunInstances", "amazonec2"),
+                // MQ and ElastiCache lines that are not broker/node usage
+                Arguments.of("m5.large", "AmazonMQ", "CreateConfiguration", "AmazonMQ"),
+                Arguments.of("cache.t3.medium", "AmazonElastiCache", "CreateSnapshot", "AmazonElastiCache")
         );
     }
 
     private Map<Column, Object> enrich(String instanceType, String serviceCode,
                                         String operation, String productCode, double usage) {
+        return enrich(instanceType, serviceCode, operation, productCode, usage, null);
+    }
+
+    private Map<Column, Object> enrich(String instanceType, String serviceCode,
+                                        String operation, String productCode, double usage,
+                                        String usageType) {
         Object[] values = new Object[]{
-                instanceType, serviceCode, operation, productCode, usage,
+                instanceType, serviceCode, operation, productCode, usage, usageType,
                 null, null, null
         };
         Row row = new GenericRowWithSchema(values, schema);
@@ -196,6 +261,23 @@ class AbstractBoaviztaAwsTest {
         void rdsStripsDbPrefixBeforeLookup() {
             focusModule.impactsByType.put("t3.micro", new Impacts(1.0, 1.0, 1.0));
             Map<Column, Object> enriched = enrich("InstanceUsage:db.t3.micro", "AmazonRDS", "CreateDBInstance", 1.0);
+            assertNotNull(enriched.get(SpruceColumn.ENERGY_USED));
+        }
+
+        /** Unlike the CUR, the SkuMeter keeps the {@code mq.} prefix, so it has to be stripped. */
+        @Test
+        void amazonMqStripsMqPrefixAndScalesByNodeCount() {
+            focusModule.impactsByType.put("m5.large", new Impacts(1.0, 1.0, 1.0));
+            Map<Column, Object> enriched = enrich("USE1-RabbitMQ-3-InstanceUsage:mq.m5.large", "AmazonMQ",
+                    "CreateBroker:0001", 10.0);
+            assertEquals(30.0, (double) enriched.get(SpruceColumn.ENERGY_USED), 1e-12);
+        }
+
+        @Test
+        void elastiCacheStripsCachePrefixBeforeLookup() {
+            focusModule.impactsByType.put("t3.medium", new Impacts(1.0, 1.0, 1.0));
+            Map<Column, Object> enriched = enrich("NodeUsage:cache.t3.medium", "AmazonElastiCache",
+                    "CreateCacheCluster:0001", 1.0);
             assertNotNull(enriched.get(SpruceColumn.ENERGY_USED));
         }
 
