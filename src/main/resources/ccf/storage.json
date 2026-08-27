@@ -94,7 +94,8 @@
     "WarmStorage-ByteHrs-S3",
     "AMP:MetricStorageByteHrs",
     "TimedStorage-INT-AIA-ByteHrs",
-    "TimedStorage-GIR-ByteHrs"
+    "TimedStorage-GIR-ByteHrs",
+    "TimedStorage-GIR-SmObjects"
   ],
   "REPLICATION_FACTORS": {
     "S3": 6,
