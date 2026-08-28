@@ -1,6 +1,6 @@
 ---
 title: "How cloud carbon and water estimates are calculated"
-description: "The methodology behind SPRUCE: embodied emissions from Boavizta, energy models from Cloud Carbon Footprint, Ember grid carbon intensity, PUE and WUE."
+description: "The methodology behind SPRUCE: embodied emissions from Boavizta and drive LCAs, energy models from Cloud Carbon Footprint, Ember grid carbon intensity, PUE and WUE."
 ---
 
 # How SPRUCE calculates cloud carbon, energy and water estimates
@@ -30,7 +30,7 @@ The main columns added by SPRUCE are:
 : emissions of CO2 eq in grams from the energy usage.
 
 `embodied_emissions_co2eq_g`
-: emissions of CO2 eq in grams embodied in the hardware used by the service, i.e. how much did it take to produce it.
+: emissions of CO2 eq in grams embodied in the hardware used by the service, i.e. how much did it take to produce it. Estimated for compute instances, LLM inference, and the drives behind storage; other services leave it null rather than zero.
 
 The total emissions for a service are `operational_emissions_co2eq_g` + `embodied_emissions_co2eq_g`.
 

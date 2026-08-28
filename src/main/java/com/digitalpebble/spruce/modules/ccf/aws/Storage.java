@@ -18,12 +18,38 @@ import java.util.List;
 import java.util.Map;
 
 import static com.digitalpebble.spruce.CURColumn.*;
+import static com.digitalpebble.spruce.SpruceColumn.EMBODIED_EMISSIONS;
 import static com.digitalpebble.spruce.SpruceColumn.ENERGY_USED;
 import static com.digitalpebble.spruce.Utils.loadJSONResources;
 
 /**
- * Provides an estimate of energy used for storage.
- * Applies a flat coefficient per Gb
+ * Provides an estimate of energy used for storage, and of the embodied emissions of the drives
+ * holding it. Applies a flat coefficient per Gb
+ *
+ * <p>Embodied emissions are amortised over a five year service life. The two media are modelled
+ * on different bases because they behave differently: a hard drive costs roughly the same to
+ * manufacture whatever its capacity, since the platters, motor, actuator, casing and PCB are
+ * near-fixed for a 3.5" unit and areal density does the work, whereas an SSD's die area scales
+ * with capacity. Hence a constant per drive for HDD and a rate per GB for SSD.
+ *
+ * <p>The 30 kg CO2eq per drive is the convergence point of four independent sources spanning a
+ * 40x range of drive capacities, which is itself the evidence for treating it as capacity
+ * independent: Boavizta / Umweltbundesamt <i>Green Cloud Computing</i> 2021 (31.11 kg per unit),
+ * a Seagate Exos X22 LCA (28.7 kg for a 22 TB drive), Seagate's published 0.27 kg per TB-year,
+ * and Tannu &amp; Nair's meta-analysis of 24 vendor LCAs (0.02 kg/GB over a 512 GB to 6 TB
+ * sample). Note that the last of those cannot be used as a per-GB rate on modern hardware: it
+ * encodes the drive sizes of a pre-2023 corpus and overstates current per-byte embodied carbon
+ * by an order of magnitude.
+ *
+ * <p>The 0.055 kg CO2eq per GB for SSD is where Boavizta's die-area formula (0.052) and the 2025
+ * <i>Embodied Carbon Footprint of 3D NAND Memories</i> study (0.056) agree. Tannu &amp; Nair's
+ * 0.16 kg/GB is roughly 3x higher because 3D NAND layer scaling has cut per-GB manufacturing
+ * carbon since their corpus closed.
+ *
+ * <p>The assumed 15 TB drive is the installed-fleet average implied by Backblaze's 2025 Drive
+ * Stats, which is the right basis for bytes sitting on hardware bought over several years;
+ * current nearline shipments average nearer 22 TB, which would give 0.27 kg per TB-year instead
+ * of 0.40. Both figures are configurable.
  *
  * <p>The values read (operations, usage types, units) are identical in CUR and FOCUS reports,
  * only the column labels differ: {@link #bindReportFormat(ReportFormat)} selects the bindings.
@@ -32,6 +58,13 @@ import static com.digitalpebble.spruce.Utils.loadJSONResources;
  *
  * @see <a href="https://www.cloudcarbonfootprint.org/docs/methodology#storage">CCF methodology</a>
  * @see <a href="https://github.com/cloud-carbon-footprint/cloud-carbon-footprint/blob/9f2cf436e5ad020830977e52c3b0a1719d20a8b9/packages/aws/src/lib/CostAndUsageTypes.ts#L25">resource file</a>
+ * @see <a href="https://doc.api.boavizta.org/Explanations/components/hdd/">Boavizta HDD embodied impacts</a>
+ * @see <a href="https://doc.api.boavizta.org/Explanations/components/ssd/">Boavizta SSD embodied impacts</a>
+ * @see <a href="https://tailpipe.ai/methodology/embodied-emissions-methodology-manufacture/">Tailpipe manufacture methodology, incl. the Exos X22 LCA</a>
+ * @see <a href="https://www.seagate.com/blog/hard-drives-the-key-to-data-center-sustainability/">Seagate, embodied carbon per TB-year</a>
+ * @see <a href="https://arxiv.org/pdf/2207.10793">Tannu &amp; Nair, The Dirty Secret of SSDs: Embodied Carbon</a>
+ * @see <a href="https://www.backblaze.com/blog/backblaze-drive-stats-for-2025/">Backblaze Drive Stats 2025, fleet capacity mix</a>
+ * @see <a href="https://github.com/DigitalPebble/spruce/issues/102">issue #102</a>
  **/
 public class Storage implements EnrichmentModule {
 
@@ -69,6 +102,20 @@ public class Storage implements EnrichmentModule {
     //  1.2 Watt-Hours per Terabyte-Hour for SSD
     double ssd_gb_coefficient = 1.2 / 1024d;
 
+    /** Embodied emissions of one hard drive, in kg CO2eq; see the class javadoc for why this is
+     *  a constant per drive rather than a rate per byte. */
+    double hdd_embodied_kg_per_drive = 30d;
+    /** Capacity assumed for one hard drive, in GB. */
+    double hdd_capacity_gb = 15_000d;
+    /** Embodied emissions of an SSD, in kg CO2eq per GB of capacity. */
+    double ssd_embodied_kg_per_gb = 0.055d;
+    /** Service life over which embodied emissions are amortised, in hours (5 years). */
+    double storage_lifetime_hours = 43_800d;
+
+    /** Grams CO2eq per GB-hour of stored data, derived in {@link #init(Map)}. */
+    double hdd_embodied_g_per_gb_hour;
+    double ssd_embodied_g_per_gb_hour;
+
     List<String> ssd_usage_types;
     List<String> hdd_usage_types;
     List<String> ssd_services;
@@ -86,8 +133,19 @@ public class Storage implements EnrichmentModule {
             ssd_gb_coefficient = coef / 1024d;
         }
 
+        hdd_embodied_kg_per_drive = Utils.doubleParam(params, "hdd_embodied_kg_per_drive", hdd_embodied_kg_per_drive);
+        hdd_capacity_gb = Utils.doubleParam(params, "hdd_capacity_gb", hdd_capacity_gb);
+        ssd_embodied_kg_per_gb = Utils.doubleParam(params, "ssd_embodied_kg_per_gb", ssd_embodied_kg_per_gb);
+        storage_lifetime_hours = Utils.doubleParam(params, "storage_lifetime_hours", storage_lifetime_hours);
+
+        hdd_embodied_g_per_gb_hour =
+                hdd_embodied_kg_per_drive * 1000d / (hdd_capacity_gb * storage_lifetime_hours);
+        ssd_embodied_g_per_gb_hour = ssd_embodied_kg_per_gb * 1000d / storage_lifetime_hours;
+
         log.info("hdd_gb_coefficient: {}", hdd_gb_coefficient);
         log.info("ssd_gb_coefficient: {}", ssd_gb_coefficient);
+        log.info("hdd_embodied_g_per_gb_hour: {}", hdd_embodied_g_per_gb_hour);
+        log.info("ssd_embodied_g_per_gb_hour: {}", ssd_embodied_g_per_gb_hour);
 
         try {
             Map<String, Object> map = loadJSONResources("ccf/storage.json");
@@ -109,7 +167,7 @@ public class Storage implements EnrichmentModule {
 
     @Override
     public Column[] columnsAdded() {
-        return new Column[]{ENERGY_USED};
+        return new Column[]{ENERGY_USED, EMBODIED_EMISSIONS};
     }
 
     @Override
@@ -180,6 +238,10 @@ public class Storage implements EnrichmentModule {
         //  to kwh
         double energy_kwh = amount /1000 * coefficient * replication;
         enrichedValues.put(ENERGY_USED, energy_kwh);
+        // the replication factor applies to the hardware as well as to the energy: the same bytes
+        // occupy that many times more physical drives, and so that much more embodied carbon
+        double embodied_coefficient = isHDD ? hdd_embodied_g_per_gb_hour : ssd_embodied_g_per_gb_hour;
+        enrichedValues.put(EMBODIED_EMISSIONS, amount * embodied_coefficient * replication);
     }
 
     /**

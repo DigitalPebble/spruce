@@ -43,7 +43,7 @@ flowchart LR
 | Module | Providers | Writes | Based on |
 |---|---|---|---|
 | [RegionExtraction](#regionextraction) | AWS, Azure, FOCUS | `region` | — |
-| [Storage](#storage) | AWS, Azure | `operational_energy_kwh` | [Cloud Carbon Footprint](https://www.cloudcarbonfootprint.org/) |
+| [Storage](#storage) | AWS, Azure | `operational_energy_kwh`, `embodied_emissions_co2eq_g` | [Cloud Carbon Footprint](https://www.cloudcarbonfootprint.org/) for energy, [Boavizta](https://doc.api.boavizta.org/) and vendor LCAs for embodied |
 | [Networking](#networking) | AWS, Azure | `operational_energy_kwh` | [Boavizta](https://boavizta.org/) coefficients |
 | [Serverless](#serverless) | AWS | `operational_energy_kwh` | [Tailpipe](https://tailpipe.ai/methodology/serverless-explained/) |
 | [Accelerators](#accelerators) | AWS | `operational_energy_kwh` | [Cloud Carbon Footprint](https://www.cloudcarbonfootprint.org/) |
@@ -70,28 +70,65 @@ provider-neutral: it reads the standard `RegionId` column.
 
 ## Stage 2 — Energy and embodied estimates
 
-The modules in this stage estimate the energy used by a row of usage — and, for Boavizta
-and EcoLogits, the related embodied emissions. Each module handles a different kind of
+The modules in this stage estimate the energy used by a row of usage and, for Storage,
+Boavizta and EcoLogits, the related embodied emissions. Each module handles a different kind of
 usage (storage, networking, compute, …), so they complement each other rather than overlap.
 
 ### Storage
 
 Estimates the energy used for storage by applying a flat coefficient per GB, following the
-approach of the [Cloud Carbon Footprint](https://www.cloudcarbonfootprint.org/docs/methodology#storage) project.
-Service-specific replication factors are applied. On Azure, managed disks are estimated
-from their provisioned capacity.
+approach of the [Cloud Carbon Footprint](https://www.cloudcarbonfootprint.org/docs/methodology#storage) project,
+and the embodied emissions of the drives holding the data, amortised over their service life.
+Service-specific replication factors are applied to both, since the same bytes occupy that many
+times more physical drives. On Azure, managed disks are estimated from their provisioned capacity.
 
 | | |
 |---|---|
 | **Classes** | `com.digitalpebble.spruce.modules.ccf.aws.Storage`<br>`com.digitalpebble.spruce.modules.ccf.azure.Storage` |
-| **Writes** | `operational_energy_kwh` |
+| **Writes** | `operational_energy_kwh`<br>`embodied_emissions_co2eq_g` |
 
-**Configuration** (in Wh per TB-hour):
+**Energy configuration** (in Wh per TB-hour):
 
 | Key | Default | Description |
 |---|---|---|
 | `hdd_coefficient_tb_h` | 0.65 | Energy per TB-hour for HDD storage |
 | `ssd_coefficient_tb_h` | 1.2  | Energy per TB-hour for SSD storage |
+
+**Embodied emissions configuration**:
+
+| Key | Default | Description |
+|---|---|---|
+| `hdd_embodied_kg_per_drive` | 30.0 | Embodied emissions of one hard drive, in kg CO2eq |
+| `hdd_capacity_gb` | 15000.0 | Capacity assumed for one hard drive |
+| `ssd_embodied_kg_per_gb` | 0.055 | Embodied emissions of an SSD, per GB of capacity |
+| `storage_lifetime_hours` | 43800.0 | Service life the embodied emissions are amortised over (5 years) |
+
+The two media are modelled on different bases. A hard drive costs roughly the same to manufacture
+whatever its capacity, since the platters, motor, actuator, casing and PCB are near-fixed for a
+3.5" unit and areal density does the work, so its embodied emissions are a constant per drive
+divided by an assumed capacity. An SSD's die area scales with capacity, so its figure is a rate
+per GB. With the defaults that works out at 0.40 kg CO2eq per TB-year for HDD and 11 kg for SSD.
+
+Note that `hdd_capacity_gb` describes the physical drive rather than a provisioned volume, so it
+is not the same thing as an Azure Managed Disk size or an EBS volume size.
+
+**Data sources for the embodied figures**:
+
+| Figure | Value | Source |
+|---|---|---|
+| HDD, per drive | 31.11 kg CO2eq | [BoaviztAPI HDD component](https://doc.api.boavizta.org/Explanations/components/hdd/), from [Umweltbundesamt, *Green Cloud Computing* 2021](https://www.umweltbundesamt.de/sites/default/files/medien/5750/publikationen/2021-06-17_texte_94-2021_green-cloud-computing.pdf) |
+| HDD, Seagate Exos X22 LCA | 28.7 kg CO2eq for a 22 TB drive | [Tailpipe manufacture methodology](https://tailpipe.ai/methodology/embodied-emissions-methodology-manufacture/) |
+| HDD, per TB-year | 0.27 kg CO2eq | [Seagate, hard drives and data centre sustainability](https://www.seagate.com/blog/hard-drives-the-key-to-data-center-sustainability/) |
+| HDD, 24 vendor LCAs | 0.02 kg CO2eq/GB over a 512 GB to 6 TB sample | [Tannu &amp; Nair, *The Dirty Secret of SSDs: Embodied Carbon*](https://arxiv.org/pdf/2207.10793) |
+| SSD, die-area formula | 0.052 kg CO2eq/GB | [BoaviztAPI SSD component](https://doc.api.boavizta.org/Explanations/components/ssd/) |
+| SSD, 3D NAND study | 0.056 kg CO2eq/GB | [Tailpipe manufacture methodology](https://tailpipe.ai/methodology/embodied-emissions-methodology-manufacture/), from [*Embodied Carbon Footprint of 3D NAND Memories*](https://hal.science/hal-05015578v1/document) |
+| Drive capacity mix | 15 TB installed-fleet average | [Backblaze Drive Stats 2025](https://www.backblaze.com/blog/backblaze-drive-stats-for-2025/) |
+
+The first four rows converge on roughly 30 kg per drive across a 40x range of capacities, which
+is itself the evidence for treating HDD embodied carbon as capacity independent. The Tannu &amp;
+Nair rate cannot be applied per GB to current hardware: it encodes the drive sizes of a pre-2023
+corpus and overstates per-byte embodied carbon by about an order of magnitude. See
+[issue #102](https://github.com/DigitalPebble/spruce/issues/102) for the full derivation.
 
 ### Networking
 
