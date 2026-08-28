@@ -76,6 +76,14 @@ present, choose one tag key to break down emissions by tag value. The cost
 coverage KPI matches `report.py` and is calculated across the full input, not
 only the currently selected filters.
 
+On AWS CUR input, third-party AWS Marketplace subscriptions (line items where
+`bill_billing_entity` is `AWS Marketplace`) are left out of every tab, as they
+are in `report.py`. They are billed through AWS but run on the seller's own
+infrastructure, so SPRUCE cannot estimate their impact and keeping them would
+only lower the coverage figure. A note under the overview cards gives the
+number of line items and the cost excluded. Inputs without a
+`bill_billing_entity` column, such as FOCUS exports, are shown in full.
+
 The "In everyday terms" block under the overview cards converts the emissions,
 energy, and water totals into human-readable equivalences. The sidebar
 "Equivalence style" selector switches the comparison set (Everyday, Tech, or

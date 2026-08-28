@@ -61,6 +61,15 @@ The generated report includes:
 - Interactive tag breakdowns
 - Recommendations generated from the data
 
+On AWS CUR input, third-party AWS Marketplace line items (`bill_billing_entity =
+'AWS Marketplace'`) are dropped before any query runs, by both the report and
+the dashboard (see `filter.py`). The report says so in its header and the
+dashboard in a note under the overview cards. Those subscriptions are billed
+through AWS but run on the seller's own infrastructure, so nothing in the
+billing data describes their energy use; counting them only depresses the
+coverage percentage. Inputs without the column are unaffected, so marketplace
+rows in a FOCUS export are still included.
+
 ## Interactive Dashboard
 
 Launch a Streamlit-based interactive dashboard:

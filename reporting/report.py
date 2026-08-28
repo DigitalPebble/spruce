@@ -7,6 +7,8 @@ and produces a Markdown report with recommendations.
 Queries use the FOCUS (FinOps Open Cost & Usage Specification) columns emitted
 by all SPRUCE pipelines (AWS CUR, AWS FOCUS, Azure, Azure FOCUS); columns a
 given input does not carry are added as NULLs so every query runs everywhere.
+The one exception is bill_billing_entity, an AWS-native column used to drop
+third-party marketplace charges before any query runs; see filter.py.
 """
 
 import argparse
@@ -20,6 +22,7 @@ except ImportError:
     sys.exit("duckdb is required — run: pip install -r requirements-report.txt")
 
 import equivalences
+import filter
 
 
 # Columns the queries below rely on. Any of them missing from the input is
@@ -43,6 +46,8 @@ REPORT_COLUMN_DEFAULTS = {
     "water_consumption_stress_area_l": "DOUBLE",
     "carbon_intensity": "DOUBLE",
     "power_usage_effectiveness": "DOUBLE",
+    # AWS-native, used only by the marketplace filter.
+    filter.BILLING_ENTITY_COLUMN: "VARCHAR",
 }
 
 
@@ -84,7 +89,8 @@ def create_cur_table(con, parquet_glob):
             exprs.append(f'{BILLING_PERIOD_FROM_CHARGE_PERIOD} AS "{name}"')
         else:
             exprs.append(f'CAST(NULL AS {sql_type}) AS "{name}"')
-    con.execute(f"CREATE VIEW cur AS SELECT {', '.join(exprs)} FROM {source}")
+    filter.create_cur_views(con, f"SELECT {', '.join(exprs)} FROM {source}")
+    return filter.BILLING_ENTITY_COLUMN in existing_lower
 
 
 # ---------------------------------------------------------------------------
@@ -472,7 +478,7 @@ def main():
         con.execute("LOAD httpfs")
         con.execute("CREATE SECRET (TYPE s3, PROVIDER credential_chain)")
     try:
-        create_cur_table(con, parquet_glob)
+        is_aws_cur = create_cur_table(con, parquet_glob)
     except Exception as exc:
         sys.exit(f"Failed to load Parquet data from '{parquet_glob}': {exc}")
 
@@ -535,6 +541,12 @@ def main():
         f"_{today} | Rows: {row_count:,}_\n\n"
         f"Enriched with [SPRUCE](https://opensourcegreenops.cloud/)\n"
     )
+
+    # State the coverage on AWS inputs, where the report silently drops the
+    # marketplace rows the CUR carries alongside AWS's own services.
+    if is_aws_cur:
+        note = filter.coverage_note(*filter.excluded_rows(con))
+        parts.append(f"\n_{note}_\n")
 
     # GHG Protocol scopes: operational emissions from the electricity used are
     # Scope 2 (location-based), embodied emissions from the hardware are Scope 3.

@@ -31,6 +31,7 @@ except ImportError as exc:
     )
 
 import equivalences
+import filter
 
 DEFAULT_TOP_N = 10
 MAX_TOP_N = 50
@@ -90,6 +91,8 @@ DASHBOARD_COLUMN_DEFAULTS = MappingProxyType(
         "water_consumption_stress_area_l": "DOUBLE",
         "carbon_intensity": "DOUBLE",
         "power_usage_effectiveness": "DOUBLE",
+        # AWS-native, used only by the marketplace filter.
+        filter.BILLING_ENTITY_COLUMN: "VARCHAR",
     }
 )
 
@@ -215,7 +218,9 @@ def create_dashboard_view(con: duckdb.DuckDBPyConnection, parquet_path: str) -> 
                 f"CAST(NULL AS {column_type}) AS {sql_identifier(column_name)}"
             )
 
-    con.execute(f"CREATE VIEW cur AS SELECT {', '.join(select_exprs)} FROM {source_sql}")
+    filter.create_cur_views(
+        con, f"SELECT {', '.join(select_exprs)} FROM {source_sql}"
+    )
 
 
 @st.cache_resource(show_spinner=False, max_entries=CONNECTION_CACHE_MAX_ENTRIES)
@@ -262,6 +267,13 @@ def get_filter_options(input_path: str) -> tuple[list[str], list[str]]:
     )
     row = options.iloc[0] if not options.empty else {}
     return to_string_list(row.get("periods")), to_string_list(row.get("regions"))
+
+
+@st.cache_data(show_spinner=False, ttl=QUERY_CACHE_TTL_SECONDS)
+def marketplace_exclusion(input_path: str) -> tuple[int, float]:
+    """Return the (line items, cost) of marketplace charges left out of every
+    view, across the whole dataset."""
+    return filter.excluded_rows(load_connection(input_path))
 
 
 @st.cache_data(show_spinner=False, ttl=QUERY_CACHE_TTL_SECONDS)
@@ -907,7 +919,9 @@ def render_equivalences(row: pd.Series, flavor: str) -> None:
     )
 
 
-def render_overview(overview: pd.DataFrame, equiv_flavor: str) -> None:
+def render_overview(
+    overview: pd.DataFrame, equiv_flavor: str, excluded: tuple[int, float]
+) -> None:
     if overview.empty:
         st.info("No data available for the current filters.")
         return
@@ -924,6 +938,9 @@ def render_overview(overview: pd.DataFrame, equiv_flavor: str) -> None:
         ]
     )
     render_equivalences(row, equiv_flavor)
+    if excluded[0]:
+        # Escape $ so Streamlit does not read the cost as LaTeX.
+        st.caption(filter.coverage_note(*excluded).replace("$", "\\$"))
 
 
 def render_trend(trend: pd.DataFrame) -> None:
@@ -1358,6 +1375,7 @@ def main() -> None:
         load_connection(input_path)
         periods, regions = get_filter_options(input_path)
         tag_keys = get_tag_keys(input_path)
+        excluded = marketplace_exclusion(input_path)
     except (duckdb.Error, ValueError, OSError) as exc:
         st.error(f"Failed to load enriched Parquet data: {exc}")
         st.stop()
@@ -1387,7 +1405,7 @@ def main() -> None:
     tab_containers = st.tabs(tabs)
     
     with tab_containers[0]:
-        render_overview(data.overview, equiv_flavor)
+        render_overview(data.overview, equiv_flavor, excluded)
     with tab_containers[1]:
         render_trend(data.trend)
     with tab_containers[2]:
