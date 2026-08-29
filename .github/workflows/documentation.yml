@@ -14,7 +14,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: gh-pages
+  group: pages
   cancel-in-progress: false
 
 jobs:
@@ -34,8 +34,12 @@ jobs:
           python-version: 3.x
       - run: pip install zensical
       - name: Reject tags with versioned documentation
-        run: "! grep -qFx '[project.extra.version]' docs/zensical.toml"
-      - run: cd docs && zensical build --clean
+        run: |
+          if grep -qFx '[project.extra.version]' docs/zensical.toml; then
+            echo "::error::this tag still builds versioned documentation with mike, deploy from a later release"
+            exit 1
+          fi
+      - run: cd docs && zensical build --clean --strict
       - uses: actions/upload-pages-artifact@v5
         with:
           path: docs/site
