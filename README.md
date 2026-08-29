@@ -45,15 +45,15 @@ A typical sequence of stages would be:
 - application of PUE / WUE and other overheads
 - application of carbon intensity factors
 
-Have a look at the [methodology section](https://opensourcegreenops.cloud/latest/methodology/) of our documentation for more details.
+Have a look at the [methodology section](https://opensourcegreenops.cloud/methodology/) of our documentation for more details.
 
 ## Documentation 
 
-The documentation is at https://opensourcegreenops.cloud/. If you can't wait to try SPRUCE, have a look at the [tutorial for Docker](https://opensourcegreenops.cloud/latest/tutorial/with-docker/).
+The documentation is at https://opensourcegreenops.cloud/. If you can't wait to try SPRUCE, have a look at the [tutorial for Docker](https://opensourcegreenops.cloud/tutorial/with-docker/).
 
 To explore enriched output, see
-[Explore the results](https://opensourcegreenops.cloud/latest/tutorial/results/)
-and [Build a simple dashboard](https://opensourcegreenops.cloud/latest/howto/dashboard/).
+[Explore the results](https://opensourcegreenops.cloud/tutorial/results/)
+and [Build a simple dashboard](https://opensourcegreenops.cloud/howto/dashboard/).
 
 ## License
 Licensed under the Apache License, Version 2.0: http://www.apache.org/licenses/LICENSE-2.0
