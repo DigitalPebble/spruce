@@ -1,43 +1,47 @@
 name: Deploy documentation to GH pages
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'docs/**'
-      - '.github/workflows/documentation.yml'
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to build the documentation from
+        required: true
 
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
 
 concurrency:
-  group: gh-pages
+  group: pages
   cancel-in-progress: false
 
 jobs:
   deploy:
+    if: ${{ !github.event.release.prerelease }}
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/configure-pages@v6
       - uses: actions/checkout@v7
         with:
-          fetch-depth: 0
+          ref: refs/tags/${{ github.event.release.tag_name || inputs.tag }}
       - uses: actions/setup-python@v7
         with:
           python-version: 3.x
-      - run: pip install zensical "mike @ git+https://github.com/squidfunk/mike.git"
-      - name: Configure git identity
+      - run: pip install zensical
+      - name: Reject tags with versioned documentation
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-      - name: Deploy dev version from main
-        if: github.ref == 'refs/heads/main'
-        run: cd docs && mike deploy --push --update-aliases dev
-      - name: Deploy released version from release tag
-        if: github.event_name == 'release' && !github.event.release.prerelease
-        run: |
-          cd docs
-          mike deploy --push --update-aliases "${{ github.event.release.tag_name }}" latest
-          mike set-default --push latest
+          if grep -qFx '[project.extra.version]' docs/zensical.toml; then
+            echo "::error::this tag still builds versioned documentation with mike, deploy from a later release"
+            exit 1
+          fi
+      - run: cd docs && zensical build --clean --strict
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: docs/site
+      - uses: actions/deploy-pages@v5
+        id: deployment
