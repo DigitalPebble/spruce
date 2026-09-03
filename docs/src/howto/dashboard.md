@@ -85,9 +85,9 @@ comparisons.
 
 ## Screenshots
 
-![SPRUCE dashboard overview](../images/dashboard-overview.png)
+![The overview tab of the SPRUCE dashboard: tiles for total usage cost, energy, operational and embodied emissions, water and dataset coverage, with everyday equivalences below](../images/dashboard-overview.png){ width="1257" height="845" }
 
-![SPRUCE dashboard trend tab](../images/dashboard-trend.png)
+![The trend tab of the SPRUCE dashboard, plotting energy in kWh and emissions by billing period across 2025](../images/dashboard-trend.png){ width="1280" height="820" }
 
 ## Customize
 

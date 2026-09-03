@@ -87,7 +87,7 @@ Look at the tutorial for examples of how to [query the enriched usage reports](.
 
 You can of course run EMR using the [AWS console](https://docs.aws.amazon.com/emr/latest/EMR-Serverless-UserGuide/gs-console.html). This makes it easier to check the success of a job and access the logs for it.
 
-![AWS Console](../images/emr_studio.png)
+![An EMR Serverless application in EMR Studio: the application details panel above a table of five batch job runs named job-run-spruce, with their status, run time and links to the logs](../images/emr_studio.png){ width="1543" height="992" }
 
 
 
