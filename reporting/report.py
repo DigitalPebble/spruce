@@ -533,7 +533,7 @@ def main():
     parts.append(
         f"# Cloud Environmental Impact Report\n"
         f"_{today} | Rows: {row_count:,}_\n\n"
-        f"Enriched with [SPRUCE](http://opensourcegreenops.cloud/)\n"
+        f"Enriched with [SPRUCE](https://opensourcegreenops.cloud/)\n"
     )
 
     # Billing summary

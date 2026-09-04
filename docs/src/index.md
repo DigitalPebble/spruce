@@ -21,7 +21,7 @@ SPRUCE is built around the idea that actionable GreenOps requires the same granu
 - **Open and auditable** — built on open source models and public data, so your methodology is transparent, not black-boxed.
 - **Standards-friendly** — ingests [FOCUS](https://focus.finops.org/) exports from AWS and Azure, and outputs FOCUS-compatible columns.
 - **Your data stays yours** — running on EMR means your CUR data never leaves your AWS environment.
-- **Actively maintained** — unlike Cloud Carbon Footprint, which has been abandoned, SPRUCE is under active development.
+- **Actively maintained** — unlike [Cloud Carbon Footprint](comparison.md), which has been abandoned, SPRUCE is under active development.
 
 ## Supported providers and formats
 

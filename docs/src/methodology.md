@@ -7,7 +7,7 @@ description: "The methodology behind SPRUCE: embodied emissions from Boavizta an
 
 SPRUCE uses third-party resources and models to estimate the environmental impact of cloud services. It enriches usage reports — AWS CUR, Azure cost details, or [FOCUS](https://focus.finops.org/) exports from either provider — with additional columns, allowing users to do GreenOps and build dashboards and reports.
 
-![SPRUCE workflow](images/workflow.png)
+![AWS and Azure usage reports in CSV or Parquet, carrying cost only, pass through SPRUCE running on Apache Spark and come out as enriched Parquet carrying cost, CO2 and water, ready for dashboards and reports](images/workflow.png){ width="1123" height="277" }
 
 Unlike the information provided by CSPs (Cloud Service Providers), SPRUCE gives total transparency on how the estimates are built.
 

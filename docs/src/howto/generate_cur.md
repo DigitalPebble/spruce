@@ -36,13 +36,13 @@ column (introduced in FOCUS 1.1), which the 1.0 export does not carry.
 
 Give your export a name and, for a CUR, click on **Include Resource IDs** as shown below
 
-![AWS Console](../images/cur_creation.png)
+![The AWS Data Exports create form: a standard data export named CURv2-dataexport, the CUR 2.0 data table selected and Include resource IDs ticked](../images/cur_creation.png){ width="1557" height="891" }
 
 Scroll down to **Data export storage settings**, select a S3 bucket and a prefix. 
 If you create a bucket, you should select a region with a low carbon intensity like `eu-north-1` (Sweden) or `eu-west-3` (France), the emissions related to the storage of the reports will be greatly reduced.
 
 
-![AWS Console](../images/cur_creation2.png)
+![The delivery and storage sections of the same form: Parquet compression, overwrite on refresh, and the S3 bucket and path prefix the export is written to](../images/cur_creation2.png){ width="1495" height="846" }
 
 Optionally, add **Tags** to track the cost and impacts of your GreenOps activities.
 
