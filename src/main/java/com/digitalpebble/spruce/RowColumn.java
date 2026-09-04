@@ -7,6 +7,7 @@ import org.apache.spark.sql.types.DataType;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -99,7 +100,7 @@ public abstract class RowColumn extends Column {
             return null;
         }
         if (value instanceof java.sql.Timestamp timestamp) {
-            return timestamp.toLocalDateTime().getYear();
+            return timestamp.toInstant().atZone(ZoneOffset.UTC).getYear();
         }
         if (value instanceof java.time.Instant instant) {
             return instant.atZone(ZoneOffset.UTC).getYear();
@@ -115,6 +116,52 @@ public abstract class RowColumn extends Column {
         }
         Matcher matcher = YEAR.matcher(value.toString());
         return matcher.find() ? Integer.valueOf(matcher.group()) : null;
+    }
+
+    /** Matches the yyyy-MM at the start of an ISO date, instant or billing period. */
+    private static final Pattern YEAR_MONTH = Pattern.compile("(?<!\\d)((?:19|20)\\d{2})-(0[1-9]|1[0-2])(?!\\d)");
+
+    /**
+     * Returns the year and month of the date or timestamp held by this column in the given row,
+     * or null when the column is absent from the schema, holds null, or carries no month (a
+     * bare year, or a string that is not a date). Same representations as {@link #getYear(Row)}.
+     */
+    public YearMonth getYearMonth(Row r) {
+        int index = resolveIndex(r, true);
+        if (index == -1) {
+            return null;
+        }
+        Object value = r.get(index);
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof java.sql.Timestamp timestamp) {
+            return YearMonth.from(timestamp.toInstant().atZone(ZoneOffset.UTC));
+        }
+        if (value instanceof java.time.Instant instant) {
+            return YearMonth.from(instant.atZone(ZoneOffset.UTC));
+        }
+        if (value instanceof java.sql.Date date) {
+            return YearMonth.from(date.toLocalDate());
+        }
+        if (value instanceof LocalDate date) {
+            return YearMonth.from(date);
+        }
+        if (value instanceof LocalDateTime dateTime) {
+            return YearMonth.from(dateTime);
+        }
+        String text = value.toString().trim();
+        Matcher matcher = YEAR_MONTH.matcher(text);
+        if (matcher.find()) {
+            return YearMonth.of(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)));
+        }
+        for (DateTimeFormatter format : DATE_FORMATS) {
+            try {
+                return YearMonth.from(LocalDate.parse(text, format));
+            } catch (DateTimeParseException ignored) {
+            }
+        }
+        return null;
     }
 
     /** Returns true if the value for this column is null in the given row. */
