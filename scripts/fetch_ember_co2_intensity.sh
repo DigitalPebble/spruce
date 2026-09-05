@@ -27,7 +27,11 @@
 #
 # Output columns: provider,region,gCO2_per_kWh
 #
-# Usage:  ./fetch_ember_co2_intensity.sh [cloud_regions.json] [output.csv]
+# Usage:  ./fetch_ember_co2_intensity.sh [cloud_regions.json] [output.csv] [monthly_output.csv]
+#
+# Alongside the yearly figures, the monthly Ember releases (same layout, a Date
+# column instead of Year) are reduced to one row per region and month, over the
+# whole period Ember covers.
 #
 # Requires: bash, curl, jq, awk.
 
@@ -39,6 +43,7 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 URL="https://files.ember-energy.org/public-downloads/yearly_full_release_long_format.csv"
 CLOUD_REGIONS="${1:-cloud_regions.json}"
 OUTPUT="${2:-$PROJECT_ROOT/src/main/resources/ember/ember_co2_intensity.csv}"
+MONTHLY_OUTPUT="${3:-$PROJECT_ROOT/src/main/resources/ember/ember_co2_intensity_monthly.csv}"
 GEO_CACHE="${EMBER_GEOCACHE:-$SCRIPT_DIR/.geocode_cache}"
 NOMINATIM_UA="ember-cloud-region-script/1.0"
 
@@ -76,7 +81,11 @@ tmp_countries="$(mktemp)"
 tmp_lookup="$(mktemp)"
 tmp_sub_lookup="$(mktemp)"
 tmp_sub_csv="$(mktemp)"
-trap 'rm -f "$tmp_csv" "$tmp_countries" "$tmp_lookup" "$tmp_sub_lookup" "$tmp_sub_csv"' EXIT
+tmp_monthly_lookup="$(mktemp)"
+tmp_sub_monthly_lookup="$(mktemp)"
+tmp_monthly_out="$(mktemp)"
+tmp_monthly_alias="$(mktemp)"
+trap 'rm -f "$tmp_csv" "$tmp_countries" "$tmp_lookup" "$tmp_sub_lookup" "$tmp_sub_csv" "$tmp_monthly_lookup" "$tmp_sub_monthly_lookup" "$tmp_monthly_out" "$tmp_monthly_alias"' EXIT
 
 echo "Downloading $URL..." >&2
 curl --fail -sSL "$URL" -o "$tmp_csv"
@@ -122,6 +131,26 @@ awk -F',' -v countries_file="$tmp_countries" '
     }
 ' "$tmp_csv" > "$tmp_lookup"
 
+# Same filtering on the monthly release, keeping every month
+# (TSV: country<TAB>YYYY-MM<TAB>value).
+echo "Downloading ${URL/yearly/monthly}..." >&2
+curl --fail -sSL "${URL/yearly/monthly}" -o "$tmp_csv"
+awk -F',' -v countries_file="$tmp_countries" '
+    BEGIN {
+        while ((getline line < countries_file) > 0) {
+            if (line != "") ok[line] = 1
+        }
+        close(countries_file)
+        if (ok["United States"]) ok["United States of America"] = 1
+    }
+    NR == 1 { next }
+    $15 == "gCO2/kWh" && $2 != "" && $16 != "" && ($1 in ok) {
+        name = $1
+        if (name == "United States of America") name = "United States"
+        print name "\t" substr($3, 1, 7) "\t" $16
+    }
+' "$tmp_csv" > "$tmp_monthly_lookup"
+
 # Build combined sub-national lookup (TSV: ISO_3166-2_code<TAB>value) by
 # pulling each configured source and prefixing bare state codes.
 # Ember sub-national CSVs share a schema: col 4=State code, 6=Year, 10=Unit,
@@ -145,6 +174,14 @@ for entry in "${SUBNATIONAL[@]}"; do
             for (code in best_value) print prefix code "\t" best_value[code]
         }
     ' "$tmp_sub_csv" >> "$tmp_sub_lookup"
+    echo "Downloading ${sn_url/yearly/monthly}..." >&2
+    curl --fail -sSL "${sn_url/yearly/monthly}" -o "$tmp_sub_csv"
+    awk -F',' -v prefix="$sn_prefix" '
+        NR == 1 { next }
+        $10 == "gCO2/kWh" && $4 != "" && $11 != "" {
+            print prefix $4 "\t" substr($6, 1, 7) "\t" $11
+        }
+    ' "$tmp_sub_csv" >> "$tmp_sub_monthly_lookup"
 done
 
 # Add alias rows so Nominatim's subdivision codes resolve to Ember's values
@@ -155,7 +192,10 @@ for alias in "${SUBNATIONAL_ALIASES[@]}"; do
     if [[ -n "$val" ]]; then
         printf '%s\t%s\n' "$nom_code" "$val" >> "$tmp_sub_lookup"
     fi
+    awk -F'\t' -v k="$ember_code" -v n="$nom_code" -v OFS='\t' '$1==k {print n, $2, $3}' \
+        "$tmp_sub_monthly_lookup" >> "$tmp_monthly_alias"
 done
+cat "$tmp_monthly_alias" >> "$tmp_sub_monthly_lookup"
 
 # Check whether a country has a sub-national source configured.
 has_subnational() {
@@ -201,7 +241,12 @@ lookup_value() {
     '
 }
 
-mkdir -p "$(dirname "$OUTPUT")"
+# Print "YYYY-MM<TAB>value" lines for a key, in month order.
+lookup_months() {
+    awk -F'\t' -v key="$1" '$1 == key { print $2 "\t" $3 }' "$2" | sort
+}
+
+mkdir -p "$(dirname "$OUTPUT")" "$(dirname "$MONTHLY_OUTPUT")"
 
 # Emit a row per keyed cloud region.
 {
@@ -210,17 +255,25 @@ mkdir -p "$(dirname "$OUTPUT")"
     echo "#provider,region,gCO2_per_kWh"
     while IFS=$'\t' read -r provider region country lat lon; do
         value=""
+        months=""
         if [[ -n "$lat" && -n "$lon" ]] && has_subnational "$country"; then
             code=$(geo_to_subdivision "$lat" "$lon")
             if [[ -n "$code" ]]; then
                 value=$(lookup_value "$code" "$tmp_sub_lookup")
+                months=$(lookup_months "$code" "$tmp_sub_monthly_lookup")
             fi
         fi
         if [[ -z "$value" ]]; then
             value=$(lookup_value "$country" "$tmp_lookup")
         fi
+        if [[ -z "$months" ]]; then
+            months=$(lookup_months "$country" "$tmp_monthly_lookup")
+        fi
         if [[ -n "$value" ]]; then
             echo "$provider,$region,$value"
+        fi
+        if [[ -n "$months" ]]; then
+            awk -F'\t' -v p="$provider" -v r="$region" '{ print p "," r "," $1 "," $2 }' <<< "$months" >> "$tmp_monthly_out"
         fi
     done < <(jq -r '
         ["aws","gcp","azure"][] as $p
@@ -232,3 +285,16 @@ mkdir -p "$(dirname "$OUTPUT")"
 
 rows=$(($(wc -l < "$OUTPUT") - 1))
 echo "Wrote $OUTPUT ($rows rows)" >&2
+
+{
+    echo "# https://ember-energy.org/creative-commons/"
+    echo "# Creative Commons Attribution Licence (CC-BY-4.0)"
+    echo "#provider,region,month,gCO2_per_kWh"
+    cat "$tmp_monthly_out"
+} > "$MONTHLY_OUTPUT"
+rows=$(($(wc -l < "$MONTHLY_OUTPUT") - 3))
+if [[ $rows -eq 0 ]]; then
+    echo "error: no monthly rows written, has the Ember layout changed?" >&2
+    exit 1
+fi
+echo "Wrote $MONTHLY_OUTPUT ($rows rows)" >&2

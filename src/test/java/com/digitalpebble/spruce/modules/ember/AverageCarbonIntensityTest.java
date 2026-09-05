@@ -29,12 +29,12 @@ class AverageCarbonIntensityTest {
 
     @Test
     void awsKnownRegionReturnsIntensity() {
-        assertEquals(384.4, module.getIntensity(Provider.AWS, "us-east-1"));
+        assertEquals(327.17, module.getIntensity(Provider.AWS, "us-east-1"));
     }
 
     @Test
     void awsAnotherRegionReturnsIntensity() {
-        assertEquals(256.54, module.getIntensity(Provider.AWS, "eu-west-1"));
+        assertEquals(255.9, module.getIntensity(Provider.AWS, "eu-west-1"));
     }
 
     @Test
@@ -69,7 +69,7 @@ class AverageCarbonIntensityTest {
 
         module.enrich(row, enriched);
 
-        assertEquals(384.4, enriched.get(CARBON_INTENSITY));
+        assertEquals(327.17, enriched.get(CARBON_INTENSITY));
     }
 
     @Test

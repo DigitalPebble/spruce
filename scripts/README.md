@@ -22,6 +22,7 @@ scripts/fetch_ember_co2_intensity.sh src/main/resources/cloud_regions.json
 ```
 
 End result: `src/main/resources/ember/ember_co2_intensity.csv`, columns `provider,region,gCO2_per_kWh`.
+Also `src/main/resources/ember/ember_co2_intensity_monthly.csv`, columns `provider,region,month,gCO2_per_kWh`, one row per region and month over the whole period Ember covers.
 
 ## Scripts
 
@@ -71,7 +72,7 @@ Usage: `./fix_cloud_regions.sh [cloud_regions.json]` (no default — pass the pa
 
 ### `fetch_ember_co2_intensity.sh`
 
-Downloads three Ember CSVs and emits one CSV row per keyed cloud region:
+Downloads three Ember CSVs, plus their monthly counterparts (`monthly_` in place of `yearly_`, same layout with a `Date` column), and emits one CSV row per keyed cloud region:
 
 - `yearly_full_release_long_format.csv` — per-country power-sector intensity.
 - `us_yearly_full_release_long_format.csv` — per-US-state intensity.
@@ -80,7 +81,8 @@ Downloads three Ember CSVs and emits one CSV row per keyed cloud region:
 Filtering and reduction (all datasets):
 
 - `Unit == "gCO2/kWh"`.
-- Keep only the row with the highest `Year` per ISO3 code / state code.
+- Yearly files: keep only the row with the highest `Year` per ISO3 code / state code.
+- Monthly files: keep every month (`Date` truncated to `YYYY-MM`) per ISO3 code / state code.
 - Country rows are further restricted to countries that appear in
   `cloud_regions.json` (one alias: Ember's "United States of America" ↔
   cloud_regions' "United States").
@@ -88,7 +90,9 @@ Filtering and reduction (all datasets):
 Joining to cloud regions:
 
 - For every keyed region under `aws`/`gcp`/`azure.cloud_regions`, emit
-  `(provider, region_code, gCO2_per_kWh)`.
+  `(provider, region_code, gCO2_per_kWh)` to the yearly output and one
+  `(provider, region_code, month, gCO2_per_kWh)` row per month to the monthly output.
+  The same resolved country or subdivision drives both.
 - For regions whose country has a sub-national source (US, India),
   reverse-geocode the region's `latitude`/`longitude` via OpenStreetMap
   Nominatim (`zoom=5`, read `address["ISO3166-2-lvl4"]`) to get an ISO
@@ -116,7 +120,7 @@ Sub-national configuration lives in two arrays at the top of the script:
 Output is `src/main/resources/ember/ember_co2_intensity.csv` with three `#`-prefixed header lines
 (licence URL, licence name, column names).
 
-Usage: `./fetch_ember_co2_intensity.sh [cloud_regions.json] [output.csv]`.
+Usage: `./fetch_ember_co2_intensity.sh [cloud_regions.json] [output.csv] [monthly_output.csv]`.
 
 Environment variables:
 

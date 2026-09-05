@@ -51,7 +51,7 @@ In order to use a different configuration, for instance to replace a module with
 you simply need to write a json file with your changes and pass it as an argument to the Spark job with `-c`. A custom config passed via `-c` overrides the per-provider default.
 
 `-p` still applies when you pass `-c`: provider-aware modules (such as `Water` or
-`AverageCarbonIntensity`) need it to pick the correct region-keyed lookups. If your
+`MonthlyCarbonIntensity`) need it to pick the correct region-keyed lookups. If your
 custom config targets Azure, pass `-p AZURE` alongside `-c` so those modules don't
 fall back to the AWS default.
 

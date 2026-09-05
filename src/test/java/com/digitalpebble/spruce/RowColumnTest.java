@@ -10,6 +10,8 @@ import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 import org.junit.jupiter.api.Test;
 
+import java.time.YearMonth;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -40,6 +42,47 @@ class RowColumnTest {
         assertEquals(2025, COLUMN.getYear(row(java.time.LocalDate.of(2025, 6, 15))));
         assertEquals(2025, COLUMN.getYear(row(java.time.LocalDateTime.of(2025, 6, 15, 12, 0))));
         assertEquals(2025, COLUMN.getYear(row(java.time.Instant.parse("2025-06-15T12:00:00Z"))));
+    }
+
+    @Test
+    void readsTheYearAndMonthFromTheRepresentationsTheReportsUse() {
+        YearMonth january2025 = YearMonth.of(2025, 1);
+        assertEquals(january2025, COLUMN.getYearMonth(row("2025-01-01T00:00:00Z")));
+        assertEquals(YearMonth.of(2024, 12), COLUMN.getYearMonth(row("2024-12-31")));
+        assertEquals(YearMonth.of(2023, 12), COLUMN.getYearMonth(row("12/31/2023")));
+        assertEquals(YearMonth.of(2022, 7), COLUMN.getYearMonth(row("2022-07")));
+
+        YearMonth june2025 = YearMonth.of(2025, 6);
+        assertEquals(june2025, COLUMN.getYearMonth(row(java.sql.Timestamp.valueOf("2025-06-15 12:00:00"))));
+        assertEquals(june2025, COLUMN.getYearMonth(row(java.sql.Date.valueOf("2025-06-15"))));
+        assertEquals(june2025, COLUMN.getYearMonth(row(java.time.LocalDate.of(2025, 6, 15))));
+        assertEquals(june2025, COLUMN.getYearMonth(row(java.time.LocalDateTime.of(2025, 6, 15, 12, 0))));
+        assertEquals(june2025, COLUMN.getYearMonth(row(java.time.Instant.parse("2025-06-15T12:00:00Z"))));
+    }
+
+    @Test
+    void bucketsTimestampsByUtcMonthWhateverTheJvmTimeZone() {
+        // CUR timestamps are UTC; a JVM west of Greenwich must not push the first hours of a
+        // month into the previous one
+        java.util.TimeZone jvmZone = java.util.TimeZone.getDefault();
+        java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("America/Los_Angeles"));
+        try {
+            java.sql.Timestamp firstOfFebruary = java.sql.Timestamp.from(java.time.Instant.parse("2025-02-01T00:00:00Z"));
+            assertEquals(YearMonth.of(2025, 2), COLUMN.getYearMonth(row(firstOfFebruary)));
+            java.sql.Timestamp newYear = java.sql.Timestamp.from(java.time.Instant.parse("2026-01-01T00:00:00Z"));
+            assertEquals(2026, COLUMN.getYear(row(newYear)));
+        } finally {
+            java.util.TimeZone.setDefault(jvmZone);
+        }
+    }
+
+    @Test
+    void returnsNullWhenThereIsNoMonthToRead() {
+        assertNull(COLUMN.getYearMonth(row(null)));
+        assertNull(COLUMN.getYearMonth(row("not a date")));
+        // a bare year has no month
+        assertNull(COLUMN.getYearMonth(row("2025")));
+        assertNull(new CURColumn("absent", DataTypes.StringType).getYearMonth(row("2025-01-01")));
     }
 
     @Test
