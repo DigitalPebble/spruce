@@ -27,6 +27,7 @@ public class AzureFoundryTokenEndToEndTest {
     private static SparkSession spark;
 
     private static final String ENERGY = SpruceColumn.ENERGY_USED.getLabel();
+    private static final String CARBON_INTENSITY = SpruceColumn.CARBON_INTENSITY.getLabel();
 
     @BeforeAll
     static void startSpark() {
@@ -67,7 +68,15 @@ public class AzureFoundryTokenEndToEndTest {
     }
 
     private static Double energy(Row row) {
-        int index = row.fieldIndex(ENERGY);
+        return doubleAt(row, ENERGY);
+    }
+
+    private static Double carbonIntensity(Row row) {
+        return doubleAt(row, CARBON_INTENSITY);
+    }
+
+    private static Double doubleAt(Row row, String column) {
+        int index = row.fieldIndex(column);
         return row.isNullAt(index) ? null : row.getDouble(index);
     }
 
@@ -96,6 +105,9 @@ public class AzureFoundryTokenEndToEndTest {
         impacts.load();
         double expected = 1_000.0 * impacts.getImpacts("gpt 5").getEnergyKwhPer1kOutputTokens();
         assertEquals(expected, energy(rows.get(0)), 1e-12);
+        // Spark infers Date as DateType: the month still reaches MonthlyCarbonIntensity
+        // (swedencentral, 2026-05 in ember_co2_intensity_monthly.csv)
+        assertEquals(27.22, carbonIntensity(rows.get(0)));
 
         assertNull(energy(rows.get(1)), "input tokens must not be estimated");
         assertNull(energy(rows.get(2)), "unmapped model must not be estimated");
@@ -115,6 +127,8 @@ public class AzureFoundryTokenEndToEndTest {
         // same inference (1M output tokens of gpt-5), same impacts in both formats
         assertNotNull(energy(focusRows.get(0)));
         assertEquals(energy(nativeRows.get(0)), energy(focusRows.get(0)), 1e-12);
+        // the FOCUS fixture carries no date, so the yearly figure applies
+        assertEquals(35.35, carbonIntensity(focusRows.get(0)));
 
         assertNull(energy(focusRows.get(1)), "input tokens must not be estimated");
     }

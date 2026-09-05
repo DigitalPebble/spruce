@@ -154,7 +154,7 @@ Modules are registered in a JSON config file. Copy the per-provider default (e.g
     { "className": "com.example.spruce.modules.MyServiceEnergy",
       "config": { "coefficient": 0.007 } },
     { "className": "com.digitalpebble.spruce.modules.PUE" },
-    { "className": "com.digitalpebble.spruce.modules.ember.AverageCarbonIntensity" },
+    { "className": "com.digitalpebble.spruce.modules.ember.MonthlyCarbonIntensity" },
     { "className": "com.digitalpebble.spruce.modules.OperationalEmissions" }
   ]
 }

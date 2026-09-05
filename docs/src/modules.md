@@ -34,7 +34,7 @@ written by earlier ones, which is why the order in the configuration file matter
 flowchart LR
     A[Billing row] --> B("<b>Metadata</b><br>RegionExtraction")
     B --> C("<b>Energy &amp; embodied</b><br>Storage, Networking,<br>Serverless, Accelerators,<br>Boavizta, EcoLogits")
-    C --> D("<b>Factors</b><br>PWUE,<br>AverageCarbonIntensity")
+    C --> D("<b>Factors</b><br>PWUE,<br>MonthlyCarbonIntensity")
     D --> E("<b>Impacts</b><br>OperationalEmissions,<br>Water")
     E --> F("<b>Normalisation</b><br>FOCUSColumns<br>(native formats only)")
     F --> G[Enriched row]
@@ -50,6 +50,7 @@ flowchart LR
 | [Compute — Boavizta](#compute-boavizta) | AWS, Azure | `operational_energy_kwh`, `embodied_emissions_co2eq_g`, `embodied_adp_sbeq_g` | [BoaviztAPI](https://doc.api.boavizta.org/) |
 | [LLM inference — EcoLogits](#llm-inference-ecologits) | AWS, Azure | `operational_energy_kwh`, `embodied_emissions_co2eq_g` | [EcoLogits](https://ecologits.ai/) |
 | [PWUE](#pwue) | AWS, Azure | `power_usage_effectiveness`, `water_usage_effectiveness` | Provider-published data |
+| [MonthlyCarbonIntensity](#monthlycarbonintensity) | AWS, Azure | `carbon_intensity` | [Ember](https://ember-energy.org/) |
 | [AverageCarbonIntensity](#averagecarbonintensity) | AWS, Azure | `carbon_intensity` | [Ember](https://ember-energy.org/) |
 | [OperationalEmissions](#operationalemissions) | AWS, Azure | `operational_emissions_co2eq_g` | — |
 | [Water](#water) | AWS, Azure | `water_cooling_l`, `water_electricity_production_l`, `water_consumption_stress_area_l` | [WRI](https://www.wri.org/) |
@@ -332,6 +333,33 @@ with no usable date &mdash; the closest year available for that region is used i
 | Key | Default | Description |
 |---|---|---|
 | `default` | 1.15 | PUE used when a region matches no entry at any tier, global average included |
+
+### MonthlyCarbonIntensity
+
+Adds the carbon intensity of the grid for the month the usage was incurred in, from
+[Ember](https://ember-energy.org/)'s monthly electricity data. Grids move with the seasons
+(hydro in spring, solar in summer, coal and gas in winter), so the month of the usage is a
+better proxy than the yearly average. The month is read from the usage date of the line item,
+the same way [PWUE](#pwue) reads the year.
+
+Falls back to the yearly figure of [AverageCarbonIntensity](#averagecarbonintensity) when the
+month is not covered: rows without a usable date, regions Ember has no monthly data for (a few
+countries in the Middle East and Indonesia) and months Ember has not published yet. The
+country series lag by a few months; the per-state series for the US and India lag further,
+so recent usage in those regions is more likely to get the yearly figure.
+
+The yearly figure comes from a separate Ember dataset and can differ noticeably from the
+monthly one for the same region, so a region can shift when its latest months are not
+published yet. The data is loaded from `ember/ember_co2_intensity_monthly.csv`, generated
+alongside the yearly file by the same script. This is the default carbon intensity module;
+list [AverageCarbonIntensity](#averagecarbonintensity) instead to keep the yearly figure for
+every row.
+
+| | |
+|---|---|
+| **Class** | `com.digitalpebble.spruce.modules.ember.MonthlyCarbonIntensity` |
+| **Reads** | `region`, the usage date of the line item |
+| **Writes** | `carbon_intensity` |
 
 ### AverageCarbonIntensity
 

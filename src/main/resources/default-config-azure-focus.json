@@ -40,7 +40,7 @@
       "className": "com.digitalpebble.spruce.modules.Water"
     },
     {
-      "className": "com.digitalpebble.spruce.modules.ember.AverageCarbonIntensity"
+      "className": "com.digitalpebble.spruce.modules.ember.MonthlyCarbonIntensity"
     },
     {
       "className": "com.digitalpebble.spruce.modules.OperationalEmissions",
