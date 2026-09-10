@@ -9,6 +9,8 @@
 #     East US 2 at Richmond; East US is actually Ashburn/Sterling).
 #   - Fixes AWS us-east-1 coordinates (upstream points to Washington DC;
 #     the region is actually in Ashburn/Loudoun County, VA).
+#   - Fixes Azure US Gov Virginia coordinates (upstream points to Washington
+#     DC; the region is in Virginia).
 #   - Fixes AWS cn-northwest-1 (upstream labels it "Ningxiang" in Hunan;
 #     the region is in Ningxia, near Yinchuan).
 #   - Fixes AWS ca-central-1 coordinates (upstream points ~50 km west of
@@ -99,6 +101,12 @@ jq '
     | .azure.cloud_regions.eastus.longitude  = "-77.487442"
     | .azure.cloud_regions.eastus.metro_area = "Ashburn"
     | .azure.cloud_regions.eastus.name       = "East US (Ashburn)"
+
+    # US Gov Virginia is in Virginia, not Washington DC. Microsoft names only the
+    # state, so the coordinates are those of Richmond: any point in the state
+    # selects the state figure.
+    | .azure.cloud_regions.usgovvirginia.latitude  = "37.540700"
+    | .azure.cloud_regions.usgovvirginia.longitude = "-77.433654"
 ' "$FILE" > "$tmp"
 
 mv "$tmp" "$FILE"

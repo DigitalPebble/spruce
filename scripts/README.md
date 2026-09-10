@@ -94,13 +94,16 @@ Joining to cloud regions:
   Nominatim (`zoom=5`, read `address["ISO3166-2-lvl4"]`) to get an ISO
   3166-2 subdivision code (e.g. `US-VA`, `IN-MH`) and use the
   state-level Ember value.
-- If the subdivision can't be resolved (e.g. the coordinates point at DC,
-  which isn't a state) or has no Ember entry, fall back to the
-  country-level value.
-- Nominatim results are cached in `geocode_cache.tsv` (`lat`, `lon`,
-  ISO 3166-2 code). Repeat runs are free; the 1 req/sec rate limit only
-  matters on the first run or when new regions in supported countries
-  appear. Delete the cache to force a refresh.
+- If a region in one of those countries has no coordinates, or Nominatim
+  places its coordinates in no subdivision, or Ember has no figure for that
+  subdivision, the script stops without writing the csv and lists the
+  regions with the reason: each of them would otherwise get the national
+  figure.
+- Resolved subdivisions are cached in `scripts/.geocode_cache` (`lat`,
+  `lon`, ISO 3166-2 code); failed requests are not, so they are retried on
+  the next run. Repeat runs are free; the 1 req/sec rate limit only matters
+  on the first run or when new regions in supported countries appear.
+  Delete the cache to force a refresh.
 - `_unresolved` entries are skipped (no region code to emit).
 
 Sub-national configuration lives in two arrays at the top of the script:
@@ -121,7 +124,7 @@ Usage: `./fetch_ember_co2_intensity.sh [cloud_regions.json] [output.csv]`.
 Environment variables:
 
 - `EMBER_GEOCACHE` — override the geocode cache path (default
-  `./geocode_cache.tsv`).
+  `scripts/.geocode_cache`).
 
 ## Cloud region water data
 

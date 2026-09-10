@@ -80,7 +80,8 @@ tmp_lookup="$(mktemp)"
 tmp_sub_lookup="$(mktemp)"
 tmp_sub_csv="$(mktemp)"
 tmp_alias="$(mktemp)"
-trap 'rm -f "$tmp_csv" "$tmp_countries" "$tmp_lookup" "$tmp_sub_lookup" "$tmp_sub_csv" "$tmp_alias"' EXIT
+tmp_out="$(mktemp)"
+trap 'rm -f "$tmp_csv" "$tmp_countries" "$tmp_lookup" "$tmp_sub_lookup" "$tmp_sub_csv" "$tmp_alias" "$tmp_out"' EXIT
 
 echo "Downloading $URL..." >&2
 curl --fail -sSL "$URL" -o "$tmp_csv"
@@ -117,8 +118,11 @@ awk -F',' -v countries_file="$tmp_countries" -v from="$FROM_YEAR" '
 
 # Build combined sub-national lookup (TSV: ISO_3166-2_code<TAB>year<TAB>value)
 # by pulling each configured source and prefixing bare state codes.
-# Ember sub-national CSVs share a schema: col 4=State code, 6=Year, 10=Unit,
-# 11=Value.
+# Ember sub-national CSVs share a schema: State code, Year, Unit and Value are
+# the 4th, 6th, 10th and 11th of 13 columns. A state name with a comma
+# ("Washington, D.C.") is quoted and shifts the columns after it, so the fields
+# are counted from the end of the line: the last three columns are Value,
+# YoY absolute change and YoY % change.
 : > "$tmp_sub_lookup"
 for entry in "${SUBNATIONAL[@]}"; do
     IFS='|' read -r sn_country sn_url sn_prefix <<< "$entry"
@@ -126,8 +130,8 @@ for entry in "${SUBNATIONAL[@]}"; do
     curl --fail -sSL "$sn_url" -o "$tmp_sub_csv"
     awk -F',' -v prefix="$sn_prefix" -v from="$FROM_YEAR" '
         NR == 1 { next }
-        $10 == "gCO2/kWh" && $4 != "" && $6 + 0 >= from {
-            print prefix $4 "\t" $6 "\t" $11
+        $(NF-3) == "gCO2/kWh" && $(NF-9) != "" && $(NF-7) + 0 >= from {
+            print prefix $(NF-9) "\t" $(NF-7) "\t" $(NF-2)
         }
     ' "$tmp_sub_csv" >> "$tmp_sub_lookup"
 done
@@ -152,13 +156,15 @@ has_subnational() {
 }
 
 # Reverse-geocode (lat, lon) -> ISO 3166-2 subdivision code via Nominatim,
-# with caching. Returns empty if no subdivision can be resolved.
+# with caching. Prints the code, or nothing when Nominatim places the point in
+# no subdivision; returns 1 when the request fails. Only resolved codes are
+# cached, so a failed request is retried on the next run.
 touch "$GEO_CACHE"
 geo_to_subdivision() {
     local lat="$1" lon="$2"
     local hit
     hit=$(awk -F'\t' -v lat="$lat" -v lon="$lon" '
-        $1 == lat && $2 == lon { print $3; found=1; exit }
+        $1 == lat && $2 == lon && $3 != "" { print $3; found=1; exit }
         END { if (!found) exit 1 }
     ' "$GEO_CACHE") && { printf '%s' "$hit"; return; }
 
@@ -166,11 +172,13 @@ geo_to_subdivision() {
     local resp code
     resp=$(curl --fail -sSL -A "$NOMINATIM_UA" \
         "https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=5&lat=${lat}&lon=${lon}" \
-        2>/dev/null || echo '{}')
+        2>/dev/null) || return 1
     code=$(jq -r '.address["ISO3166-2-lvl4"] // ""' <<< "$resp")
     # Validate shape: "XX-..." where XX is a 2-letter country code.
     if [[ ! "$code" =~ ^[A-Z]{2}-[A-Z0-9]+$ ]]; then code=""; fi
-    printf '%s\t%s\t%s\n' "$lat" "$lon" "$code" >> "$GEO_CACHE"
+    if [[ -n "$code" ]]; then
+        printf '%s\t%s\t%s\n' "$lat" "$lon" "$code" >> "$GEO_CACHE"
+    fi
     printf '%s' "$code"
 }
 
@@ -181,6 +189,10 @@ lookup_years() {
 
 mkdir -p "$(dirname "$OUTPUT")"
 
+# Regions of a country with state figures that would get the national figure,
+# each with the reason. The csv is written only when there are none.
+problems=()
+
 # Emit a row per keyed cloud region.
 {
     echo "# https://ember-energy.org/creative-commons/"
@@ -188,10 +200,18 @@ mkdir -p "$(dirname "$OUTPUT")"
     echo "#provider,region,year,gCO2_per_kWh"
     while IFS=$'\t' read -r provider region country lat lon; do
         years=""
-        if [[ -n "$lat" && -n "$lon" ]] && has_subnational "$country"; then
-            code=$(geo_to_subdivision "$lat" "$lon")
-            if [[ -n "$code" ]]; then
+        if has_subnational "$country"; then
+            if [[ -z "$lat" || -z "$lon" ]]; then
+                problems+=("$provider $region: no coordinates in $CLOUD_REGIONS")
+            elif ! code=$(geo_to_subdivision "$lat" "$lon"); then
+                problems+=("$provider $region: Nominatim request failed for $lat,$lon")
+            elif [[ -z "$code" ]]; then
+                problems+=("$provider $region: no subdivision at $lat,$lon")
+            else
                 years=$(lookup_years "$code" "$tmp_sub_lookup")
+                if [[ -z "$years" ]]; then
+                    problems+=("$provider $region: no Ember figure for $code")
+                fi
             fi
         fi
         if [[ -z "$years" ]]; then
@@ -206,7 +226,15 @@ mkdir -p "$(dirname "$OUTPUT")"
         | to_entries[]
         | [$p, .key, .value.country, .value.latitude, .value.longitude] | @tsv
     ' "$CLOUD_REGIONS")
-} > "$OUTPUT"
+} > "$tmp_out"
+
+if (( ${#problems[@]} )); then
+    echo "error: these regions would get the national figure instead of their state's:" >&2
+    printf '  %s\n' "${problems[@]}" >&2
+    echo "$OUTPUT left unchanged" >&2
+    exit 1
+fi
+mv "$tmp_out" "$OUTPUT"
 
 rows=$(($(wc -l < "$OUTPUT") - 1))
 echo "Wrote $OUTPUT ($rows rows)" >&2
