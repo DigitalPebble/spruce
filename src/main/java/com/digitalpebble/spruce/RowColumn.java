@@ -99,7 +99,7 @@ public abstract class RowColumn extends Column {
             return null;
         }
         if (value instanceof java.sql.Timestamp timestamp) {
-            return timestamp.toLocalDateTime().getYear();
+            return timestamp.toInstant().atZone(ZoneOffset.UTC).getYear();
         }
         if (value instanceof java.time.Instant instant) {
             return instant.atZone(ZoneOffset.UTC).getYear();

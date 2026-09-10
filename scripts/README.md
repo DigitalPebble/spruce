@@ -21,7 +21,7 @@ scripts/fix_cloud_regions.sh src/main/resources/cloud_regions.json
 scripts/fetch_ember_co2_intensity.sh src/main/resources/cloud_regions.json
 ```
 
-End result: `src/main/resources/ember/ember_co2_intensity.csv`, columns `provider,region,gCO2_per_kWh`.
+End result: `src/main/resources/ember/ember_co2_intensity.csv`, columns `provider,region,year,gCO2_per_kWh`, one row per region and year from 2022 on.
 
 ## Scripts
 
@@ -71,7 +71,7 @@ Usage: `./fix_cloud_regions.sh [cloud_regions.json]` (no default — pass the pa
 
 ### `fetch_ember_co2_intensity.sh`
 
-Downloads three Ember CSVs and emits one CSV row per keyed cloud region:
+Downloads three Ember CSVs and emits one CSV row per keyed cloud region and year:
 
 - `yearly_full_release_long_format.csv` — per-country power-sector intensity.
 - `us_yearly_full_release_long_format.csv` — per-US-state intensity.
@@ -80,15 +80,15 @@ Downloads three Ember CSVs and emits one CSV row per keyed cloud region:
 Filtering and reduction (all datasets):
 
 - `Unit == "gCO2/kWh"`.
-- Keep only the row with the highest `Year` per ISO3 code / state code.
+- Keep every year from `FROM_YEAR` (2022) on, per ISO3 code / state code.
 - Country rows are further restricted to countries that appear in
   `cloud_regions.json` (one alias: Ember's "United States of America" ↔
   cloud_regions' "United States").
 
 Joining to cloud regions:
 
-- For every keyed region under `aws`/`gcp`/`azure.cloud_regions`, emit
-  `(provider, region_code, gCO2_per_kWh)`.
+- For every keyed region under `aws`/`gcp`/`azure.cloud_regions`, emit one
+  `(provider, region_code, year, gCO2_per_kWh)` row per year.
 - For regions whose country has a sub-national source (US, India),
   reverse-geocode the region's `latitude`/`longitude` via OpenStreetMap
   Nominatim (`zoom=5`, read `address["ISO3166-2-lvl4"]`) to get an ISO

@@ -2,14 +2,11 @@
 
 package com.digitalpebble.spruce.modules;
 
-import com.digitalpebble.spruce.AzureColumn;
-import com.digitalpebble.spruce.CURColumn;
 import com.digitalpebble.spruce.Column;
 import com.digitalpebble.spruce.EnrichmentModule;
-import com.digitalpebble.spruce.FOCUSColumn;
 import com.digitalpebble.spruce.Provider;
-import com.digitalpebble.spruce.RowColumn;
 import com.digitalpebble.spruce.SpruceColumn;
+import com.digitalpebble.spruce.UsageDate;
 import com.digitalpebble.spruce.Utils;
 import org.apache.spark.sql.Row;
 
@@ -61,18 +58,6 @@ public class PWUE implements EnrichmentModule {
 
     /** Year used for rows with no usable usage date: yields the most recent figures. */
     private static final int LATEST = Integer.MAX_VALUE;
-
-    /**
-     * Columns a usage date can be read from, in the order they are probed. All are optional: a
-     * report only carries the ones its provider and format define, and the FOCUS columns exist
-     * but are still null in native reports, where the FOCUS bridge module fills them in later.
-     */
-    private static final RowColumn[] DATE_COLUMNS = {
-            FOCUSColumn.CHARGE_PERIOD_START,
-            CURColumn.LINE_ITEM_USAGE_START_DATE,
-            AzureColumn.DATE,
-            CURColumn.BILLING_PERIOD
-    };
 
     /** PUE and WUE by year for one CSV key — a region id, or a regex over region ids. */
     private static class Factors implements Serializable {
@@ -215,13 +200,8 @@ public class PWUE implements EnrichmentModule {
 
     /** Returns the year the line item was incurred in, or {@link #LATEST} if it has no date. */
     private static int usageYear(Row row) {
-        for (RowColumn column : DATE_COLUMNS) {
-            Integer year = column.getYear(row);
-            if (year != null) {
-                return year;
-            }
-        }
-        return LATEST;
+        Integer year = UsageDate.year(row);
+        return year != null ? year : LATEST;
     }
 
     private Double lookup(String region, int year, boolean water) {

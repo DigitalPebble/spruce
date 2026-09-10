@@ -8,13 +8,13 @@
 #   - Unit == "gCO2/kWh"
 # Country CSV:
 #   - ISO 3 code non-empty, Area in cloud_regions.json country set.
-#   - One value per ISO3: the row with the highest Year.
+#   - One value per ISO3 and year, from FROM_YEAR on.
 # Sub-national CSVs (US, India):
 #   - State code non-empty.
-#   - One value per state code: the row with the highest Year.
+#   - One value per state code and year, from FROM_YEAR on.
 # Join:
-#   - For every keyed region under aws/gcp/azure.cloud_regions, emit
-#     (provider, region_code, gCO2_per_kWh).
+#   - For every keyed region under aws/gcp/azure.cloud_regions, emit one
+#     (provider, region_code, year, gCO2_per_kWh) row per year.
 #   - For regions in a country with a sub-national source, reverse-geocode
 #     the region's lat/lon via OpenStreetMap Nominatim to get the ISO 3166-2
 #     subdivision code and use the sub-national value. If the subdivision
@@ -25,7 +25,7 @@
 #   - _unresolved entries are skipped (no region code).
 #   - Regions with no country/subdivision match are skipped.
 #
-# Output columns: provider,region,gCO2_per_kWh
+# Output columns: provider,region,year,gCO2_per_kWh
 #
 # Usage:  ./fetch_ember_co2_intensity.sh [cloud_regions.json] [output.csv]
 #
@@ -39,6 +39,9 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 URL="https://files.ember-energy.org/public-downloads/yearly_full_release_long_format.csv"
 CLOUD_REGIONS="${1:-cloud_regions.json}"
 OUTPUT="${2:-$PROJECT_ROOT/src/main/resources/ember/ember_co2_intensity.csv}"
+# First year of figures to ship. Usage before it gets the figures of this year (see
+# AverageCarbonIntensity); the PUE / WUE file starts the same year.
+FROM_YEAR=2022
 GEO_CACHE="${EMBER_GEOCACHE:-$SCRIPT_DIR/.geocode_cache}"
 NOMINATIM_UA="ember-cloud-region-script/1.0"
 
@@ -76,7 +79,8 @@ tmp_countries="$(mktemp)"
 tmp_lookup="$(mktemp)"
 tmp_sub_lookup="$(mktemp)"
 tmp_sub_csv="$(mktemp)"
-trap 'rm -f "$tmp_csv" "$tmp_countries" "$tmp_lookup" "$tmp_sub_lookup" "$tmp_sub_csv"' EXIT
+tmp_alias="$(mktemp)"
+trap 'rm -f "$tmp_csv" "$tmp_countries" "$tmp_lookup" "$tmp_sub_lookup" "$tmp_sub_csv" "$tmp_alias"' EXIT
 
 echo "Downloading $URL..." >&2
 curl --fail -sSL "$URL" -o "$tmp_csv"
@@ -93,9 +97,9 @@ jq -r '
     | .[]
 ' "$CLOUD_REGIONS" > "$tmp_countries"
 
-# Build country -> latest gCO2/kWh lookup (TSV: country<TAB>value).
-# Canonicalise the one known name mismatch so the join works.
-awk -F',' -v countries_file="$tmp_countries" '
+# Build country -> gCO2/kWh by year lookup (TSV: country<TAB>year<TAB>value),
+# from FROM_YEAR on. Canonicalise the one known name mismatch so the join works.
+awk -F',' -v countries_file="$tmp_countries" -v from="$FROM_YEAR" '
     BEGIN {
         while ((getline line < countries_file) > 0) {
             if (line != "") ok[line] = 1
@@ -104,26 +108,15 @@ awk -F',' -v countries_file="$tmp_countries" '
         if (ok["United States"]) ok["United States of America"] = 1
     }
     NR == 1 { next }
-    $15 == "gCO2/kWh" && $2 != "" && ($1 in ok) {
-        iso = $2
-        year = $3 + 0
-        if (year > best_year[iso]) {
-            best_year[iso] = year
-            best_country[iso] = $1
-            best_value[iso] = $16
-        }
-    }
-    END {
-        for (iso in best_value) {
-            name = best_country[iso]
-            if (name == "United States of America") name = "United States"
-            print name "\t" best_value[iso]
-        }
+    $15 == "gCO2/kWh" && $2 != "" && ($1 in ok) && $3 + 0 >= from {
+        name = $1
+        if (name == "United States of America") name = "United States"
+        print name "\t" $3 "\t" $16
     }
 ' "$tmp_csv" > "$tmp_lookup"
 
-# Build combined sub-national lookup (TSV: ISO_3166-2_code<TAB>value) by
-# pulling each configured source and prefixing bare state codes.
+# Build combined sub-national lookup (TSV: ISO_3166-2_code<TAB>year<TAB>value)
+# by pulling each configured source and prefixing bare state codes.
 # Ember sub-national CSVs share a schema: col 4=State code, 6=Year, 10=Unit,
 # 11=Value.
 : > "$tmp_sub_lookup"
@@ -131,18 +124,10 @@ for entry in "${SUBNATIONAL[@]}"; do
     IFS='|' read -r sn_country sn_url sn_prefix <<< "$entry"
     echo "Downloading $sn_url..." >&2
     curl --fail -sSL "$sn_url" -o "$tmp_sub_csv"
-    awk -F',' -v prefix="$sn_prefix" '
+    awk -F',' -v prefix="$sn_prefix" -v from="$FROM_YEAR" '
         NR == 1 { next }
-        $10 == "gCO2/kWh" && $4 != "" {
-            code = $4
-            year = $6 + 0
-            if (year > best_year[code]) {
-                best_year[code] = year
-                best_value[code] = $11
-            }
-        }
-        END {
-            for (code in best_value) print prefix code "\t" best_value[code]
+        $10 == "gCO2/kWh" && $4 != "" && $6 + 0 >= from {
+            print prefix $4 "\t" $6 "\t" $11
         }
     ' "$tmp_sub_csv" >> "$tmp_sub_lookup"
 done
@@ -151,11 +136,10 @@ done
 # even when the two systems use different codes for the same region.
 for alias in "${SUBNATIONAL_ALIASES[@]}"; do
     IFS='|' read -r nom_code ember_code <<< "$alias"
-    val=$(awk -F'\t' -v k="$ember_code" '$1==k {print $2; exit}' "$tmp_sub_lookup")
-    if [[ -n "$val" ]]; then
-        printf '%s\t%s\n' "$nom_code" "$val" >> "$tmp_sub_lookup"
-    fi
+    awk -F'\t' -v k="$ember_code" -v n="$nom_code" -v OFS='\t' '$1 == k {print n, $2, $3}' \
+        "$tmp_sub_lookup" >> "$tmp_alias"
 done
+cat "$tmp_alias" >> "$tmp_sub_lookup"
 
 # Check whether a country has a sub-national source configured.
 has_subnational() {
@@ -190,15 +174,9 @@ geo_to_subdivision() {
     printf '%s' "$code"
 }
 
-lookup_value() {
-    awk -F'\t' -v key="$1" -v file="$2" '
-        BEGIN {
-            while ((getline line < file) > 0) {
-                split(line, a, "\t")
-                if (a[1] == key) { print a[2]; exit }
-            }
-        }
-    '
+# Print "year<TAB>value" lines for a key, in year order.
+lookup_years() {
+    awk -F'\t' -v key="$1" '$1 == key { print $2 "\t" $3 }' "$2" | sort -n
 }
 
 mkdir -p "$(dirname "$OUTPUT")"
@@ -207,20 +185,20 @@ mkdir -p "$(dirname "$OUTPUT")"
 {
     echo "# https://ember-energy.org/creative-commons/"
     echo "# Creative Commons Attribution Licence (CC-BY-4.0)"
-    echo "#provider,region,gCO2_per_kWh"
+    echo "#provider,region,year,gCO2_per_kWh"
     while IFS=$'\t' read -r provider region country lat lon; do
-        value=""
+        years=""
         if [[ -n "$lat" && -n "$lon" ]] && has_subnational "$country"; then
             code=$(geo_to_subdivision "$lat" "$lon")
             if [[ -n "$code" ]]; then
-                value=$(lookup_value "$code" "$tmp_sub_lookup")
+                years=$(lookup_years "$code" "$tmp_sub_lookup")
             fi
         fi
-        if [[ -z "$value" ]]; then
-            value=$(lookup_value "$country" "$tmp_lookup")
+        if [[ -z "$years" ]]; then
+            years=$(lookup_years "$country" "$tmp_lookup")
         fi
-        if [[ -n "$value" ]]; then
-            echo "$provider,$region,$value"
+        if [[ -n "$years" ]]; then
+            awk -F'\t' -v p="$provider" -v r="$region" '{ print p "," r "," $1 "," $2 }' <<< "$years"
         fi
     done < <(jq -r '
         ["aws","gcp","azure"][] as $p
