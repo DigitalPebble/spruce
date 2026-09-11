@@ -43,6 +43,20 @@ class RowColumnTest {
     }
 
     @Test
+    void bucketsTimestampsByUtcYearWhateverTheJvmTimeZone() {
+        // CUR timestamps are UTC; a JVM west of Greenwich must not push the first hours of a
+        // year into the previous one
+        java.util.TimeZone jvmZone = java.util.TimeZone.getDefault();
+        java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("America/Los_Angeles"));
+        try {
+            java.sql.Timestamp newYear = java.sql.Timestamp.from(java.time.Instant.parse("2026-01-01T00:00:00Z"));
+            assertEquals(2026, COLUMN.getYear(row(newYear)));
+        } finally {
+            java.util.TimeZone.setDefault(jvmZone);
+        }
+    }
+
+    @Test
     void returnsNullWhenThereIsNoYearToRead() {
         assertNull(COLUMN.getYear(row(null)));
         assertNull(COLUMN.getYear(row("not a date")));

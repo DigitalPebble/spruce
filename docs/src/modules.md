@@ -342,6 +342,19 @@ in countries with sub-national data (currently the US and India), the carbon int
 taken from the Ember value for the state hosting the data centre; otherwise the
 country-level Ember value is used.
 
+The figures are keyed by region and year, like [PWUE](#pwue): a line item gets the figure of
+the year it was incurred in, read from its usage date. When Ember has not published that year
+yet (the figures of a year come out in the course of the following one, some series lag
+further), the latest year published for the region is used; rows without a usable date get the
+latest year as well, and usage before 2022, the first year the file carries, gets the 2022
+figure. Ember revises published figures and its most recent year can include estimates, so
+refreshing the file can move past years too.
+
+The figures follow
+[Ember's methodology](https://files.ember-energy.org/public-downloads/ember_electricity_data_methodology.pdf):
+full lifecycle emissions, including upstream methane, supply chain and manufacturing, with all
+gases converted to CO2 equivalent over 100 years.
+
 The data is loaded from `ember/ember_co2_intensity.csv`, which is generated from
 [`cloud_regions.json`](#cloud-region-metadata) — see the scripts under
 [`scripts/`](https://github.com/DigitalPebble/spruce/tree/main/scripts) and the dedicated
@@ -351,7 +364,7 @@ refresh it.
 | | |
 |---|---|
 | **Class** | `com.digitalpebble.spruce.modules.ember.AverageCarbonIntensity` |
-| **Reads** | `region` |
+| **Reads** | `region`, the usage date of the line item |
 | **Writes** | `carbon_intensity` |
 
 ## Stage 4 — Impacts

@@ -21,7 +21,7 @@ scripts/fix_cloud_regions.sh src/main/resources/cloud_regions.json
 scripts/fetch_ember_co2_intensity.sh src/main/resources/cloud_regions.json
 ```
 
-End result: `src/main/resources/ember/ember_co2_intensity.csv`, columns `provider,region,gCO2_per_kWh`.
+End result: `src/main/resources/ember/ember_co2_intensity.csv`, columns `provider,region,year,gCO2_per_kWh`, one row per region and year from 2022 on.
 
 ## Scripts
 
@@ -71,7 +71,7 @@ Usage: `./fix_cloud_regions.sh [cloud_regions.json]` (no default — pass the pa
 
 ### `fetch_ember_co2_intensity.sh`
 
-Downloads three Ember CSVs and emits one CSV row per keyed cloud region:
+Downloads three Ember CSVs and emits one CSV row per keyed cloud region and year:
 
 - `yearly_full_release_long_format.csv` — per-country power-sector intensity.
 - `us_yearly_full_release_long_format.csv` — per-US-state intensity.
@@ -80,27 +80,30 @@ Downloads three Ember CSVs and emits one CSV row per keyed cloud region:
 Filtering and reduction (all datasets):
 
 - `Unit == "gCO2/kWh"`.
-- Keep only the row with the highest `Year` per ISO3 code / state code.
+- Keep every year from `FROM_YEAR` (2022) on, per ISO3 code / state code.
 - Country rows are further restricted to countries that appear in
   `cloud_regions.json` (one alias: Ember's "United States of America" ↔
   cloud_regions' "United States").
 
 Joining to cloud regions:
 
-- For every keyed region under `aws`/`gcp`/`azure.cloud_regions`, emit
-  `(provider, region_code, gCO2_per_kWh)`.
+- For every keyed region under `aws`/`gcp`/`azure.cloud_regions`, emit one
+  `(provider, region_code, year, gCO2_per_kWh)` row per year.
 - For regions whose country has a sub-national source (US, India),
   reverse-geocode the region's `latitude`/`longitude` via OpenStreetMap
   Nominatim (`zoom=5`, read `address["ISO3166-2-lvl4"]`) to get an ISO
   3166-2 subdivision code (e.g. `US-VA`, `IN-MH`) and use the
   state-level Ember value.
-- If the subdivision can't be resolved (e.g. the coordinates point at DC,
-  which isn't a state) or has no Ember entry, fall back to the
-  country-level value.
-- Nominatim results are cached in `geocode_cache.tsv` (`lat`, `lon`,
-  ISO 3166-2 code). Repeat runs are free; the 1 req/sec rate limit only
-  matters on the first run or when new regions in supported countries
-  appear. Delete the cache to force a refresh.
+- If a region in one of those countries has no coordinates, or Nominatim
+  places its coordinates in no subdivision, or Ember has no figure for that
+  subdivision, the script stops without writing the csv and lists the
+  regions with the reason: each of them would otherwise get the national
+  figure.
+- Resolved subdivisions are cached in `scripts/.geocode_cache` (`lat`,
+  `lon`, ISO 3166-2 code); failed requests are not, so they are retried on
+  the next run. Repeat runs are free; the 1 req/sec rate limit only matters
+  on the first run or when new regions in supported countries appear.
+  Delete the cache to force a refresh.
 - `_unresolved` entries are skipped (no region code to emit).
 
 Sub-national configuration lives in two arrays at the top of the script:
@@ -121,7 +124,7 @@ Usage: `./fetch_ember_co2_intensity.sh [cloud_regions.json] [output.csv]`.
 Environment variables:
 
 - `EMBER_GEOCACHE` — override the geocode cache path (default
-  `./geocode_cache.tsv`).
+  `scripts/.geocode_cache`).
 
 ## Cloud region water data
 
