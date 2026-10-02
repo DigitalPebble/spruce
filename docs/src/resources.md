@@ -6,6 +6,9 @@ description: "Talks, datasets and standards behind open source cloud carbon acco
 # GreenOps and cloud sustainability resources
 
 ## Talks
+- **"You already have what you need. Open Source GreenOps in Practice"** at [GreenIOLondon 2026](https://greenio.tech/conference/22/london-2026-september) by Diana Todea & Julien Nioche.
+    - [slides](https://adm.greenio.tech/UPLOADS/CONFERENCES/22/SESSIONS/ses-64.pdf)
+
 - **"SPRUCE it up! Open Source GreenOps at scale"** at [BerlinBuzzwords - June 8th 2026](https://2026.berlinbuzzwords.de/session/spruce-it-up-open-source-greenops-at-scale/)
     - [video](https://www.youtube.com/watch?v=GeeUHrGden0)
     - [slides](https://program.berlinbuzzwords.de/media/bbuzz26/submissions/BGDMFD/resources/jnioche-SPRUCE-BBu_Im8KBQS.pdf)
