@@ -41,9 +41,6 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 LOGO_PATH = REPO_ROOT / "logo.png"
 STYLES_PATH = Path(__file__).resolve().parent / "styles.css"
 
-GHG_PROTOCOL_URL = "https://ghgprotocol.org/"
-GHG_PROTOCOL_LOGO_URL = "https://ghgprotocol.org/themes/custom/provus_bootstrap/logo.png"
-
 BRAND_COLOR = "#BC6554"
 BRAND_PALETTE = ("#BC6554", "#8C4A3D", "#E0A64A", "#5A7C8A", "#7A8E55")
 REGION_PIE_PALETTE = (
@@ -910,56 +907,6 @@ def render_equivalences(row: pd.Series, flavor: str) -> None:
     )
 
 
-def render_ghg_scopes(row: pd.Series) -> None:
-    """Emissions split by GHG Protocol scope: operational emissions from the
-    electricity used are Scope 2 (location-based), embodied emissions from the
-    hardware are Scope 3. Scope 1 (direct emissions) is not estimated."""
-    total = row["total_emissions_kg"]
-
-    def share(value: object) -> str:
-        if value is None or pd.isna(value) or not total or pd.isna(total):
-            return ""
-        return f"{float(value) * 100 / float(total):.1f} % of total"
-
-    scopes = [
-        ("Scope 1", "Direct emissions", "N/A", ""),
-        (
-            "Scope 2",
-            "Electricity used (location-based)",
-            metric_value(row["operational_kg"]),
-            share(row["operational_kg"]),
-        ),
-        (
-            "Scope 3",
-            "Embodied emissions of the hardware",
-            metric_value(row["embodied_kg"]),
-            share(row["embodied_kg"]),
-        ),
-        ("Total", "Scopes 2 and 3", metric_value(total), ""),
-    ]
-    cards = []
-    for name, source, value, meta in scopes:
-        meta_html = f"<div class='spruce-card-meta'>{html.escape(meta)}</div>" if meta else ""
-        cards.append(
-            f"""
-            <div class="spruce-card">
-                <div class="spruce-scope-name">{html.escape(name)}</div>
-                <div class="spruce-card-label">{html.escape(source)}</div>
-                <div class="spruce-card-value">{html.escape(value)}</div>
-                {meta_html}
-            </div>
-            """
-        )
-    render_html(
-        "<div class='spruce-scope-header'>"
-        f"<a href='{GHG_PROTOCOL_URL}' target='_blank' rel='noopener'>"
-        f"<img src='{GHG_PROTOCOL_LOGO_URL}' alt='GHG Protocol'></a>"
-        "<div class='spruce-equiv-title'>Emissions by GHG Protocol scope (in kg CO2eq)</div>"
-        "</div>"
-        f"<div class='spruce-card-grid spruce-scope-grid'>{''.join(cards)}</div>"
-    )
-
-
 def render_overview(overview: pd.DataFrame, equiv_flavor: str) -> None:
     if overview.empty:
         st.info("No data available for the current filters.")
@@ -970,11 +917,12 @@ def render_overview(overview: pd.DataFrame, equiv_flavor: str) -> None:
         [
             ("Total usage cost", metric_value(row["total_cost"], " USD"), ""),
             ("Energy", metric_value(row["energy_kwh"], " kWh"), ""),
+            ("Operational emissions (GHG Protocol scope 2)", metric_value(row["operational_kg"], " kg"), ""),
+            ("Embodied emissions (GHG Protocol scope 3)", metric_value(row["embodied_kg"], " kg"), ""),
             ("Water", metric_value(row["water_l"], " L"), ""),
             ("Coverage (dataset-wide)", metric_value(row["coverage_pct"], " %"), ""),
         ]
     )
-    render_ghg_scopes(row)
     render_equivalences(row, equiv_flavor)
 
 

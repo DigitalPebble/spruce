@@ -71,7 +71,7 @@ streamlit run reporting/dashboard.py -- --input path/to/enriched/
 
 ### Features
 
-- **Overview**: Emissions by GHG Protocol scope, summary metrics and coverage statistics
+- **Overview**: Summary metrics (with operational and embodied emissions labelled as GHG Protocol scopes 2 and 3) and coverage statistics
 - **Trend**: Time series visualization of cost, emissions, energy, and water usage
 - **Top Emitters**: Breakdown of highest-emitting services per region
 - **Regions**: Regional analysis with emissions distribution
