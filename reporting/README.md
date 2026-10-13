@@ -52,6 +52,7 @@ python3 reporting/report.py --input path/to/enriched/ --output report.md
 ### Output
 
 The generated report includes:
+- Emissions by GHG Protocol scope (Scope 2: operational, Scope 3: embodied; Scope 1 is not estimated)
 - Summary by billing period (energy, emissions, water) with everyday equivalences
 - Top emitters by service
 - Top instance types (derived from `SkuMeter`, where populated)
@@ -70,7 +71,7 @@ streamlit run reporting/dashboard.py -- --input path/to/enriched/
 
 ### Features
 
-- **Overview**: Summary metrics and coverage statistics
+- **Overview**: Emissions by GHG Protocol scope, summary metrics and coverage statistics
 - **Trend**: Time series visualization of cost, emissions, energy, and water usage
 - **Top Emitters**: Breakdown of highest-emitting services per region
 - **Regions**: Regional analysis with emissions distribution

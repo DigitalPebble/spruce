@@ -536,6 +536,30 @@ def main():
         f"Enriched with [SPRUCE](https://opensourcegreenops.cloud/)\n"
     )
 
+    # GHG Protocol scopes: operational emissions from the electricity used are
+    # Scope 2 (location-based), embodied emissions from the hardware are Scope 3.
+    # Scope 1 (direct emissions) is not estimated.
+    if billing_rows:
+        scope2_kg = sum(r[2] for r in billing_rows if r[2] is not None)
+        scope3_kg = sum(r[3] for r in billing_rows if r[3] is not None)
+        scopes_total_kg = scope2_kg + scope3_kg
+
+        def share(value):
+            if not scopes_total_kg:
+                return "n/a"
+            return f"{value * 100 / scopes_total_kg:.1f} %"
+
+        scope_rows = [
+            ("Scope 1", "Direct emissions", "_not estimated_", ""),
+            ("Scope 2", "Electricity used (location-based)", f"{scope2_kg:,.2f}", share(scope2_kg)),
+            ("Scope 3", "Embodied emissions of the hardware", f"{scope3_kg:,.2f}", share(scope3_kg)),
+            ("**TOTAL**", "", f"**{scopes_total_kg:,.2f}**", ""),
+        ]
+        parts.append(section(
+            "Emissions by GHG Protocol Scope",
+            md_table(scope_rows, ["scope", "source", "co2eq_kg", "share"])
+        ))
+
     # Billing summary
     billing_with_total = list(billing_rows)
     if billing_rows:

@@ -59,6 +59,7 @@ The report covers the following sections, drawn from the queries documented belo
 
 | Section | What it shows                                                                                                |
 |---|--------------------------------------------------------------------------------------------------------------|
+| Emissions by GHG Protocol Scope | Scope 2 (operational CO₂) and Scope 3 (embodied CO₂) in kg with their share of the total; Scope 1 is not estimated |
 | Summary by Billing Period | Energy (kWh), operational CO₂ (kg), embodied CO₂ (kg), water usage (l)                                       |
 | Top Emitters by Service | Top 20 services by operational CO₂                                                                           |
 | Top Instance Types | Top 20 instance families by operational + embodied CO₂ (derived from `SkuMeter`, where populated)            |

@@ -908,18 +908,46 @@ def render_equivalences(row: pd.Series, flavor: str) -> None:
     )
 
 
+def render_ghg_scopes(row: pd.Series) -> None:
+    """Emissions split by GHG Protocol scope: operational emissions from the
+    electricity used are Scope 2 (location-based), embodied emissions from the
+    hardware are Scope 3. Scope 1 (direct emissions) is not estimated."""
+    total = row["total_emissions_kg"]
+
+    def share(value: object) -> str:
+        if value is None or pd.isna(value) or not total or pd.isna(total):
+            return ""
+        return f"{float(value) * 100 / float(total):.1f} % of total"
+
+    render_html("<div class='spruce-equiv-title'>Emissions by GHG Protocol scope</div>")
+    render_metric_cards(
+        [
+            ("Scope 1 · direct emissions", "Not estimated", ""),
+            (
+                "Scope 2 · electricity used (location-based)",
+                metric_value(row["operational_kg"], " kg CO2eq"),
+                share(row["operational_kg"]),
+            ),
+            (
+                "Scope 3 · embodied emissions of the hardware",
+                metric_value(row["embodied_kg"], " kg CO2eq"),
+                share(row["embodied_kg"]),
+            ),
+        ]
+    )
+
+
 def render_overview(overview: pd.DataFrame, equiv_flavor: str) -> None:
     if overview.empty:
         st.info("No data available for the current filters.")
         return
 
     row = overview.iloc[0]
+    render_ghg_scopes(row)
     render_metric_cards(
         [
             ("Total usage cost", metric_value(row["total_cost"], " USD"), ""),
             ("Energy", metric_value(row["energy_kwh"], " kWh"), ""),
-            ("Operational emissions", metric_value(row["operational_kg"], " kg"), ""),
-            ("Embodied emissions", metric_value(row["embodied_kg"], " kg"), ""),
             ("Water", metric_value(row["water_l"], " L"), ""),
             ("Coverage (dataset-wide)", metric_value(row["coverage_pct"], " %"), ""),
         ]
