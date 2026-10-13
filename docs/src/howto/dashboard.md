@@ -65,7 +65,7 @@ dashboard -i output
 
 | Section | What it shows |
 |---|---|
-| Overview | Total usage cost, energy, operational emissions, embodied emissions, water usage, and cost coverage for the full input, plus everyday equivalences (car km, flights, home-years, cups of tea, pools, baths) |
+| Overview | Total usage cost, energy, operational emissions (GHG Protocol scope 2), embodied emissions (GHG Protocol scope 3), water usage, and cost coverage for the full input, plus everyday equivalences (car km, flights, home-years, cups of tea, pools, baths) |
 | Trend | Separate energy, total emissions, and water charts by billing period |
 | Top emitters | Sorted top service/region combinations as a table-first view |
 | Regions | Emissions share by region, plus regional KPI cards and detail table |

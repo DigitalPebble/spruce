@@ -662,7 +662,6 @@ def configure_branding() -> None:
         st.logo(str(LOGO_PATH))
 
 
-@st.cache_data(show_spinner=False)
 def css_text() -> str:
     if STYLES_PATH.exists():
         return STYLES_PATH.read_text(encoding="utf-8")
@@ -918,8 +917,8 @@ def render_overview(overview: pd.DataFrame, equiv_flavor: str) -> None:
         [
             ("Total usage cost", metric_value(row["total_cost"], " USD"), ""),
             ("Energy", metric_value(row["energy_kwh"], " kWh"), ""),
-            ("Operational emissions", metric_value(row["operational_kg"], " kg"), ""),
-            ("Embodied emissions", metric_value(row["embodied_kg"], " kg"), ""),
+            ("Operational emissions (GHG Protocol scope 2)", metric_value(row["operational_kg"], " kg"), ""),
+            ("Embodied emissions (GHG Protocol scope 3)", metric_value(row["embodied_kg"], " kg"), ""),
             ("Water", metric_value(row["water_l"], " L"), ""),
             ("Coverage (dataset-wide)", metric_value(row["coverage_pct"], " %"), ""),
         ]

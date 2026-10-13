@@ -189,6 +189,10 @@ section[data-testid="stSidebar"] p {
   background-color: transparent;
 }
 
+.stTabs [data-baseweb="tab-border"] {
+  display: none;
+}
+
 .spruce-card-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
