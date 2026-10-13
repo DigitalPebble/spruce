@@ -60,5 +60,5 @@ The code of the project is in our [GitHub repo](https://github.com/DigitalPebble
 **SPRUCE** is licensed under the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0).
 
 ## Support
-Do you need help with SPRUCE? Want some bespoke work, training or a workshop? We at [DigitalPebble](https://digitalpebble.com/), provide consulting services for SPRUCE. 
+Do you need help with SPRUCE? Want support, a SLA, some bespoke work, training or a workshop? We at [DigitalPebble](https://digitalpebble.com/), provide these services for SPRUCE. 
 Send us an email at _spruce@digitalpebble.com_.
