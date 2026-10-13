@@ -126,6 +126,34 @@ Environment variables:
 - `EMBER_GEOCACHE` — override the geocode cache path (default
   `scripts/.geocode_cache`).
 
+## UK monthly carbon intensity
+
+### `fetch_uk_carbon_intensity.py`
+
+Builds monthly carbon intensity figures for the cloud regions located in Great Britain from
+the regional data of the [Carbon Intensity API](https://carbonintensity.org.uk/) (National
+Energy System Operator).
+
+For every keyed region of `cloud_regions.json` whose country is `United Kingdom`:
+
+- reverse-geocode the region's `latitude`/`longitude` to the nearest postcode with
+  [postcodes.io](https://postcodes.io/) and keep its outward code (`SW1A` for London, `CF10`
+  for Cardiff); the API resolves it to one of its regions (London, South Wales);
+- retrieve the half-hourly intensities for that outward code from January 2022 to the end of
+  the last complete month with the
+  [carbonintensity-api](https://github.com/jnioche/carbonintensity-api) CLI, which splits the
+  period into the windows the API accepts; regions sharing an outward code are fetched once;
+- average them per calendar month (UTC). A month with less than 90% of its half-hours is
+  skipped with a warning.
+
+Output: `src/main/resources/carbonintensity-uk/monthly_co2_intensity.csv`, columns
+`provider,region,month,gCO2_per_kWh` (month as `yyyy-MM`), with three `#`-prefixed header lines.
+
+Requires the CLI, installed with `cargo install carbonintensity-api`, on the `PATH`, or its
+location in the `CARBONINTENSITY_API` environment variable. Python standard library only.
+
+Usage: `./fetch_uk_carbon_intensity.py [cloud_regions.json] [output.csv]`
+
 ## Cloud region water data
 
 Scripts that build per-cloud-region water datasets from WRI sources.
@@ -258,7 +286,8 @@ is what you want if this ever runs in CI.
 - Python 3.8+, `openpyxl` (`pip install openpyxl`)
 - AWS CLI with credentials, for `compare_gpu_accelerators_aws.py` only
 - Network access to `files.ember-energy.org`, `cloudinfrastructuremap.com`,
-  `files.wri.org`, and `nominatim.openstreetmap.org`.
+  `files.wri.org`, `nominatim.openstreetmap.org`, `api.postcodes.io` and
+  `api.carbonintensity.org.uk`.
 
 ## Data sources and licensing
 
@@ -267,6 +296,8 @@ is what you want if this ever runs in CI.
   under Creative Commons — see
   [ember-energy.org/creative-commons/](https://ember-energy.org/creative-commons/)
   for the specific licence and attribution requirements.
+- UK regional carbon intensity: [Carbon Intensity API](https://carbonintensity.org.uk/),
+  National Energy System Operator, Creative Commons Attribution 4.0 International.
 - Water Consumption Factors: [WRI](https://www.wri.org/research/guidance-calculating-water-use-embedded-purchased-electricity),
   Creative Commons Attribution 4.0 International.
 - Aqueduct 4.0 water stress: [WRI](https://www.wri.org/data/aqueduct-global-maps-40-data),

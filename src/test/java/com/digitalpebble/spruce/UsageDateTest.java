@@ -9,6 +9,8 @@ import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 import org.junit.jupiter.api.Test;
 
+import java.time.YearMonth;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -31,8 +33,16 @@ class UsageDateTest {
     }
 
     @Test
+    void readsTheMonthFromTheFirstDateColumnThatIsFilled() {
+        assertEquals(YearMonth.of(2025, 3), UsageDate.yearMonth(row("2025-03-01T00:00:00Z", "2024-01-01T00:00:00Z", "2023-01")));
+        assertEquals(YearMonth.of(2024, 1), UsageDate.yearMonth(row(null, "2024-01-01T00:00:00Z", "2023-01")));
+        assertEquals(YearMonth.of(2023, 1), UsageDate.yearMonth(row(null, null, "2023-01")));
+    }
+
+    @Test
     void returnsNullWhenNoDateColumnIsFilled() {
         assertNull(UsageDate.year(row(null, null, null)));
+        assertNull(UsageDate.yearMonth(row(null, null, null)));
     }
 
     @Test

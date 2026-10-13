@@ -7,6 +7,7 @@ import org.apache.spark.sql.types.DataType;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -115,6 +116,53 @@ public abstract class RowColumn extends Column {
         }
         Matcher matcher = YEAR.matcher(value.toString());
         return matcher.find() ? Integer.valueOf(matcher.group()) : null;
+    }
+
+    /** Matches the year and month of an ISO date, instant or yyyy-MM period. */
+    private static final Pattern ISO_YEAR_MONTH = Pattern.compile("(?<!\\d)((?:19|20)\\d{2})-(0[1-9]|1[0-2])(?!\\d)");
+
+    /** Matches the month and year of a US-formatted date, e.g. 01/15/2025. */
+    private static final Pattern US_YEAR_MONTH = Pattern.compile("(?<!\\d)(0?[1-9]|1[0-2])/\\d{1,2}/((?:19|20)\\d{2})(?!\\d)");
+
+    /**
+     * Returns the month of the date or timestamp held by this column in the given row, or null
+     * when the column is absent from the schema, holds null, or cannot be read as a date. Reads
+     * the same representations as {@link #getYear(Row)}; timestamps are bucketed in UTC.
+     */
+    public YearMonth getYearMonth(Row r) {
+        int index = resolveIndex(r, true);
+        if (index == -1) {
+            return null;
+        }
+        Object value = r.get(index);
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof java.sql.Timestamp timestamp) {
+            return YearMonth.from(timestamp.toInstant().atZone(ZoneOffset.UTC));
+        }
+        if (value instanceof java.time.Instant instant) {
+            return YearMonth.from(instant.atZone(ZoneOffset.UTC));
+        }
+        if (value instanceof java.sql.Date date) {
+            return YearMonth.from(date.toLocalDate());
+        }
+        if (value instanceof LocalDate date) {
+            return YearMonth.from(date);
+        }
+        if (value instanceof LocalDateTime dateTime) {
+            return YearMonth.from(dateTime);
+        }
+        String text = value.toString();
+        Matcher matcher = ISO_YEAR_MONTH.matcher(text);
+        if (matcher.find()) {
+            return YearMonth.of(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)));
+        }
+        matcher = US_YEAR_MONTH.matcher(text);
+        if (matcher.find()) {
+            return YearMonth.of(Integer.parseInt(matcher.group(2)), Integer.parseInt(matcher.group(1)));
+        }
+        return null;
     }
 
     /** Returns true if the value for this column is null in the given row. */

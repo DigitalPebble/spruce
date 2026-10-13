@@ -4,6 +4,8 @@ package com.digitalpebble.spruce;
 
 import org.apache.spark.sql.Row;
 
+import java.time.YearMonth;
+
 /**
  * Reads the date a line item was incurred on, whichever column the report carries it in.
  * Shared by the modules that key their factors by year (PUE / WUE, carbon intensity) so they
@@ -32,6 +34,17 @@ public final class UsageDate {
             Integer year = column.getYear(row);
             if (year != null) {
                 return year;
+            }
+        }
+        return null;
+    }
+
+    /** Returns the month the line item was incurred in, or null if the row has no usable date. */
+    public static YearMonth yearMonth(Row row) {
+        for (RowColumn column : DATE_COLUMNS) {
+            YearMonth month = column.getYearMonth(row);
+            if (month != null) {
+                return month;
             }
         }
         return null;

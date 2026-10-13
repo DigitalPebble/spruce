@@ -57,6 +57,9 @@
       "className": "com.digitalpebble.spruce.modules.ember.AverageCarbonIntensity"
     },
     {
+      "className": "com.digitalpebble.spruce.modules.carbonintensityuk.MonthlyCarbonIntensity"
+    },
+    {
       "className": "com.digitalpebble.spruce.modules.OperationalEmissions",
       "config": {
         "powerSupplyEfficiency": 1.04,
