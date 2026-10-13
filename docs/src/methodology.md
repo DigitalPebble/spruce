@@ -30,7 +30,7 @@ The main columns added by SPRUCE are:
 : emissions of CO2 eq in grams from the energy usage.
 
 `embodied_emissions_co2eq_g`
-: emissions of CO2 eq in grams embodied in the hardware used by the service, i.e. how much did it take to produce it. Estimated for compute instances, LLM inference, and the drives behind storage; other services leave it null rather than zero.
+: emissions of CO2 eq in grams embodied in the hardware used by the service, i.e. how much did it take to produce it. Estimated for compute instances, LLM inference, and the drives behind storage; other services leave it null rather than zero. The manufacturing footprint is spread over the expected service life of the hardware: 6 years for the servers behind compute instances (the [BoaviztAPI](modules.md#compute-boavizta) default) and 5 years for [storage drives](modules.md#storage). For compute, the embodied figures from BoaviztAPI are cradle to gate (raw materials and manufacturing, without distribution or end of life) and cover only the server hosting the instance, not the shared network equipment or the data centre building.
 
 The total emissions for a service are `operational_emissions_co2eq_g` + `embodied_emissions_co2eq_g`.
 

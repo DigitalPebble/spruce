@@ -234,6 +234,30 @@ Each provider has two variants:
 * **BoaviztAPI** queries a running instance of the API (`docker run -p 5000:5000 ghcr.io/boavizta/boaviztapi:latest`). The address can be set with the `address` configuration key (default `http://localhost:5000`).
 * **BoaviztAPIstatic** reads the same information from a static file generated from the API and bundled with SPRUCE. No API instance is needed, which makes it simpler to use — this is the variant enabled in the default configurations.
 
+**Lifespan assumption**: SPRUCE does not override the BoaviztAPI defaults, so the embodied
+emissions and ADP of the server hosting an instance are amortised over the
+[lifespan of the server archetype](https://doc.api.boavizta.org/Explanations/usage/usage/),
+currently **6 years (52,560 hours)**, with the server assumed to be in use all the time
+(`use_time_ratio` of 1). Each hour of instance usage is charged 1/52,560 of the server's embodied
+impacts, scaled to the share of the server the instance occupies. The figures in the static file
+reflect the defaults of the BoaviztAPI version it was generated with. This is a different
+assumption from the 5 years used for [storage](#storage).
+
+**LCA boundaries**: the embodied impacts from BoaviztAPI are **cradle to gate**. As described in
+[Simon et al., *BoaviztAPI: A Bottom-Up Model to Assess the Environmental Impacts of Cloud Services*](https://hal.science/hal-04621947v4/document),
+they cover raw material acquisition and the manufacturing of the server components, with some
+upstream transport included in the component factors (e.g. the base impact of a CPU). Distribution
+of the server to the data centre and its end of life are excluded (the API flags the latter with
+the warning *"End of life is not included in the calculation"*). The use phase is accounted for
+separately, through `operational_energy_kwh` and the resulting operational emissions.
+
+The [perimeter](https://doc.api.boavizta.org/Explanations/services/cloud/) is also limited to the
+share of the bare metal server hosting the instance. The paper proposes adding a share of the data
+centre's technical and building environment, but this is not implemented in the cloud instance
+endpoint used by SPRUCE. The embodied impacts of the shared infrastructure needed to deliver the
+service (network equipment, and services such as the control plane that serve many customers)
+and of the data centre itself (building, cooling, power distribution) are not included.
+
 | | |
 |---|---|
 | **Classes** | `com.digitalpebble.spruce.modules.boavizta.aws.BoaviztAPI`<br>`com.digitalpebble.spruce.modules.boavizta.aws.BoaviztAPIstatic`<br>`com.digitalpebble.spruce.modules.boavizta.azure.BoaviztAPI`<br>`com.digitalpebble.spruce.modules.boavizta.azure.BoaviztAPIstatic` |
