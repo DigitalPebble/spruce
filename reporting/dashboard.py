@@ -41,6 +41,9 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 LOGO_PATH = REPO_ROOT / "logo.png"
 STYLES_PATH = Path(__file__).resolve().parent / "styles.css"
 
+GHG_PROTOCOL_URL = "https://ghgprotocol.org/"
+GHG_PROTOCOL_LOGO_URL = "https://ghgprotocol.org/themes/custom/provus_bootstrap/logo.png"
+
 BRAND_COLOR = "#BC6554"
 BRAND_PALETTE = ("#BC6554", "#8C4A3D", "#E0A64A", "#5A7C8A", "#7A8E55")
 REGION_PIE_PALETTE = (
@@ -662,7 +665,6 @@ def configure_branding() -> None:
         st.logo(str(LOGO_PATH))
 
 
-@st.cache_data(show_spinner=False)
 def css_text() -> str:
     if STYLES_PATH.exists():
         return STYLES_PATH.read_text(encoding="utf-8")
@@ -919,21 +921,42 @@ def render_ghg_scopes(row: pd.Series) -> None:
             return ""
         return f"{float(value) * 100 / float(total):.1f} % of total"
 
-    render_html("<div class='spruce-equiv-title'>Emissions by GHG Protocol scope</div>")
-    render_metric_cards(
-        [
-            ("Scope 1 · direct emissions", "Not estimated", ""),
-            (
-                "Scope 2 · electricity used (location-based)",
-                metric_value(row["operational_kg"], " kg CO2eq"),
-                share(row["operational_kg"]),
-            ),
-            (
-                "Scope 3 · embodied emissions of the hardware",
-                metric_value(row["embodied_kg"], " kg CO2eq"),
-                share(row["embodied_kg"]),
-            ),
-        ]
+    scopes = [
+        ("Scope 1", "Direct emissions", "N/A", ""),
+        (
+            "Scope 2",
+            "Electricity used (location-based)",
+            metric_value(row["operational_kg"]),
+            share(row["operational_kg"]),
+        ),
+        (
+            "Scope 3",
+            "Embodied emissions of the hardware",
+            metric_value(row["embodied_kg"]),
+            share(row["embodied_kg"]),
+        ),
+        ("Total", "Scopes 2 and 3", metric_value(total), ""),
+    ]
+    cards = []
+    for name, source, value, meta in scopes:
+        meta_html = f"<div class='spruce-card-meta'>{html.escape(meta)}</div>" if meta else ""
+        cards.append(
+            f"""
+            <div class="spruce-card">
+                <div class="spruce-scope-name">{html.escape(name)}</div>
+                <div class="spruce-card-label">{html.escape(source)}</div>
+                <div class="spruce-card-value">{html.escape(value)}</div>
+                {meta_html}
+            </div>
+            """
+        )
+    render_html(
+        "<div class='spruce-scope-header'>"
+        f"<a href='{GHG_PROTOCOL_URL}' target='_blank' rel='noopener'>"
+        f"<img src='{GHG_PROTOCOL_LOGO_URL}' alt='GHG Protocol'></a>"
+        "<div class='spruce-equiv-title'>Emissions by GHG Protocol scope (in kg CO2eq)</div>"
+        "</div>"
+        f"<div class='spruce-card-grid spruce-scope-grid'>{''.join(cards)}</div>"
     )
 
 
@@ -943,7 +966,6 @@ def render_overview(overview: pd.DataFrame, equiv_flavor: str) -> None:
         return
 
     row = overview.iloc[0]
-    render_ghg_scopes(row)
     render_metric_cards(
         [
             ("Total usage cost", metric_value(row["total_cost"], " USD"), ""),
@@ -952,6 +974,7 @@ def render_overview(overview: pd.DataFrame, equiv_flavor: str) -> None:
             ("Coverage (dataset-wide)", metric_value(row["coverage_pct"], " %"), ""),
         ]
     )
+    render_ghg_scopes(row)
     render_equivalences(row, equiv_flavor)
 
 

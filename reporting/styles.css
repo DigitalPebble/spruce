@@ -189,6 +189,10 @@ section[data-testid="stSidebar"] p {
   background-color: transparent;
 }
 
+.stTabs [data-baseweb="tab-border"] {
+  display: none;
+}
+
 .spruce-card-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -235,6 +239,26 @@ section[data-testid="stSidebar"] p {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   margin: -0.35rem 0 0.6rem;
+}
+
+.spruce-scope-header img {
+  display: block;
+  height: 32px;
+  width: auto;
+  margin-bottom: 0.75rem;
+}
+
+.spruce-scope-name {
+  color: var(--spruce-text);
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 0.2rem;
+}
+
+@media (min-width: 901px) {
+  .spruce-scope-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 
 .spruce-equiv-card {
