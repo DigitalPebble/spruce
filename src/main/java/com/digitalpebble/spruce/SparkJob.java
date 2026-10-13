@@ -160,6 +160,10 @@ public class SparkJob {
 
         Dataset<Row> enriched = dataframe.mapPartitions(pipeline, encoder);
 
+        // stamp every row with the version of SPRUCE, a constant so it costs next to nothing in Parquet
+        enriched = enriched.withColumn(SpruceColumn.SPRUCE_VERSION.getLabel(),
+                lit(Utils.getSpruceVersion()).cast(SpruceColumn.SPRUCE_VERSION.getType()));
+
         // Write the result as Parquet, with one subdirectory per billing period, similar to the input
         DataFrameWriter<Row> writer = enriched.write().mode("overwrite");
 

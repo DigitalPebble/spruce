@@ -17,9 +17,27 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 public abstract class Utils {
 
+
+    /**
+     * Returns the version of SPRUCE, as set by Maven at build time in spruce-version.properties,
+     * or "unknown" if it can't be found.
+     **/
+    public static String getSpruceVersion() {
+        try (InputStream in = Utils.class.getResourceAsStream("/spruce-version.properties")) {
+            if (in == null) {
+                return "unknown";
+            }
+            Properties properties = new Properties();
+            properties.load(in);
+            return properties.getProperty("version", "unknown");
+        } catch (IOException e) {
+            return "unknown";
+        }
+    }
 
     public static Map<String, Object> loadJSONResources(String resourceFileName) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
