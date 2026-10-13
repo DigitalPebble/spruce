@@ -84,7 +84,7 @@ def create_cur_table(con, parquet_glob):
             exprs.append(f'{BILLING_PERIOD_FROM_CHARGE_PERIOD} AS "{name}"')
         else:
             exprs.append(f'CAST(NULL AS {sql_type}) AS "{name}"')
-    con.execute(f"CREATE TABLE cur AS SELECT {', '.join(exprs)} FROM {source}")
+    con.execute(f"CREATE VIEW cur AS SELECT {', '.join(exprs)} FROM {source}")
 
 
 # ---------------------------------------------------------------------------
