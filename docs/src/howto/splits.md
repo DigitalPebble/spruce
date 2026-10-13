@@ -62,7 +62,7 @@ You can then query the CURs with the enriched splits. For instance to get the to
 
 
 ```SQL
-create table spruce as select * from 'enriched_curs_with_splits/**/*.parquet';
+create view spruce as select * from 'enriched_curs_with_splits/**/*.parquet';
 
 SELECT
       tag.key,

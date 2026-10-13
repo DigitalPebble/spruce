@@ -89,7 +89,7 @@ on the output of another pipeline, substitute the corresponding provider or FOCU
 ### Breakdown by billing period
 
 ```sql
-create table enriched_curs as select * from 'output/**/*.parquet';
+create view enriched_curs as select * from 'output/**/*.parquet';
 
 select 
        BILLING_PERIOD,
