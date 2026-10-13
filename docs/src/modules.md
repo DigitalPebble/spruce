@@ -379,6 +379,9 @@ The figures follow
 [Ember's methodology](https://files.ember-energy.org/public-downloads/ember_electricity_data_methodology.pdf):
 full lifecycle emissions, including upstream methane, supply chain and manufacturing, with all
 gases converted to CO2 equivalent over 100 years.
+The intensity is expressed per kWh generated: it excludes transmission and distribution
+losses, which [OperationalEmissions](#operationalemissions) adds with its
+`powerTransmissionLosses` factor, and it does not account for imported electricity.
 
 The data is loaded from `ember/ember_co2_intensity.csv`, which is generated from
 [`cloud_regions.json`](#cloud-region-metadata) — see the scripts under
