@@ -24,6 +24,8 @@ public class SpruceColumn extends Column {
     public static SpruceColumn WATER_ENERGY = new SpruceColumn("water_electricity_production_l", DoubleType);
     public static SpruceColumn WATER_STRESS = new SpruceColumn("water_consumption_stress_area_l", DoubleType);
     public static SpruceColumn REGION = new SpruceColumn("region", StringType);
+    /** Version of SPRUCE which generated the output, set by SparkJob rather than by a module **/
+    public static SpruceColumn SPRUCE_VERSION = new SpruceColumn("spruce_version", StringType);
 
     private SpruceColumn(String l, DataType t) {
         super(l, t);

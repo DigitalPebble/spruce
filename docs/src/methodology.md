@@ -45,6 +45,8 @@ SPRUCE also estimates water consumption:
 `water_consumption_stress_area_l`
 : total water consumption attributed to regions under high or extremely high water stress.
 
+Every row of the output also has a `spruce_version` column holding the version of SPRUCE which produced it (e.g. `1.4`), so that results computed with different releases can be told apart.
+
 See the [enrichment modules](modules.md) page for details on how each estimate is computed.
 
 ## Everyday equivalences
