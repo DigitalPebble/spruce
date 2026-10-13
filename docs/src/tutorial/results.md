@@ -68,6 +68,18 @@ The report covers the following sections, drawn from the queries documented belo
 | Tag Breakdown | Interactive: emissions split by any resource tag present in the data                                         |
 | Recommendations | Automatically generated from coverage gaps, regional carbon intensity, instance families, and billing trends |
 
+On AWS CUR input, the report covers AWS services only. Third-party
+[AWS Marketplace](https://aws.amazon.com/marketplace) subscriptions such as
+MongoDB Atlas or Elastic Cloud, i.e. line items where `bill_billing_entity` is
+`AWS Marketplace`, are left out of every section, and the report header says
+how many line items and how much cost were excluded. These subscriptions are
+billed through AWS but run on the seller's own infrastructure, so the billing
+data says nothing about their energy use and SPRUCE cannot enrich them; AWS's
+Carbon Footprint Tool does not report on them either. Keeping them would only
+lower the coverage figure. Emissions, energy and water totals are unaffected.
+Inputs without a `bill_billing_entity` column, such as FOCUS exports, are
+reported in full. The [dashboard](../howto/dashboard.md) applies the same rule.
+
 After the fixed sections, the script scans the `Tags` column and presents an interactive menu of the most consistently used tag keys, ordered by the percentage of line items that carry a non-empty value. Select a tag to see the emissions breakdown by tag value; press Enter when done. If no tags are found, the report states this clearly.
 
 Recommendations are generated automatically from the data:
@@ -174,8 +186,15 @@ from (
     enriched_curs
   where
     line_item_line_item_type like '%Usage'
+    -- third-party AWS Marketplace charges cannot be enriched
+    and bill_billing_entity = 'AWS'
 );
 ```
+
+The last condition leaves out third-party AWS Marketplace subscriptions, which
+run on the seller's infrastructure and can never have emissions data. Drop it to
+measure coverage against your whole bill. `report.py` and the dashboard exclude
+them too, so their coverage figure matches this query.
 
 The figure will vary depending on the services you use. We have measured up to *77%* coverage for some users. 
 
