@@ -4,4 +4,4 @@
  *
  * @see <a href="https://carbonintensity.org.uk/">Carbon Intensity API</a>
  */
-package com.digitalpebble.spruce.modules.carbonintensityuk;
+package com.digitalpebble.spruce.modules.neso;

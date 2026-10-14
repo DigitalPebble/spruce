@@ -436,7 +436,7 @@ The data is loaded from `carbonintensity-uk/monthly_co2_intensity.csv`, generate
 
 | | |
 |---|---|
-| **Class** | `com.digitalpebble.spruce.modules.carbonintensityuk.MonthlyCarbonIntensity` |
+| **Class** | `com.digitalpebble.spruce.modules.neso.MonthlyCarbonIntensity` |
 | **Reads** | `region`, the usage date of the line item |
 | **Writes** | `carbon_intensity` |
 

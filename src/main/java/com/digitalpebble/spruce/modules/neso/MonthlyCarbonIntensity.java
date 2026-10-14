@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
-package com.digitalpebble.spruce.modules.carbonintensityuk;
+package com.digitalpebble.spruce.modules.neso;
 
 import com.digitalpebble.spruce.Column;
 import com.digitalpebble.spruce.EnrichmentModule;
