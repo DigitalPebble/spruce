@@ -410,8 +410,10 @@ every half-hourly mix is valued with Ember's lifecycle factors instead:
 - each domestic fuel gets Ember's factor for the UK and the year, i.e. Ember's power sector
   emissions for the fuel divided by its generation (e.g. 479 g/kWh for gas, 13 for wind);
 - imports get Ember's intensity of the countries whose interconnectors land in the API region,
-  weighted by the capacity of the links. London, where no link lands, takes those of South
-  England and South East England.
+  weighted by what each link imported in that half-hour according to Elexon's interconnector
+  flows (falling back to the imports of the month when all the links were exporting). London,
+  where no link lands, takes those of South England and South East England, i.e. the French,
+  Belgian and Dutch links.
 
 Like the Ember figures, the result is per kWh in the mix, before transmission and distribution
 losses, which [OperationalEmissions](#operationalemissions) adds. The regional mix comes from

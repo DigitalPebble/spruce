@@ -13,7 +13,9 @@ of each region is therefore combined with Ember factors instead:
   - Domestic fuels get Ember's factor for the UK and the year, derived from Ember's yearly
     data as power sector emissions / generation per fuel.
   - Imports get the Ember intensity of the countries whose interconnectors land in the API
-    region, weighted by the capacity of the links (see INTERCONNECTORS).
+    region (see INTERCONNECTORS), weighted by what each link imported in that half-hour
+    according to Elexon. When all the links of the region were exporting, the imports of the
+    month are used instead, and failing that the capacity of the links.
 
 For every keyed region of cloud_regions.json whose country is the United Kingdom:
   - reverse-geocode the region's lat/lon to the nearest postcode with postcodes.io and keep
@@ -40,6 +42,7 @@ variable.
 
 import bisect
 import collections
+import concurrent.futures
 import csv
 import datetime
 import io
@@ -59,6 +62,11 @@ COUNTRY = "United Kingdom"
 POSTCODES_URL = "https://api.postcodes.io/postcodes?lat={lat}&lon={lon}&limit=1&radius=2000"
 REGION_URL = "https://api.carbonintensity.org.uk/regional/postcode/{outcode}"
 EMBER_URL = "https://files.ember-energy.org/public-downloads/yearly_full_release_long_format.csv"
+# Half-hourly generation per fuel type, interconnector flows included (imports positive)
+ELEXON_URL = ("https://data.elexon.co.uk/bmrs/api/v1/datasets/FUELHH?settlementDateFrom={start}"
+              "&settlementDateTo={end}{fuel_types}&format=json")
+# Days per request accepted by the Elexon API
+ELEXON_MAX_DAYS = 7
 USER_AGENT = "spruce-uk-carbon-intensity-script/2.0"
 # A month is skipped when fewer of its half-hours than this are returned
 MIN_COVERAGE = 0.9
@@ -77,19 +85,20 @@ FUELS = {
 }
 IMPORTS = "imports"
 
-# GB interconnectors: (name, Ember country, capacity in MW, API region the link lands in).
-# Ireland stands for the Single Electricity Market, Northern Ireland included (Moyle).
+# GB interconnectors: (Elexon fuel type, name, Ember country, capacity in MW, API region the
+# link lands in). Ireland stands for the Single Electricity Market, Northern Ireland included
+# (Moyle).
 INTERCONNECTORS = [
-    ("IFA", "France", 2000, 14),
-    ("ElecLink", "France", 1000, 14),
-    ("Nemo Link", "Belgium", 1000, 14),
-    ("BritNed", "Netherlands", 1000, 14),
-    ("IFA2", "France", 1000, 12),
-    ("North Sea Link", "Norway", 1400, 4),
-    ("Viking Link", "Denmark", 1400, 9),
-    ("East-West", "Ireland", 500, 6),
-    ("Greenlink", "Ireland", 500, 7),
-    ("Moyle", "Ireland", 500, 2),
+    ("INTFR", "IFA", "France", 2000, 14),
+    ("INTELEC", "ElecLink", "France", 1000, 14),
+    ("INTNEM", "Nemo Link", "Belgium", 1000, 14),
+    ("INTNED", "BritNed", "Netherlands", 1000, 14),
+    ("INTIFA2", "IFA2", "France", 1000, 12),
+    ("INTNSL", "North Sea Link", "Norway", 1400, 4),
+    ("INTVKL", "Viking Link", "Denmark", 1400, 9),
+    ("INTEW", "East-West", "Ireland", 500, 6),
+    ("INTGRNL", "Greenlink", "Ireland", 500, 7),
+    ("INTIRL", "Moyle", "Ireland", 500, 2),
 ]
 # Regions without a landing point that get the links of their neighbours
 IMPORT_NEIGHBOURS = {
@@ -117,15 +126,58 @@ def api_region(outcode):
     return data["regionid"], data["shortname"]
 
 
-def import_countries(region_id):
-    """Returns {Ember country: weight} for the imports of an API region, weights summing to 1."""
+def region_links(region_id):
+    """Returns the interconnectors whose imports reach an API region."""
     landing = IMPORT_NEIGHBOURS.get(region_id, [region_id])
-    capacity = collections.Counter()
-    for _, country, mw, region in INTERCONNECTORS:
-        if region in landing:
-            capacity[country] += mw
-    total = sum(capacity.values())
-    return {country: mw / total for country, mw in capacity.items()} if total else None
+    return [link for link in INTERCONNECTORS if link[4] in landing]
+
+
+def fetch_flows(start, end):
+    """Returns {datetime: {Elexon fuel type: MW}} for the interconnectors, imports positive."""
+    fuel_types = "".join(f"&fuelType={link[0]}" for link in INTERCONNECTORS)
+    # settlement days are UK local days, one more on each side covers the UTC period
+    windows = []
+    day = start - datetime.timedelta(days=1)
+    while day <= end:
+        last = min(day + datetime.timedelta(days=ELEXON_MAX_DAYS - 1), end)
+        windows.append(ELEXON_URL.format(start=day, end=last, fuel_types=fuel_types))
+        day = last + datetime.timedelta(days=1)
+    flows = collections.defaultdict(dict)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
+        for data in pool.map(lambda url: http_json(url)["data"], windows):
+            for row in data:
+                when = datetime.datetime.fromisoformat(row["startTime"].replace("Z", "+00:00"))
+                flows[when.replace(tzinfo=None)][row["fuelType"]] = row["generation"]
+    return flows
+
+
+class ImportWeights:
+    """Weights of the countries in the imports of an API region, from the interconnector flows."""
+
+    def __init__(self, links, flows):
+        self.links = links
+        self.flows = flows
+        self.monthly = collections.defaultdict(collections.Counter)
+        for when, by_link in flows.items():
+            self.monthly[(when.year, when.month)].update(self._imports(by_link))
+        self.capacity = collections.Counter()
+        for _, _, country, mw, _ in links:
+            self.capacity[country] += mw
+
+    def _imports(self, by_link):
+        imports = collections.Counter()
+        for fuel_type, _, country, _, _ in self.links:
+            imports[country] += max(by_link.get(fuel_type, 0), 0)
+        return imports
+
+    def at(self, when):
+        """Returns {Ember country: weight} for the half-hour starting at when."""
+        for imports in (self._imports(self.flows.get(when, {})),
+                        self.monthly[(when.year, when.month)], self.capacity):
+            total = sum(imports.values())
+            if total > 0:
+                return {country: mw / total for country, mw in imports.items() if mw > 0}
+        return {}
 
 
 def load_ember(countries):
@@ -195,12 +247,12 @@ def fetch_mix(cli, outcode, start, end):
     return mixes
 
 
-def lifecycle_intensity(mix, year, factors, imports):
+def lifecycle_intensity(mix, year, factors, intensities, import_weights):
     """gCO2e/kWh of a half-hour's mix, imports valued at the weighted partner intensities."""
     value = sum(share * for_year(factors[FUELS[fuel]], year)
                 for fuel, share in mix.items() if fuel != IMPORTS)
-    return value + mix[IMPORTS] * sum(weight * for_year(by_year, year)
-                                      for by_year, weight in imports)
+    return value + mix[IMPORTS] * sum(weight * for_year(intensities[country], year)
+                                      for country, weight in import_weights.items())
 
 
 def monthly_averages(values):
@@ -235,7 +287,7 @@ def main():
         cloud_regions = json.load(f)
 
     regions = []  # (provider, region, outcode)
-    import_mix = {}  # outcode -> {country: weight}
+    links = {}  # outcode -> interconnectors reaching its API region
     for provider in ("aws", "gcp", "azure"):
         for region, info in cloud_regions.get(provider, {}).get("cloud_regions", {}).items():
             if info.get("country") != COUNTRY:
@@ -245,25 +297,27 @@ def main():
                 sys.exit(f"error: no postcode near {provider} {region} "
                          f"({info['latitude']},{info['longitude']})")
             region_id, region_name = api_region(outcode)
-            countries = import_countries(region_id)
-            if not countries:
+            reaching = region_links(region_id)
+            if not reaching:
                 sys.exit(f"error: no interconnector for API region {region_id} ({region_name}), "
                          f"add one to INTERCONNECTORS or IMPORT_NEIGHBOURS")
-            weights = ", ".join(f"{c} {w:.0%}" for c, w in sorted(countries.items()))
+            names = ", ".join(f"{link[1]} ({link[2]})" for link in reaching)
             print(f"{provider} {region} ({info['metro_area']}) -> {outcode}, "
-                  f"region {region_id} {region_name}, imports from {weights}", file=sys.stderr)
+                  f"region {region_id} {region_name}, imports via {names}", file=sys.stderr)
             regions.append((provider, region, outcode))
-            import_mix[outcode] = countries
+            links[outcode] = reaching
 
-    factors, intensities = load_ember({c for mix in import_mix.values() for c in mix})
+    factors, intensities = load_ember({link[2] for ls in links.values() for link in ls})
 
     # the last complete month ends where the current one starts
     end = datetime.date.today().replace(day=1)
+    print(f"Fetching interconnector flows from {FROM_MONTH} to {end}...", file=sys.stderr)
+    flows = fetch_flows(FROM_MONTH, end)
     averages = {}
-    for outcode in sorted(import_mix):
+    for outcode in sorted(links):
         print(f"Fetching {outcode} from {FROM_MONTH} to {end}...", file=sys.stderr)
-        imports = [(intensities[c], w) for c, w in import_mix[outcode].items()]
-        values = {when: lifecycle_intensity(mix, when.year, factors, imports)
+        weights = ImportWeights(links[outcode], flows)
+        values = {when: lifecycle_intensity(mix, when.year, factors, intensities, weights.at(when))
                   for when, mix in fetch_mix(cli, outcode, FROM_MONTH, end).items()}
         averages[outcode] = monthly_averages(values)
 
@@ -275,6 +329,9 @@ def main():
                   "https://carbonintensity.org.uk, CC-BY-4.0\n")
         out.write("# Lifecycle factors: Ember, https://ember-energy.org/creative-commons/, "
                   "CC-BY-4.0\n")
+        out.write(f"# Interconnector flows: Contains BMRS data (c) Elexon Limited copyright and "
+                  f"database right {datetime.date.today().year}, https://www.elexon.co.uk/bsc/data/"
+                  f"balancing-mechanism-reporting-agent/copyright-licence-bmrs-data/\n")
         out.write("#provider,region,month,gCO2_per_kWh\n")
         for provider, region, outcode in regions:
             for (year, month), value in averages[outcode].items():

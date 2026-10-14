@@ -147,16 +147,20 @@ For every keyed region of `cloud_regions.json` whose country is `United Kingdom`
 - value each half-hour's mix with Ember's lifecycle factors: per fuel, Ember's UK power sector
   emissions divided by generation for the year, taken from the same
   `yearly_full_release_long_format.csv` as `fetch_ember_co2_intensity.sh`; for imports,
-  Ember's intensity of the countries whose interconnectors land in the API region, weighted by
-  link capacity (table `INTERCONNECTORS` in the script, with `IMPORT_NEIGHBOURS` for regions
-  without a landing point such as London). The script stops if a region has neither;
+  Ember's intensity of the countries whose interconnectors land in the API region (table
+  `INTERCONNECTORS` in the script, with `IMPORT_NEIGHBOURS` for regions without a landing point
+  such as London), weighted by what each link imported in that half-hour according to the
+  Elexon `FUELHH` dataset (exports count as zero). When all the links of the region were
+  exporting, the imports of the month are used, and failing that the capacity of the links.
+  The script stops if a region has no link;
 - average the result per calendar month (UTC). A month with less than 90% of its half-hours
   is skipped with a warning.
 
 Years Ember has not published yet get the latest year available.
 
 Output: `src/main/resources/carbonintensity-uk/monthly_co2_intensity.csv`, columns
-`provider,region,month,gCO2_per_kWh` (month as `yyyy-MM`), with three `#`-prefixed header lines.
+`provider,region,month,gCO2_per_kWh` (month as `yyyy-MM`), with four `#`-prefixed header lines
+(sources, licences and column names).
 
 Requires the CLI, installed with `cargo install carbonintensity-api` (a version with `--mix`),
 on the `PATH`, or its location in the `CARBONINTENSITY_API` environment variable. Python
@@ -296,8 +300,8 @@ is what you want if this ever runs in CI.
 - Python 3.8+, `openpyxl` (`pip install openpyxl`)
 - AWS CLI with credentials, for `compare_gpu_accelerators_aws.py` only
 - Network access to `files.ember-energy.org`, `cloudinfrastructuremap.com`,
-  `files.wri.org`, `nominatim.openstreetmap.org`, `api.postcodes.io` and
-  `api.carbonintensity.org.uk`.
+  `files.wri.org`, `nominatim.openstreetmap.org`, `api.postcodes.io`,
+  `api.carbonintensity.org.uk` and `data.elexon.co.uk`.
 
 ## Data sources and licensing
 
@@ -308,6 +312,9 @@ is what you want if this ever runs in CI.
   for the specific licence and attribution requirements.
 - UK regional fuel mix: [Carbon Intensity API](https://carbonintensity.org.uk/),
   National Energy System Operator, Creative Commons Attribution 4.0 International.
+- GB interconnector flows: [Elexon BMRS](https://bmrs.elexon.co.uk/), "Contains BMRS data
+  © Elexon Limited copyright and database right", under the
+  [BMRS open data licence](https://www.elexon.co.uk/bsc/data/balancing-mechanism-reporting-agent/copyright-licence-bmrs-data/).
 - Water Consumption Factors: [WRI](https://www.wri.org/research/guidance-calculating-water-use-embedded-purchased-electricity),
   Creative Commons Attribution 4.0 International.
 - Aqueduct 4.0 water stress: [WRI](https://www.wri.org/data/aqueduct-global-maps-40-data),
