@@ -34,7 +34,7 @@ written by earlier ones, which is why the order in the configuration file matter
 flowchart LR
     A[Billing row] --> B("<b>Metadata</b><br>RegionExtraction")
     B --> C("<b>Energy &amp; embodied</b><br>Storage, Networking,<br>Serverless, Accelerators,<br>Boavizta, EcoLogits")
-    C --> D("<b>Factors</b><br>PWUE,<br>AverageCarbonIntensity")
+    C --> D("<b>Factors</b><br>PWUE,<br>AverageCarbonIntensity,<br>MonthlyCarbonIntensity")
     D --> E("<b>Impacts</b><br>OperationalEmissions,<br>Water")
     E --> F("<b>Normalisation</b><br>FOCUSColumns<br>(native formats only)")
     F --> G[Enriched row]

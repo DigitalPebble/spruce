@@ -165,9 +165,9 @@ Output: `src/main/resources/neso/monthly_co2_intensity.csv`, columns
 `provider,region,month,gCO2_per_kWh` (month as `yyyy-MM`), with four `#`-prefixed header lines
 (sources, licences and column names).
 
-Requires the CLI, installed with `cargo install carbonintensity-api` (a version with `--mix`),
-on the `PATH`, or its location in the `CARBONINTENSITY_API` environment variable. Python
-standard library only.
+Requires the CLI, version 0.4.0 or later (for `--mix`), installed with `cargo install
+carbonintensity-api`, on the `PATH`, or its location in the `CARBONINTENSITY_API`
+environment variable. Python standard library only.
 
 Usage: `./fetch_neso_carbon_intensity.py [cloud_regions.json] [output.csv]`
 

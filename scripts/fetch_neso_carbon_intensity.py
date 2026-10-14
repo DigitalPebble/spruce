@@ -35,9 +35,9 @@ Output columns: provider,region,month,gCO2_per_kWh (month as yyyy-MM)
 Usage:
   ./fetch_neso_carbon_intensity.py [cloud_regions.json] [output.csv]
 
-Requires the carbonintensity-api executable with the --mix option on the PATH
-(cargo install carbonintensity-api), or its location in the CARBONINTENSITY_API environment
-variable.
+Requires the carbonintensity-api executable, version 0.4.0 or later for the --mix option, on
+the PATH (cargo install carbonintensity-api), or its location in the CARBONINTENSITY_API
+environment variable.
 """
 
 import bisect
