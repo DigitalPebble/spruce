@@ -276,7 +276,7 @@ def main():
     cloud_regions_path = sys.argv[1] if len(sys.argv) > 1 else os.path.join(
         PROJECT_ROOT, "src", "main", "resources", "cloud_regions.json")
     output_path = sys.argv[2] if len(sys.argv) > 2 else os.path.join(
-        PROJECT_ROOT, "src", "main", "resources", "carbonintensity-uk", "monthly_co2_intensity.csv")
+        PROJECT_ROOT, "src", "main", "resources", "neso", "monthly_co2_intensity.csv")
 
     cli = os.environ.get("CARBONINTENSITY_API") or shutil.which("carbonintensity-api")
     if not cli:

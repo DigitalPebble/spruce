@@ -30,7 +30,7 @@ import static com.digitalpebble.spruce.SpruceColumn.*;
  */
 public class MonthlyCarbonIntensity implements EnrichmentModule {
 
-    private static final String DEFAULT_RESOURCE_LOCATION = "carbonintensity-uk/monthly_co2_intensity.csv";
+    private static final String DEFAULT_RESOURCE_LOCATION = "neso/monthly_co2_intensity.csv";
 
     // keyed by "provider:region" e.g. "aws:eu-west-2", then by calendar month and year
     private final Map<String, Map<Month, NavigableMap<Integer, Double>>> intensities = new HashMap<>();

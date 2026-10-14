@@ -158,7 +158,7 @@ For every keyed region of `cloud_regions.json` whose country is `United Kingdom`
 
 Years Ember has not published yet get the latest year available.
 
-Output: `src/main/resources/carbonintensity-uk/monthly_co2_intensity.csv`, columns
+Output: `src/main/resources/neso/monthly_co2_intensity.csv`, columns
 `provider,region,month,gCO2_per_kWh` (month as `yyyy-MM`), with four `#`-prefixed header lines
 (sources, licences and column names).
 
