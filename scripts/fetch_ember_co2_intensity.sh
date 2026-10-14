@@ -20,7 +20,8 @@
 #     subdivision code and use the sub-national value. If the subdivision
 #     can't be resolved or has no Ember value, fall back to the country
 #     value.
-#   - Results are cached in ./geocode_cache.tsv (lat, lon, ISO_3166-2 code)
+#   - Results are cached in scripts/.geocode_cache_iso (lat, lon, ISO_3166-2
+#     code), kept apart from the state-name cache of the water scripts
 #     so repeat runs don't hit the API.
 #   - _unresolved entries are skipped (no region code).
 #   - Regions with no country/subdivision match are skipped.
@@ -42,7 +43,7 @@ OUTPUT="${2:-$PROJECT_ROOT/src/main/resources/ember/ember_co2_intensity.csv}"
 # First year of figures to ship. Usage before it gets the figures of this year (see
 # AverageCarbonIntensity); the PUE / WUE file starts the same year.
 FROM_YEAR=2022
-GEO_CACHE="${EMBER_GEOCACHE:-$SCRIPT_DIR/.geocode_cache}"
+GEO_CACHE="${EMBER_GEOCACHE:-$SCRIPT_DIR/.geocode_cache_iso}"
 NOMINATIM_UA="ember-cloud-region-script/1.0"
 
 # Sub-national sources: "country_name|url|iso_3166-2_prefix". The prefix is

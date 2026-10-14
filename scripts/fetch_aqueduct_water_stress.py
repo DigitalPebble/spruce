@@ -121,37 +121,32 @@ def download_xlsx(cache_dir: str) -> str:
     return extracted
 
 
-def _is_ascii(s: str) -> bool:
-    try:
-        s.encode("ascii")
-        return True
-    except UnicodeEncodeError:
-        return False
+def load_geocache(path: str) -> dict[tuple[str, str], list[str]]:
+    """Load TSV geocache: lat<TAB>lon<TAB>name<TAB>alt_names.
 
-
-def load_geocache(path: str) -> dict[tuple[str, str], str]:
-    """Load TSV geocache: lat<TAB>lon<TAB>state_name (empty string = no result).
-
-    Entries with non-ASCII state names are discarded so they are re-fetched
-    with the corrected Accept-Language: en header.
+    name is the English subdivision name; alt_names are the '|'-separated
+    local and official names of the same subdivision (Nominatim namedetails),
+    which Aqueduct often uses instead (e.g. 'Lombardia' for 'Lombardy').
+    An empty name with no alt_names means Nominatim found no subdivision.
+    Entries without the alt_names column were written by fetch_wri_wcf.py or
+    by older runs of this script and are re-fetched.
     """
-    cache: dict[tuple[str, str], str] = {}
+    cache: dict[tuple[str, str], list[str]] = {}
     if not os.path.exists(path):
         return cache
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         for line in f:
             parts = line.rstrip("\n").split("\t")
-            if len(parts) >= 3:
-                state = parts[2]
-                if state and not _is_ascii(state):
-                    continue  # stale entry fetched without Accept-Language: en
-                cache[(parts[0], parts[1])] = state
+            if len(parts) >= 4:
+                names = [parts[2]] + parts[3].split("|")
+                cache[(parts[0], parts[1])] = [n for n in names if n]
     return cache
 
 
-def save_geocache_entry(path: str, lat: str, lon: str, state: str) -> None:
-    with open(path, "a") as f:
-        f.write(f"{lat}\t{lon}\t{state}\n")
+def save_geocache_entry(path: str, lat: str, lon: str, names: list[str]) -> None:
+    primary = names[0] if names else ""
+    with open(path, "a", encoding="utf-8") as f:
+        f.write(f"{lat}\t{lon}\t{primary}\t{'|'.join(names[1:])}\n")
 
 
 # Trailing administrative suffixes returned by Nominatim (English) but absent in Aqueduct
@@ -171,12 +166,13 @@ def _strip_admin_suffix(name: str) -> str:
     return name
 
 
-def reverse_geocode_state(lat: str, lon: str) -> str:
+def reverse_geocode_names(lat: str, lon: str) -> list[str] | None:
     """
-    Call Nominatim to get the state/province name for (lat, lon).
-    Returns empty string if nothing useful is found.
+    Call Nominatim to get the names of the state/province at (lat, lon): the
+    English name first, then its local and official names.
+    Returns an empty list if nothing useful is found, None if the request failed.
     """
-    url = f"{NOMINATIM_URL}?format=jsonv2&zoom=6&lat={lat}&lon={lon}"
+    url = f"{NOMINATIM_URL}?format=jsonv2&zoom=6&namedetails=1&lat={lat}&lon={lon}"
     req = urllib.request.Request(
         url,
         headers={"User-Agent": NOMINATIM_UA, "Accept-Language": "en"},
@@ -187,15 +183,29 @@ def reverse_geocode_state(lat: str, lon: str) -> str:
             data = json.loads(resp.read())
     except (urllib.error.URLError, json.JSONDecodeError) as exc:
         print(f"  geocode warning: {exc}", file=sys.stderr)
-        return ""
+        return None
 
     addr = data.get("address", {})
-    # Try fields in priority order; different countries use different keys
-    for field in ("state", "province", "region", "county"):
+    # Try fields in priority order; different countries use different keys.
+    # Kuala Lumpur, a federal territory, only comes back as a city.
+    for field in ("state", "province", "region", "county", "city"):
         val = addr.get(field, "")
         if val:
-            return _strip_admin_suffix(val)
-    return ""
+            break
+    else:
+        return []
+
+    names = [_strip_admin_suffix(val)]
+    # namedetails describe the returned object; only use them when that object
+    # is the subdivision found above
+    if data.get("addresstype") == field:
+        details = data.get("namedetails") or {}
+        for k in ("name", "name:en", "official_name", "alt_name"):
+            for name in details.get(k, "").split(";"):
+                name = name.strip()
+                if name and name not in names:
+                    names.append(name)
+    return names
 
 
 def lookup_water_stress(
@@ -216,14 +226,15 @@ def lookup_water_stress(
     # --- Province resolution ---
     key = (lat, lon)
     if key in geocache:
-        state = geocache[key]
+        names = geocache[key]
     else:
-        state = reverse_geocode_state(lat, lon)
-        geocache[key] = state
-        save_geocache_entry(geocache_path, lat, lon, state)
+        names = reverse_geocode_names(lat, lon)
+        if names is not None:  # don't cache failed requests
+            geocache[key] = names
+            save_geocache_entry(geocache_path, lat, lon, names)
 
-    if state:
-        pkey = (norm_country, normalize(_strip_admin_suffix(state)))
+    for name in names or []:
+        pkey = (norm_country, normalize(_strip_admin_suffix(name)))
         if pkey in province_cat:
             cat = province_cat[pkey]
             return cat if cat != -9999 else None
@@ -289,7 +300,7 @@ def main():
         f.write("# Aqueduct 4.0 baseline water stress (bws, total weight)\n")
         f.write("# https://www.wri.org/data/aqueduct-global-maps-40-data\n")
         f.write("# cat: 0=Low, 1=Low-Medium, 2=Medium-High, 3=High, 4=Extremely High\n")
-        writer = csv.writer(f)
+        writer = csv.writer(f, lineterminator="\n")
         writer.writerow(["provider", "region", "water_stress_cat"])
         writer.writerows(sorted(rows))
 
