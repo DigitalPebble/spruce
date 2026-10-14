@@ -58,7 +58,10 @@ Edits `cloud_regions.json` in place to correct known upstream errors:
   `_unresolved`; fix `us-east-1` coordinates (Washington DC →
   Ashburn/Loudoun County, VA); fix `cn-northwest-1` coordinates and
   `metro_area` (Ningxiang/Hunan → Yinchuan/Ningxia); fix `ca-central-1`
-  coordinates (~50 km west of Montréal Island → Montréal).
+  coordinates (~50 km west of Montréal Island → Montréal); move `eu-west-2`
+  from central London to Hayes, west of London, where most of the sites listed
+  for it by third parties are (this places it in the South England region of
+  the GB Carbon Intensity API).
 - **GCP**: promote Mexico → `northamerica-south1`, Thailand →
   `asia-southeast3` from `_unresolved`.
 - **Azure**: move `eastus` coordinates from Richmond to Ashburn/Sterling
@@ -126,6 +129,48 @@ Environment variables:
 
 - `EMBER_GEOCACHE` — override the geocode cache path (default
   `scripts/.geocode_cache_iso`).
+
+## UK monthly carbon intensity
+
+### `fetch_neso_carbon_intensity.py`
+
+Builds monthly lifecycle carbon intensity figures for the cloud regions located in Great
+Britain from the regional fuel mix of the [Carbon Intensity API](https://carbonintensity.org.uk/)
+(National Energy System Operator) and [Ember](https://ember-energy.org)'s lifecycle factors.
+
+For every keyed region of `cloud_regions.json` whose country is `United Kingdom`:
+
+- reverse-geocode the region's `latitude`/`longitude` to the nearest postcode with
+  [postcodes.io](https://postcodes.io/) and keep its outward code (`SW1A` for London, `CF10`
+  for Cardiff), resolved to an API region (London, South Wales);
+- retrieve the half-hourly fuel mix for that outward code from January 2022 to the end of the
+  last complete month with the
+  [carbonintensity-api](https://github.com/jnioche/carbonintensity-api) CLI (`--mix` option),
+  which splits the period into the windows the API accepts; regions sharing an outward code
+  are fetched once;
+- value each half-hour's mix with Ember's lifecycle factors: per fuel, Ember's UK power sector
+  emissions divided by generation for the year, taken from the same
+  `yearly_full_release_long_format.csv` as `fetch_ember_co2_intensity.sh`; for imports,
+  Ember's intensity of the countries whose interconnectors land in the API region (table
+  `INTERCONNECTORS` in the script, with `IMPORT_NEIGHBOURS` for regions without a landing point
+  such as London), weighted by what each link imported in that half-hour according to the
+  Elexon `FUELHH` dataset (exports count as zero). When all the links of the region were
+  exporting, the imports of the month are used, and failing that the capacity of the links.
+  The script stops if a region has no link;
+- average the result per calendar month (UTC). A month with less than 90% of its half-hours
+  is skipped with a warning.
+
+Years Ember has not published yet get the latest year available.
+
+Output: `src/main/resources/neso/monthly_co2_intensity.csv`, columns
+`provider,region,month,gCO2_per_kWh` (month as `yyyy-MM`), with four `#`-prefixed header lines
+(sources, licences and column names).
+
+Requires the CLI, version 0.4.0 or later (for `--mix`), installed with `cargo install
+carbonintensity-api`, on the `PATH`, or its location in the `CARBONINTENSITY_API`
+environment variable. Python standard library only.
+
+Usage: `./fetch_neso_carbon_intensity.py [cloud_regions.json] [output.csv]`
 
 ## Cloud region water data
 
@@ -265,7 +310,8 @@ is what you want if this ever runs in CI.
 - Python 3.8+, `openpyxl` (`pip install openpyxl`)
 - AWS CLI with credentials, for `compare_gpu_accelerators_aws.py` only
 - Network access to `files.ember-energy.org`, `cloudinfrastructuremap.com`,
-  `files.wri.org`, and `nominatim.openstreetmap.org`.
+  `files.wri.org`, `nominatim.openstreetmap.org`, `api.postcodes.io`,
+  `api.carbonintensity.org.uk` and `data.elexon.co.uk`.
 
 ## Data sources and licensing
 
@@ -274,6 +320,11 @@ is what you want if this ever runs in CI.
   under Creative Commons — see
   [ember-energy.org/creative-commons/](https://ember-energy.org/creative-commons/)
   for the specific licence and attribution requirements.
+- UK regional fuel mix: [Carbon Intensity API](https://carbonintensity.org.uk/),
+  National Energy System Operator, Creative Commons Attribution 4.0 International.
+- GB interconnector flows: [Elexon BMRS](https://bmrs.elexon.co.uk/), "Contains BMRS data
+  © Elexon Limited copyright and database right", under the
+  [BMRS open data licence](https://www.elexon.co.uk/bsc/data/balancing-mechanism-reporting-agent/copyright-licence-bmrs-data/).
 - Water Consumption Factors: [WRI](https://www.wri.org/research/guidance-calculating-water-use-embedded-purchased-electricity),
   Creative Commons Attribution 4.0 International.
 - Aqueduct 4.0 water stress: [WRI](https://www.wri.org/data/aqueduct-global-maps-40-data),
