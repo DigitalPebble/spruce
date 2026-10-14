@@ -99,11 +99,12 @@ Joining to cloud regions:
   subdivision, the script stops without writing the csv and lists the
   regions with the reason: each of them would otherwise get the national
   figure.
-- Resolved subdivisions are cached in `scripts/.geocode_cache` (`lat`,
+- Resolved subdivisions are cached in `scripts/.geocode_cache_iso` (`lat`,
   `lon`, ISO 3166-2 code); failed requests are not, so they are retried on
   the next run. Repeat runs are free; the 1 req/sec rate limit only matters
   on the first run or when new regions in supported countries appear.
-  Delete the cache to force a refresh.
+  Delete the cache to force a refresh. The water scripts below keep a
+  separate cache, since they store state names rather than ISO codes.
 - `_unresolved` entries are skipped (no region code to emit).
 
 Sub-national configuration lives in two arrays at the top of the script:
@@ -124,12 +125,12 @@ Usage: `./fetch_ember_co2_intensity.sh [cloud_regions.json] [output.csv]`.
 Environment variables:
 
 - `EMBER_GEOCACHE` — override the geocode cache path (default
-  `scripts/.geocode_cache`).
+  `scripts/.geocode_cache_iso`).
 
 ## Cloud region water data
 
 Scripts that build per-cloud-region water datasets from WRI sources.
-Both scripts share the same geocode cache (`src/main/resources/geocode_cache.tsv`)
+Both scripts share the same geocode cache (`scripts/.geocode_cache`, lat/lon → state name)
 and download cache (`scripts/.aqueduct_cache/`).
 
 Run from the project root after `fetch_cloud_regions.sh` / `fix_cloud_regions.sh`:
@@ -168,7 +169,7 @@ Output: `src/main/resources/wcf.csv`, columns `provider,region,wcf`.
 Usage: `./fetch_wri_wcf.py [cloud_regions.json] [output.csv]`
 
 Environment variables:
-- `GEOCACHE` — override the geocode cache path (default `<output_dir>/geocode_cache.tsv`).
+- `GEOCACHE` — override the geocode cache path (default `scripts/.geocode_cache`).
 
 ### `fetch_aqueduct_water_stress.py`
 
@@ -187,21 +188,27 @@ are used. Category values: 0 = Low, 1 = Low-Medium, 2 = Medium-High, 3 = High,
 
 Resolution per cloud region (first match wins):
 1. **Province** — reverse-geocode the region's lat/lon via Nominatim (zoom=6,
-   `Accept-Language: en`) to get the state/province name in English. Common
-   administrative suffixes ("Prefecture", "Province", "County", etc.) are
-   stripped before matching. Matched against `province_baseline`.
+   `Accept-Language: en`, `namedetails=1`). The subdivision is the first of
+   `state`, `province`, `region`, `county` or `city` in the address (city
+   covers city-level subdivisions such as Berlin, Beijing or Kuala Lumpur).
+   Its English name is tried first, then its local, official and alternative
+   names, since Aqueduct mostly uses local names (`Lombardia`, `Noord-Holland`,
+   `Comunidad de Madrid`). Common administrative suffixes ("Prefecture",
+   "Province", "County", etc.) are stripped before matching against
+   `province_baseline`.
 2. **Country** — matched by country name against `country_baseline`.
 
-Geocoded results are cached in `geocode_cache.tsv`. Cached entries with
-non-ASCII state names (fetched before the `Accept-Language: en` fix) are
-discarded and re-fetched automatically.
+Geocoded results are cached in `scripts/.geocode_cache` as
+`lat`, `lon`, English name, `|`-separated other names. Entries without the
+fourth column (written by `fetch_wri_wcf.py`, which only needs the English
+name, or by older runs) are re-fetched. Failed requests are not cached.
 
 Output: `src/main/resources/water-stress.csv`, columns `provider,region,water_stress_cat`.
 
 Usage: `./fetch_aqueduct_water_stress.py [cloud_regions.json] [output.csv]`
 
 Environment variables:
-- `GEOCACHE` — override the geocode cache path (default `<output_dir>/geocode_cache.tsv`).
+- `GEOCACHE` — override the geocode cache path (default `scripts/.geocode_cache`).
 
 ## GPU data
 

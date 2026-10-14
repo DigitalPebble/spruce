@@ -22,6 +22,7 @@ Requires: Python 3.8+, openpyxl  (pip install openpyxl)
 import csv
 import json
 import os
+import re
 import sys
 import time
 import urllib.error
@@ -60,6 +61,11 @@ def _strip_admin_suffix(name: str) -> str:
         if lower.endswith(suffix):
             return name[: len(name) - len(suffix)].strip()
     return name
+
+
+# ISO 3166-2 code (e.g. "US-VA"), as stored by older runs of
+# fetch_ember_co2_intensity.sh when it shared this cache file.
+_ISO_3166_2 = re.compile(r"^[A-Z]{2}-[A-Z0-9]{1,3}$")
 
 
 def _is_ascii(s: str) -> bool:
@@ -193,6 +199,8 @@ def load_geocache(path: str) -> dict[tuple[str, str], str]:
                 state = parts[2]
                 if state and not _is_ascii(state):
                     continue
+                if _ISO_3166_2.match(state):
+                    continue  # not a state name, re-fetch it
                 cache[(parts[0], parts[1])] = state
     return cache
 
@@ -202,7 +210,7 @@ def save_geocache_entry(path: str, lat: str, lon: str, state: str) -> None:
         f.write(f"{lat}\t{lon}\t{state}\n")
 
 
-def reverse_geocode_state(lat: str, lon: str) -> str:
+def reverse_geocode_state(lat: str, lon: str) -> str | None:
     url = f"{NOMINATIM_URL}?format=jsonv2&zoom=6&lat={lat}&lon={lon}"
     req = urllib.request.Request(
         url,
@@ -214,7 +222,7 @@ def reverse_geocode_state(lat: str, lon: str) -> str:
             data = json.loads(resp.read())
     except (urllib.error.URLError, json.JSONDecodeError) as exc:
         print(f"  geocode warning: {exc}", file=sys.stderr)
-        return ""
+        return None
 
     addr = data.get("address", {})
     for field in ("state", "province", "region", "county"):
@@ -245,8 +253,9 @@ def lookup_wcf(
             state = geocache[key]
         else:
             state = reverse_geocode_state(lat, lon)
-            geocache[key] = state
-            save_geocache_entry(geocache_path, lat, lon, state)
+            if state is not None:  # don't cache failed requests
+                geocache[key] = state
+                save_geocache_entry(geocache_path, lat, lon, state)
 
         egrid = egrid_for_us(state, lat) if state else None
         if egrid and egrid in egrid_wcf:
@@ -317,7 +326,7 @@ def main():
         f.write("# WRI water consumption factors (WCF) in l/kWh\n")
         f.write(f"# Source: {WRI_URL}\n")
         f.write("# US regions mapped via eGRID subregion; others by country\n")
-        writer = csv.writer(f)
+        writer = csv.writer(f, lineterminator="\n")
         writer.writerow(["provider", "region", "wcf"])
         writer.writerows(sorted(rows))
 
