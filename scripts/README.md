@@ -58,7 +58,10 @@ Edits `cloud_regions.json` in place to correct known upstream errors:
   `_unresolved`; fix `us-east-1` coordinates (Washington DC →
   Ashburn/Loudoun County, VA); fix `cn-northwest-1` coordinates and
   `metro_area` (Ningxiang/Hunan → Yinchuan/Ningxia); fix `ca-central-1`
-  coordinates (~50 km west of Montréal Island → Montréal).
+  coordinates (~50 km west of Montréal Island → Montréal); move `eu-west-2`
+  from central London to Hayes, west of London, where most of the sites listed
+  for it by third parties are (this places it in the South England region of
+  the GB Carbon Intensity API).
 - **GCP**: promote Mexico → `northamerica-south1`, Thailand →
   `asia-southeast3` from `_unresolved`.
 - **Azure**: move `eastus` coordinates from Richmond to Ashburn/Sterling

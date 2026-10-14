@@ -50,8 +50,8 @@ class MonthlyCarbonIntensityTest {
 
     @Test
     void returnsTheFigureOfTheMonth() {
-        assertEquals(261.24, module.getIntensity(Provider.AWS, "eu-west-2", YearMonth.of(2022, 1)));
-        assertEquals(165.37, module.getIntensity(Provider.AWS, "eu-west-2", YearMonth.of(2022, 2)));
+        assertEquals(327.97, module.getIntensity(Provider.AWS, "eu-west-2", YearMonth.of(2022, 1)));
+        assertEquals(269.50, module.getIntensity(Provider.AWS, "eu-west-2", YearMonth.of(2022, 2)));
     }
 
     @Test
@@ -67,7 +67,7 @@ class MonthlyCarbonIntensityTest {
 
     @Test
     void usesTheSameMonthOfTheFirstYearBeforeTheFileStarts() {
-        assertEquals(165.37, module.getIntensity(Provider.AWS, "eu-west-2", YearMonth.of(2019, 2)));
+        assertEquals(269.50, module.getIntensity(Provider.AWS, "eu-west-2", YearMonth.of(2019, 2)));
     }
 
     @Test
@@ -87,7 +87,7 @@ class MonthlyCarbonIntensityTest {
 
     @Test
     void enrichOverridesTheYearlyFigure() {
-        assertEquals(261.24, enrich(row("2022-01-15T00:00:00Z"), "eu-west-2", 254.98).get(CARBON_INTENSITY));
+        assertEquals(327.97, enrich(row("2022-01-15T00:00:00Z"), "eu-west-2", 254.98).get(CARBON_INTENSITY));
     }
 
     @Test

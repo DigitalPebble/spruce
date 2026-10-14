@@ -15,6 +15,8 @@
 #     the region is in Ningxia, near Yinchuan).
 #   - Fixes AWS ca-central-1 coordinates (upstream points ~50 km west of
 #     Montréal Island; the region is in Montréal).
+#   - Moves AWS eu-west-2 from central London to Hayes, west of London, where
+#     most of the sites listed for it by third parties are.
 #
 # Input and output default to cloud_regions.json (edited in place via a temp
 # file). Pass a path to override.
@@ -87,6 +89,15 @@ jq '
     # ca-central-1 is Montréal, not Saint-Lazare ~50 km west of the island.
     | .aws.cloud_regions["ca-central-1"].latitude   = "45.501690"
     | .aws.cloud_regions["ca-central-1"].longitude  = "-73.567253"
+
+    # eu-west-2: AWS publishes no addresses, but the sites listed for it by third
+    # parties (Hayes, West Drayton, Iver, Bracknell, Didcot, Swindon) are west of
+    # London, none in central London. Hayes sits among the closest of them; it
+    # matters for the regional carbon intensity of the GB grid (South England
+    # rather than London).
+    | .aws.cloud_regions["eu-west-2"].latitude   = "51.513000"
+    | .aws.cloud_regions["eu-west-2"].longitude  = "-0.420400"
+    | .aws.cloud_regions["eu-west-2"].metro_area = "Hayes"
 
     # --- GCP fixes -------------------------------------------------------
     | (.gcp._unresolved | map(select(.name == "Mexico")) | .[0]) as $gmx

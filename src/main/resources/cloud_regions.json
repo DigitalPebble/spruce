@@ -279,9 +279,9 @@
         "zones": "3"
       },
       "eu-west-2": {
-        "latitude": "51.506325",
-        "longitude": "-0.127144",
-        "metro_area": "London",
+        "latitude": "51.513000",
+        "longitude": "-0.420400",
+        "metro_area": "Hayes",
         "country": "United Kingdom",
         "name": "Europe West (London)",
         "in_service": true,

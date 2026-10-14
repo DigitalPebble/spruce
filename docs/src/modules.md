@@ -420,8 +420,11 @@ losses, which [OperationalEmissions](#operationalemissions) adds. The regional m
 NESO's forecasts, the API publishes no actual values per region.
 
 Each cloud region is mapped to an API region from its coordinates in
-[`cloud_regions.json`](#cloud-region-metadata): London (`eu-west-2`, `uksouth`,
-`europe-west2`) falls in the *London* region, Cardiff (`ukwest`) in *South Wales*. The
+[`cloud_regions.json`](#cloud-region-metadata). The providers do not publish the addresses of
+their data centres: `uksouth` and `europe-west2` are only known to be in London and fall in the
+*London* region; `eu-west-2` is placed in Hayes, west of London, where most of the sites listed
+for AWS by third parties are, and falls in the *South England* region; `ukwest` (Cardiff) falls
+in *South Wales*. The
 figures are the average of the half-hourly values of each calendar month (UTC), from January
 2022 on. A line item gets the figure of the month it was incurred in; months after the last
 one in the file get the same calendar month of the latest year available, and months before
