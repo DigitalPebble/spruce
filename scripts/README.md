@@ -130,27 +130,37 @@ Environment variables:
 
 ### `fetch_uk_carbon_intensity.py`
 
-Builds monthly carbon intensity figures for the cloud regions located in Great Britain from
-the regional data of the [Carbon Intensity API](https://carbonintensity.org.uk/) (National
-Energy System Operator).
+Builds monthly lifecycle carbon intensity figures for the cloud regions located in Great
+Britain from the regional fuel mix of the [Carbon Intensity API](https://carbonintensity.org.uk/)
+(National Energy System Operator) and [Ember](https://ember-energy.org)'s lifecycle factors.
 
 For every keyed region of `cloud_regions.json` whose country is `United Kingdom`:
 
 - reverse-geocode the region's `latitude`/`longitude` to the nearest postcode with
   [postcodes.io](https://postcodes.io/) and keep its outward code (`SW1A` for London, `CF10`
-  for Cardiff); the API resolves it to one of its regions (London, South Wales);
-- retrieve the half-hourly intensities for that outward code from January 2022 to the end of
-  the last complete month with the
-  [carbonintensity-api](https://github.com/jnioche/carbonintensity-api) CLI, which splits the
-  period into the windows the API accepts; regions sharing an outward code are fetched once;
-- average them per calendar month (UTC). A month with less than 90% of its half-hours is
-  skipped with a warning.
+  for Cardiff), resolved to an API region (London, South Wales);
+- retrieve the half-hourly fuel mix for that outward code from January 2022 to the end of the
+  last complete month with the
+  [carbonintensity-api](https://github.com/jnioche/carbonintensity-api) CLI (`--mix` option),
+  which splits the period into the windows the API accepts; regions sharing an outward code
+  are fetched once;
+- value each half-hour's mix with Ember's lifecycle factors: per fuel, Ember's UK power sector
+  emissions divided by generation for the year, taken from the same
+  `yearly_full_release_long_format.csv` as `fetch_ember_co2_intensity.sh`; for imports,
+  Ember's intensity of the countries whose interconnectors land in the API region, weighted by
+  link capacity (table `INTERCONNECTORS` in the script, with `IMPORT_NEIGHBOURS` for regions
+  without a landing point such as London). The script stops if a region has neither;
+- average the result per calendar month (UTC). A month with less than 90% of its half-hours
+  is skipped with a warning.
+
+Years Ember has not published yet get the latest year available.
 
 Output: `src/main/resources/carbonintensity-uk/monthly_co2_intensity.csv`, columns
 `provider,region,month,gCO2_per_kWh` (month as `yyyy-MM`), with three `#`-prefixed header lines.
 
-Requires the CLI, installed with `cargo install carbonintensity-api`, on the `PATH`, or its
-location in the `CARBONINTENSITY_API` environment variable. Python standard library only.
+Requires the CLI, installed with `cargo install carbonintensity-api` (a version with `--mix`),
+on the `PATH`, or its location in the `CARBONINTENSITY_API` environment variable. Python
+standard library only.
 
 Usage: `./fetch_uk_carbon_intensity.py [cloud_regions.json] [output.csv]`
 
@@ -296,7 +306,7 @@ is what you want if this ever runs in CI.
   under Creative Commons — see
   [ember-energy.org/creative-commons/](https://ember-energy.org/creative-commons/)
   for the specific licence and attribution requirements.
-- UK regional carbon intensity: [Carbon Intensity API](https://carbonintensity.org.uk/),
+- UK regional fuel mix: [Carbon Intensity API](https://carbonintensity.org.uk/),
   National Energy System Operator, Creative Commons Attribution 4.0 International.
 - Water Consumption Factors: [WRI](https://www.wri.org/research/guidance-calculating-water-use-embedded-purchased-electricity),
   Creative Commons Attribution 4.0 International.
