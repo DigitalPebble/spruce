@@ -33,7 +33,7 @@ distribution losses, like the Ember figures.
 Output columns: provider,region,month,gCO2_per_kWh (month as yyyy-MM)
 
 Usage:
-  ./fetch_uk_carbon_intensity.py [cloud_regions.json] [output.csv]
+  ./fetch_neso_carbon_intensity.py [cloud_regions.json] [output.csv]
 
 Requires the carbonintensity-api executable with the --mix option on the PATH
 (cargo install carbonintensity-api), or its location in the CARBONINTENSITY_API environment
@@ -67,7 +67,7 @@ ELEXON_URL = ("https://data.elexon.co.uk/bmrs/api/v1/datasets/FUELHH?settlementD
               "&settlementDateTo={end}{fuel_types}&format=json")
 # Days per request accepted by the Elexon API
 ELEXON_MAX_DAYS = 7
-USER_AGENT = "spruce-uk-carbon-intensity-script/2.0"
+USER_AGENT = "spruce-neso-carbon-intensity-script/2.0"
 # A month is skipped when fewer of its half-hours than this are returned
 MIN_COVERAGE = 0.9
 

@@ -128,7 +128,7 @@ Environment variables:
 
 ## UK monthly carbon intensity
 
-### `fetch_uk_carbon_intensity.py`
+### `fetch_neso_carbon_intensity.py`
 
 Builds monthly lifecycle carbon intensity figures for the cloud regions located in Great
 Britain from the regional fuel mix of the [Carbon Intensity API](https://carbonintensity.org.uk/)
@@ -166,7 +166,7 @@ Requires the CLI, installed with `cargo install carbonintensity-api` (a version 
 on the `PATH`, or its location in the `CARBONINTENSITY_API` environment variable. Python
 standard library only.
 
-Usage: `./fetch_uk_carbon_intensity.py [cloud_regions.json] [output.csv]`
+Usage: `./fetch_neso_carbon_intensity.py [cloud_regions.json] [output.csv]`
 
 ## Cloud region water data
 
