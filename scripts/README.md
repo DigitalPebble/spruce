@@ -70,7 +70,8 @@ Edits `cloud_regions.json` in place to correct known upstream errors:
 Remaining `_unresolved` entries are left alone — extend the script when new
 region codes become available.
 
-Usage: `./fix_cloud_regions.sh [cloud_regions.json]` (no default — pass the path explicitly).
+Usage: `./fix_cloud_regions.sh [cloud_regions.json]` (default `src/main/resources/cloud_regions.json`).
+Run it on fresh `fetch_cloud_regions.sh` output: a second run on a fixed file breaks it.
 
 ### `fetch_ember_co2_intensity.sh`
 
