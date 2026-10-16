@@ -70,6 +70,12 @@ billing data describes their energy use; counting them only depresses the
 coverage percentage. Inputs without the column are unaffected, so marketplace
 rows in a FOCUS export are still included.
 
+Both tools state the version of SPRUCE which enriched the data, read from the
+`spruce_version` column, e.g. "Enriched with SPRUCE v1.4" (see
+`provenance.py`). If the input mixes outputs from several versions, all of
+them are listed with a warning that figures may not be comparable across
+billing periods. Outputs written before the column existed show no version.
+
 ## Interactive Dashboard
 
 Launch a Streamlit-based interactive dashboard:

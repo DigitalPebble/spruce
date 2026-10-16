@@ -23,6 +23,7 @@ except ImportError:
 
 import equivalences
 import filter
+import provenance
 
 
 # Columns the queries below rely on. Any of them missing from the input is
@@ -486,6 +487,7 @@ def main():
     # Run queries
     # -----------------------------------------------------------------------
     row_count = q_row_count(con)
+    versions = provenance.spruce_versions(con)
     billing_rows = q_billing_summary(con)
     emitter_rows = q_top_emitters(con)
     instance_rows = q_top_instance_types(con)
@@ -539,8 +541,13 @@ def main():
     parts.append(
         f"# Cloud Environmental Impact Report\n"
         f"_{today} | Rows: {row_count:,}_\n\n"
-        f"Enriched with [SPRUCE](https://opensourcegreenops.cloud/)\n"
+        f"Enriched with [SPRUCE](https://opensourcegreenops.cloud/)"
+        f"{' ' + provenance.version_label(versions) if versions else ''}\n"
     )
+
+    mixed = provenance.mixed_versions_note(versions)
+    if mixed:
+        parts.append(f"\n_{mixed}_\n")
 
     # State the coverage on AWS inputs, where the report silently drops the
     # marketplace rows the CUR carries alongside AWS's own services.

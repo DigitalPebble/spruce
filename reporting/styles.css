@@ -162,6 +162,10 @@ section[data-testid="stSidebar"] p {
   line-height: 1.25;
 }
 
+.spruce-header p.spruce-version {
+  font-size: 0.8rem;
+}
+
 .stTabs [data-baseweb="tab-list"] {
   gap: 2rem;
   border-bottom: 1px solid var(--spruce-border);

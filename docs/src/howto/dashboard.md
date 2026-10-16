@@ -84,6 +84,11 @@ only lower the coverage figure. A note under the overview cards gives the
 number of line items and the cost excluded. Inputs without a
 `bill_billing_entity` column, such as FOCUS exports, are shown in full.
 
+The header shows the version of SPRUCE which enriched the data, taken from the
+`spruce_version` column of the output. When the input was enriched by more
+than one version, they are all listed and a warning notes that figures may not
+be directly comparable across billing periods.
+
 The "In everyday terms" block under the overview cards converts the emissions,
 energy, and water totals into human-readable equivalences. The sidebar
 "Equivalence style" selector switches the comparison set (Everyday, Tech, or
