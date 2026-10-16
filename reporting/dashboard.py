@@ -32,6 +32,7 @@ except ImportError as exc:
 
 import equivalences
 import filter
+import provenance
 
 DEFAULT_TOP_N = 10
 MAX_TOP_N = 50
@@ -694,11 +695,22 @@ def logo_data_uri() -> str:
     return f"data:image/png;base64,{encoded}"
 
 
-def render_header() -> None:
+@st.cache_data(show_spinner=False, ttl=QUERY_CACHE_TTL_SECONDS)
+def get_spruce_versions(input_path: str) -> list[str]:
+    return provenance.spruce_versions(load_connection(input_path))
+
+
+def render_header(slot, versions: list[str] = ()) -> None:
     logo_src = logo_data_uri()
     logo_html = (
         f'<img class="spruce-logo" src="{logo_src}" alt="SPRUCE" />'
         if logo_src
+        else ""
+    )
+    label = provenance.version_label(list(versions))
+    version_html = (
+        f'<p class="spruce-version">Enriched with SPRUCE {html.escape(label)}</p>'
+        if label
         else ""
     )
     render_html(
@@ -707,16 +719,18 @@ def render_header() -> None:
 <div>
 <h1>SPRUCE dashboard</h1>
 <p>Scalable Platform for Reporting Usage and Cloud Emissions</p>
+{version_html}
 </div>
-</div>"""
+</div>""",
+        slot,
     )
 
 
-def render_html(markup: str) -> None:
-    if hasattr(st, "html"):
-        st.html(markup)
+def render_html(markup: str, target=st) -> None:
+    if hasattr(target, "html"):
+        target.html(markup)
         return
-    st.markdown(markup, unsafe_allow_html=True)
+    target.markdown(markup, unsafe_allow_html=True)
 
 
 def metric_value(value: object, suffix: str = "", default: str = "n/a") -> str:
@@ -1363,7 +1377,9 @@ def main() -> None:
     args = parse_args()
     configure_branding()
     load_css()
-    render_header()
+    # redrawn with the SPRUCE version once the data is loaded
+    header_slot = st.empty()
+    render_header(header_slot)
 
     input_path, top_n = render_input_sidebar(args)
     if not input_path:
@@ -1376,9 +1392,15 @@ def main() -> None:
         periods, regions = get_filter_options(input_path)
         tag_keys = get_tag_keys(input_path)
         excluded = marketplace_exclusion(input_path)
+        versions = get_spruce_versions(input_path)
     except (duckdb.Error, ValueError, OSError) as exc:
         st.error(f"Failed to load enriched Parquet data: {exc}")
         st.stop()
+
+    render_header(header_slot, versions)
+    mixed = provenance.mixed_versions_note(versions)
+    if mixed:
+        st.warning(mixed)
 
     selected_periods, selected_regions, tag_key = render_filters_sidebar(
         periods, regions, tag_keys
