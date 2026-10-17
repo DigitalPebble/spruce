@@ -30,7 +30,8 @@ import java.util.Set;
  * for every model the API exposes (regardless of whether SPRUCE has a CUR mapping for it
  * yet — the mapping file is curated separately by the operator).
  * <p>
- * Usage: {@code mvn exec:java -Dexec.mainClass=com.digitalpebble.spruce.modules.ecologits.EcoLogitsCoefficientsGenerator}
+ * Usage: {@code mvn compile exec:java -Dexec.mainClass=com.digitalpebble.spruce.modules.ecologits.EcoLogitsCoefficientsGenerator -Dexec.classpathScope=test}
+ * (the test scope puts the {@code provided} Spark dependencies, which bring Jackson, on the classpath)
  * <p>
  * Optional system properties:
  * <ul>
@@ -44,7 +45,6 @@ public class EcoLogitsCoefficientsGenerator {
     private static final String DEFAULT_OUTPUT = "src/main/resources/ecologits/coefficients.csv";
     private static final String DEFAULT_MAPPING = "src/main/resources/ecologits/mapping.csv";
     private static final int OUTPUT_TOKENS = 1000;
-    private static final double FALLBACK_LATENCY = 0.0001;
     private static final MediaType JSON = MediaType.parse("application/json");
 
     private final String baseUrl;
@@ -84,18 +84,14 @@ public class EcoLogitsCoefficientsGenerator {
 
         List<CoefficientRow> rows = new ArrayList<>();
         for (String provider : providers) {
-            List<ModelEntry> models = listModels(provider);
+            List<String> models = listModels(provider);
             System.out.printf("Provider %s: %d models%n", provider, models.size());
-            for (ModelEntry entry : models) {
-                if (entry.skip) {
-                    System.out.printf("  skip %s/%s (warnings: %s)%n", provider, entry.name, entry.warnings);
-                    continue;
-                }
+            for (String model : models) {
                 try {
-                    CoefficientRow row = estimate(provider, entry);
+                    CoefficientRow row = estimate(provider, model);
                     if (row != null) rows.add(row);
                 } catch (IOException e) {
-                    System.err.printf("  estimate failed for %s/%s: %s%n", provider, entry.name, e.getMessage());
+                    System.err.printf("  estimate failed for %s/%s: %s%n", provider, model, e.getMessage());
                 }
             }
         }
@@ -111,48 +107,23 @@ public class EcoLogitsCoefficientsGenerator {
         return out;
     }
 
-    private List<ModelEntry> listModels(String provider) throws IOException {
+    private List<String> listModels(String provider) throws IOException {
         JsonNode node = getJson(baseUrl + "/v1beta/models/" + provider).path("models");
-        List<ModelEntry> out = new ArrayList<>();
-        for (JsonNode m : node) {
-            ModelEntry entry = new ModelEntry();
-            entry.name = m.path("name").asText();
-
-            JsonNode deployment = m.path("deployment");
-            if (deployment.isObject()) {
-                if (deployment.hasNonNull("tps")) entry.tps = deployment.get("tps").asDouble();
-                if (deployment.hasNonNull("ttft")) entry.ttft = deployment.get("ttft").asDouble();
-            }
-
-            JsonNode warnings = m.path("warnings");
-            if (warnings.isArray()) {
-                for (JsonNode w : warnings) {
-                    entry.warnings.add(w.path("code").asText());
-                }
-            }
-            // Warnings like "model-arch-not-released" just mean lower precision; don't skip.
-            out.add(entry);
-        }
+        List<String> out = new ArrayList<>();
+        // Warnings like "model-arch-not-released" just mean lower precision; don't skip.
+        for (JsonNode m : node) out.add(m.path("name").asText());
         return out;
     }
 
-    private CoefficientRow estimate(String provider, ModelEntry entry) throws IOException {
-        // request_latency = ttft + output_token_count / tps  → matches the API's natural
-        // generation time so it does not stretch GPU runtime past the model's true speed.
-        // Falls back to a tiny value (clamped by the API to its internal default) if either
-        // tps or ttft is missing.
-        double latency;
-        if (entry.tps != null && entry.tps > 0 && entry.ttft != null) {
-            latency = entry.ttft + (double) OUTPUT_TOKENS / entry.tps;
-        } else {
-            latency = FALLBACK_LATENCY;
-            System.err.printf("  WARN %s/%s missing tps/ttft - falling back to latency=%s%n",
-                    provider, entry.name, latency);
-        }
-
+    private CoefficientRow estimate(String provider, String model) throws IOException {
+        // request_latency is deliberately omitted. The API then derives the generation time
+        // from the model's own deployment profile (or its internal default when the model has
+        // none), and caps any supplied latency at that value anyway. A supplied latency is
+        // taken literally when shorter, so a placeholder value would shrink the GPU time and
+        // with it the embodied impacts by several orders of magnitude.
         String body = String.format(
-                "{\"provider\":\"%s\",\"model_name\":\"%s\",\"output_token_count\":%d,\"request_latency\":%s}",
-                provider, escapeJson(entry.name), OUTPUT_TOKENS, latency);
+                "{\"provider\":\"%s\",\"model_name\":\"%s\",\"output_token_count\":%d}",
+                provider, escapeJson(model), OUTPUT_TOKENS);
 
         Request req = new Request.Builder()
                 .url(baseUrl + "/v1beta/estimations")
@@ -161,7 +132,7 @@ public class EcoLogitsCoefficientsGenerator {
 
         try (Response resp = client.newCall(req).execute()) {
             if (!resp.isSuccessful()) {
-                System.err.printf("  HTTP %d for %s/%s%n", resp.code(), provider, entry.name);
+                System.err.printf("  HTTP %d for %s/%s%n", resp.code(), provider, model);
                 return null;
             }
             JsonNode root = mapper.readTree(resp.body().byteStream());
@@ -173,7 +144,7 @@ public class EcoLogitsCoefficientsGenerator {
 
             CoefficientRow row = new CoefficientRow();
             row.provider = provider;
-            row.modelName = entry.name;
+            row.modelName = model;
             // The API returns totals for OUTPUT_TOKENS (=1000), so the per-1k value
             // is the response value itself.
             row.energyKwhPer1k = energy;
@@ -260,14 +231,6 @@ public class EcoLogitsCoefficientsGenerator {
     private static String formatScientific(double v) {
         if (v == 0.0) return "0";
         return String.format("%.6e", v);
-    }
-
-    public static class ModelEntry {
-        String name;
-        Double tps;
-        Double ttft;
-        boolean skip;
-        final List<String> warnings = new ArrayList<>();
     }
 
     public static class CoefficientRow {

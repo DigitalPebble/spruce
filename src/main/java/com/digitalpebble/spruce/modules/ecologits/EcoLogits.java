@@ -20,8 +20,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * Two CSV resources back this class:
  * <ul>
  *   <li>{@code ecologits/mapping.csv} — maps a provider-neutral model
- *       label to a canonical {@code (provider, model_name)} pair. The generator
- *       appends any missing models automatically.</li>
+ *       label to a canonical {@code (provider, model_name)} pair. Curated by hand;
+ *       the generator lists the models it has coefficients for but no mapping.</li>
  *   <li>{@code ecologits/coefficients.csv} — per-{@code (provider, model_name)}
  *       per-1k-output-token coefficients (energy, embodied GWP, embodied ADPe).
  *       Regenerated from the API by

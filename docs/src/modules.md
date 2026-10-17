@@ -314,6 +314,18 @@ initially ships with Azure OpenAI mappings.
     scenarios and overestimate it for high-throughput batch inference (e.g. Bedrock Batch
     mode). Making `B` dynamic requires provider telemetry not available in billing data.
 
+!!! note "Regenerating the coefficients"
+    `coefficients.csv` is generated from the [EcoLogits API](https://api.ecologits.ai/docs) by
+    `EcoLogitsCoefficientsGenerator`, which requests an estimate for 1,000 output tokens for
+    every model the API exposes and keeps the upper bound of each returned interval:
+
+    ```bash
+    mvn compile exec:java -Dexec.mainClass=com.digitalpebble.spruce.modules.ecologits.EcoLogitsCoefficientsGenerator -Dexec.classpathScope=test
+    ```
+
+    `mapping.csv` is curated by hand. The generator prints the models that have coefficients
+    but no mapping entry.
+
 ## Stage 3 — Efficiency and intensity factors
 
 The modules in this stage do not estimate energy themselves; they attach the per-region
