@@ -21,8 +21,6 @@ import java.util.Map;
 public class BoaviztAPIClient {
 
     private static final String URLPattern = "%s/v1/cloud/instance?provider=%s&instance_type=%s&verbose=false&duration=1&criteria=gwp&criteria=adp&criteria=fe";
-    // Conversion factor from megajoules (MJ) to kilowatt-hours (kWh)
-    private static final double MJtoKWh = 0.277778;
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private static final OkHttpClient client = new OkHttpClient();
@@ -68,8 +66,9 @@ public class BoaviztAPIClient {
             });
             result = (Map<String, Object>) result.get("impacts");
 
-            Double fe_use_value_mj = extractValue(result, "fe", true);
-            final double final_energy_kwh = fe_use_value_mj * MJtoKWh;
+            // BoaviztAPI labels the "fe" (final energy) impact as MJ, but its own conversion
+            // factor is 1 by definition against kWh, so the value is already in kWh.
+            final double final_energy_kwh = extractValue(result, "fe", true);
 
             Double embedded_value_kgCO2eq = extractValue(result, "gwp", false);
             Double embedded_adp_value_kgCO2eq = extractValue(result, "adp", false);

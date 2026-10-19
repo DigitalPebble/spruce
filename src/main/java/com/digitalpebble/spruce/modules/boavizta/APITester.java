@@ -23,10 +23,11 @@ public class APITester {
             try (java.io.BufferedWriter writer = java.nio.file.Files.newBufferedWriter(java.nio.file.Paths.get(args[2]))) {
                 writer.write("# instance_type, electricity_consumption_kwh, embodied_emissions_gco2eq, embodied_adp_gsbeq");
                 writer.newLine();
-                for (String instanceType : instanceTypes) {
-                    if (instanceType.startsWith("#")) continue;
+                for (String line : instanceTypes) {
+                    final String instanceType = line.trim();
+                    if (instanceType.isEmpty() || instanceType.startsWith("#")) continue;
                     try {
-                        Impacts usageAndEmbodiedEnergy = client.getImpacts(provider, instanceType.trim());
+                        Impacts usageAndEmbodiedEnergy = client.getImpacts(provider, instanceType);
                         writer.write(instanceType + ", " + usageAndEmbodiedEnergy.getFinalEnergyKWh() + ", " + usageAndEmbodiedEnergy.getEmbeddedEmissionsGramsCO2eq() + ", " + usageAndEmbodiedEnergy.getAbioticDepletionPotentialGramsSbeq());
                         writer.newLine();
                     } catch (Exception e) {
