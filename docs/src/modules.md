@@ -215,6 +215,12 @@ used for computation (e.g. EC2, OpenSearch, RDS, Amazon MQ, ElastiCache on AWS; 
 Azure), as well as the related embodied emissions and abiotic resource depletion, using the
 [BoaviztAPI](https://doc.api.boavizta.org/).
 
+**Units**: the energy figure is the API's `fe` (final energy) use value. The API labels that
+impact as MJ, but its own `fe_factor` is 1 by definition against kWh, so the value is read as kWh
+and no unit conversion is applied. SPRUCE releases before this was corrected scaled it by
+0.277778, which understated the operational energy and emissions of compute instances and Azure
+virtual machines by a factor of 3.6.
+
 In a CUR, the instance type is read from `product_instance_type`; a FOCUS report does not carry
 it, so it is parsed from the `SkuMeter` column instead (e.g. `EUW2-BoxUsage:t3.xlarge`).
 

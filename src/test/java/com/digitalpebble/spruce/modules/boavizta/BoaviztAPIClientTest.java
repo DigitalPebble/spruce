@@ -166,6 +166,22 @@ public class BoaviztAPIClientTest {
         }
 
         @Test
+        void finalEnergyIsTakenAsKWhAndEmbeddedImpactsConvertedToGrams() throws IOException {
+            mockWebServer.enqueue(new MockResponse()
+                    .setBody(createMockResponse("t3.micro"))
+                    .setResponseCode(200)
+                    .addHeader("Content-Type", "application/json"));
+
+            Impacts result = client.getImpacts(Provider.AWS, "t3.micro");
+
+            // The "fe" use value is labelled MJ by BoaviztAPI but is numerically kWh, so it is
+            // passed through unscaled rather than multiplied by an MJ-to-kWh factor.
+            assertEquals(15.5, result.getFinalEnergyKWh(), 1e-12);
+            assertEquals(8.6, result.getEmbeddedEmissionsGramsCO2eq(), 1e-12);
+            assertEquals(4.7e-5, result.getAbioticDepletionPotentialGramsSbeq(), 1e-15);
+        }
+
+        @Test
         void testgetEnergyAndEmbodiedEmissionsEstimatesWithInvalidHost() {
             BoaviztAPIClient invalidClient = new BoaviztAPIClient("http://invalid-host-that-does-not-exist:9999");
 
