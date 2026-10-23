@@ -2,6 +2,7 @@
 
 package com.digitalpebble.spruce.modules.watttime;
 
+import com.digitalpebble.spruce.AzureColumn;
 import com.digitalpebble.spruce.CURColumn;
 import com.digitalpebble.spruce.Column;
 import com.digitalpebble.spruce.EnrichmentModule;
@@ -18,6 +19,7 @@ import org.apache.spark.sql.Row;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.YearMonth;
@@ -50,13 +52,13 @@ public class HistoricalCarbonIntensity implements EnrichmentModule {
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final OkHttpClient CLIENT = new OkHttpClient();
 
-    // shared by the instances of the JVM so that each partition does not query the same data again
+    // shared by all instances of this module in the JVM, so partitions reuse what was already fetched
     // WattTime region keyed by "provider:region" e.g. "aws:us-west-1", empty outside the coverage of WattTime
     private static final Map<String, Optional<String>> WATTTIME_REGIONS = new ConcurrentHashMap<>();
-    // intensities in gCO2/kWh by point time, keyed by WattTime region and month
+    // intensities in gCO2e/kWh by point time, keyed by WattTime region and month
     private static final Map<String, NavigableMap<Instant, Double>> INTENSITIES = new ConcurrentHashMap<>();
 
-    private String url = DEFAULT_URL;
+    String url = DEFAULT_URL;
     private String username;
     private String password;
     private String token;
@@ -73,10 +75,6 @@ public class HistoricalCarbonIntensity implements EnrichmentModule {
 
     @Override
     public void init(Map<String, Object> params) {
-        String u = (String) params.get("url");
-        if (u != null) {
-            url = u;
-        }
         username = getenv(USERNAME_VARIABLE);
         password = getenv(PASSWORD_VARIABLE);
         if (username == null || password == null) {
@@ -121,12 +119,16 @@ public class HistoricalCarbonIntensity implements EnrichmentModule {
         }
         Instant start = period.start();
         Instant end = period.end();
+        // the figures are fetched month by month, a row spanning two months keeps its previous value
+        YearMonth month = YearMonth.from(start.atZone(ZoneOffset.UTC));
+        if (end.isAfter(startOf(month.plusMonths(1)))) {
+            return;
+        }
 
         Optional<String> wattTimeRegion = WATTTIME_REGIONS.computeIfAbsent(provider.csvKey + ":" + region, k -> wattTimeRegion(region));
         if (wattTimeRegion.isEmpty()) {
             return;
         }
-        YearMonth month = YearMonth.from(start.atZone(ZoneOffset.UTC));
         NavigableMap<Instant, Double> intensities = INTENSITIES.computeIfAbsent(wattTimeRegion.get() + ":" + month,
                 k -> fetchIntensities(wattTimeRegion.get(), month));
 
@@ -136,33 +138,39 @@ public class HistoricalCarbonIntensity implements EnrichmentModule {
         }
     }
 
+    private static Instant startOf(YearMonth month) {
+        return month.atDay(1).atStartOfDay(ZoneOffset.UTC).toInstant();
+    }
+
     /** The period [start, end) a line item was incurred in. */
     record UsagePeriod(Instant start, Instant end) {
     }
 
     /**
      * Returns the period the line item was incurred in, read from the FOCUS columns, else from the
-     * CUR ones, or null if the row has no usable date. The FOCUS columns come first: they exist in
-     * native CUR reports too, but are still null when this module runs.
+     * CUR ones, else from the Azure date, which covers the whole day in UTC, or null if the row has
+     * no usable date or ends before it starts. Native CUR reports have the FOCUS columns too, added
+     * empty by SparkJob.
      */
     static UsagePeriod usagePeriod(Row row) {
-        String start = FOCUSColumn.CHARGE_PERIOD_START.getString(row, true);
-        String end = FOCUSColumn.CHARGE_PERIOD_END.getString(row, true);
+        Instant start = FOCUSColumn.CHARGE_PERIOD_START.getInstant(row);
+        Instant end = FOCUSColumn.CHARGE_PERIOD_END.getInstant(row);
         if (start == null || end == null) {
-            start = CURColumn.LINE_ITEM_USAGE_START_DATE.getString(row, true);
-            end = CURColumn.LINE_ITEM_USAGE_END_DATE.getString(row, true);
+            start = CURColumn.LINE_ITEM_USAGE_START_DATE.getInstant(row);
+            end = CURColumn.LINE_ITEM_USAGE_END_DATE.getInstant(row);
         }
         if (start == null || end == null) {
+            // Azure reports carry the day only
+            start = AzureColumn.DATE.getInstant(row);
+            end = start == null ? null : start.plus(Duration.ofDays(1));
+        }
+        if (start == null || end == null || !end.isAfter(start)) {
             return null;
         }
-        return new UsagePeriod(OffsetDateTime.parse(start).toInstant(), OffsetDateTime.parse(end).toInstant());
+        return new UsagePeriod(start, end);
     }
 
-    /**
-     * Returns the average of the intensities over the usage period [start, end), or null if
-     * WattTime has no figure for that period. Each point is valid from its time until the next
-     * point, e.g. for 5 minutes or an hour depending on the WattTime region.
-     */
+    /** Returns the mean of the intensities whose time falls in [start, end), or null if there are none. */
     static Double average(NavigableMap<Instant, Double> intensities, Instant start, Instant end) {
         NavigableMap<Instant, Double> period = intensities.subMap(start, true, end, false);
         if (period.isEmpty()) {
@@ -175,9 +183,15 @@ public class HistoricalCarbonIntensity implements EnrichmentModule {
         return sum / period.size();
     }
 
-    /** Returns the WattTime region serving the location of the given cloud region, if WattTime covers it. */
+    /**
+     * Returns the WattTime region serving the location of the given cloud region, if
+     * cloud_regions.json has its coordinates and WattTime covers them.
+     */
     private Optional<String> wattTimeRegion(String region) {
         JsonNode location = cloudRegions.path(provider.csvKey).path("cloud_regions").path(region);
+        if (!location.hasNonNull("latitude") || !location.hasNonNull("longitude")) {
+            return Optional.empty();
+        }
         HttpUrl request = HttpUrl.get(url + "/v3/region-from-loc").newBuilder()
                 .addQueryParameter("latitude", location.path("latitude").asText())
                 .addQueryParameter("longitude", location.path("longitude").asText())
@@ -198,8 +212,8 @@ public class HistoricalCarbonIntensity implements EnrichmentModule {
         HttpUrl request = HttpUrl.get(url + "/v3/historical").newBuilder()
                 .addQueryParameter("region", wattTimeRegion)
                 .addQueryParameter("signal_type", SIGNAL_TYPE)
-                .addQueryParameter("start", month.atDay(1).atStartOfDay(ZoneOffset.UTC).toInstant().toString())
-                .addQueryParameter("end", month.plusMonths(1).atDay(1).atStartOfDay(ZoneOffset.UTC).toInstant().toString())
+                .addQueryParameter("start", startOf(month).toString())
+                .addQueryParameter("end", startOf(month.plusMonths(1)).toString())
                 .build();
         NavigableMap<Instant, Double> intensities = new TreeMap<>();
         for (JsonNode point : get(request).get("data")) {
@@ -213,7 +227,20 @@ public class HistoricalCarbonIntensity implements EnrichmentModule {
         if (token == null) {
             token = login();
         }
-        return call(new Request.Builder().url(request).header("Authorization", "Bearer " + token).build());
+        try {
+            return call(authorized(request));
+        } catch (WattTimeException e) {
+            // the login token has expired
+            if (e.code != 401) {
+                throw e;
+            }
+            token = login();
+            return call(authorized(request));
+        }
+    }
+
+    private Request authorized(HttpUrl request) {
+        return new Request.Builder().url(request).header("Authorization", "Bearer " + token).build();
     }
 
     private String login() {

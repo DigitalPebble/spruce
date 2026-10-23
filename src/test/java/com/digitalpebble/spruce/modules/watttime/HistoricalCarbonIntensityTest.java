@@ -2,6 +2,7 @@
 
 package com.digitalpebble.spruce.modules.watttime;
 
+import com.digitalpebble.spruce.AzureColumn;
 import com.digitalpebble.spruce.CURColumn;
 import com.digitalpebble.spruce.Column;
 import com.digitalpebble.spruce.FOCUSColumn;
@@ -20,10 +21,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.sql.Date;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.digitalpebble.spruce.SpruceColumn.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -55,7 +61,8 @@ class HistoricalCarbonIntensityTest {
                 return "test";
             }
         };
-        module.init(Map.of("url", "http://localhost:" + server.getPort()), Provider.AWS);
+        module.init(Map.of(), Provider.AWS);
+        module.url = "http://localhost:" + server.getPort();
     }
 
     @AfterEach
@@ -94,6 +101,20 @@ class HistoricalCarbonIntensityTest {
         return "{\"point_time\":\"" + time + "\",\"value\":" + lbsPerMWh + "}";
     }
 
+    /**
+     * Returns a point for each hour of the day, 1000 lbs/MWh in the morning and 3000 in the
+     * afternoon, between points of 9000 the hour before and the hour after the day.
+     */
+    private static String hourlyPoints(LocalDate day) {
+        List<String> points = new ArrayList<>();
+        points.add(point(day.minusDays(1) + "T23:00:00Z", 9000));
+        for (int hour = 0; hour < 24; hour++) {
+            points.add(point(String.format("%sT%02d:00:00Z", day, hour), hour < 12 ? 1000 : 3000));
+        }
+        points.add(point(day.plusDays(1) + "T00:00:00Z", 9000));
+        return String.join(",", points);
+    }
+
     private static Row curRow(String usageStart, String usageEnd) {
         return new GenericRowWithSchema(new Object[]{usageStart, usageEnd}, CUR_SCHEMA);
     }
@@ -119,18 +140,11 @@ class HistoricalCarbonIntensityTest {
 
     @Test
     void averagesThePointsOfTheUsagePeriod() {
-        List<String> points = new ArrayList<>();
-        points.add(point("2025-02-09T23:00:00Z", 9000));
-        for (int hour = 0; hour < 24; hour++) {
-            points.add(point(String.format("2025-02-10T%02d:00:00Z", hour), hour < 12 ? 1000 : 3000));
-        }
-        points.add(point("2025-02-11T00:00:00Z", 9000));
-        serve("REGION_DAILY", String.join(",", points));
+        serve("REGION_DAILY", hourlyPoints(LocalDate.of(2025, 2, 10)));
 
         Map<Column, Object> enriched = enrich(curRow("2025-02-10T00:00:00Z", "2025-02-11T00:00:00Z"), "us-east-1", 300.0);
 
-        // 1000 lbs/MWh in the morning and 3000 in the afternoon, 2000 on average over the day;
-        // the points of the day before and after are left out
+        // 2000 lbs/MWh on average over the day, the points of the day before and after are left out
         assertEquals(907.184, (Double) enriched.get(CARBON_INTENSITY), 1e-9);
     }
 
@@ -144,11 +158,101 @@ class HistoricalCarbonIntensityTest {
     }
 
     @Test
+    void keepsThePreviousIntensityOfRegionsWithoutCoordinates() {
+        serve("REGION_UNKNOWN", point("2025-03-10T10:00:00Z", 1000));
+
+        Map<Column, Object> enriched = enrich(curRow("2025-03-10T10:00:00Z", "2025-03-10T11:00:00Z"), "global", 300.0);
+
+        assertEquals(300.0, (Double) enriched.get(CARBON_INTENSITY));
+    }
+
+    @Test
     void readsTheUsagePeriodOfFocusRows() {
         serve("REGION_FOCUS", point("2025-04-10T10:00:00Z", 1000));
         Row row = new GenericRowWithSchema(new Object[]{"2025-04-10T10:00:00Z", "2025-04-10T11:00:00Z"}, FOCUS_SCHEMA);
 
         Map<Column, Object> enriched = enrich(row, "ap-southeast-2", 300.0);
+
+        assertEquals(453.592, (Double) enriched.get(CARBON_INTENSITY), 1e-9);
+    }
+
+    @Test
+    void averagesTheDayOfAzureRows() {
+        module.init(Map.of(), Provider.AZURE);
+        serve("REGION_AZURE", hourlyPoints(LocalDate.of(2025, 6, 12)));
+        StructType schema = new StructType(new StructField[]{
+                StructField.apply(AzureColumn.DATE.getLabel(), DataTypes.DateType, true, null)});
+        Row row = new GenericRowWithSchema(new Object[]{Date.valueOf("2025-06-12")}, schema);
+
+        Map<Column, Object> enriched = enrich(row, "westeurope", 300.0);
+
+        // the row covers the whole day in UTC: 2000 lbs/MWh on average
+        assertEquals(907.184, (Double) enriched.get(CARBON_INTENSITY), 1e-9);
+    }
+
+    @Test
+    void keepsThePreviousIntensityWhenTheDatesCannotBeRead() {
+        serve("REGION_UNREAD", point("2025-01-15T10:00:00Z", 1000));
+
+        Map<Column, Object> enriched = enrich(curRow("01/15/2025 10:00", "01/15/2025 11:00"), "us-west-2", 300.0);
+
+        assertEquals(300.0, (Double) enriched.get(CARBON_INTENSITY));
+    }
+
+    @Test
+    void keepsThePreviousIntensityWhenTheUsageEndsBeforeItStarts() {
+        serve("REGION_REVERSED", point("2025-03-10T10:00:00Z", 1000));
+
+        Map<Column, Object> enriched = enrich(curRow("2025-03-10T11:00:00Z", "2025-03-10T10:00:00Z"), "eu-west-2", 300.0);
+
+        assertEquals(300.0, (Double) enriched.get(CARBON_INTENSITY));
+    }
+
+    @Test
+    void keepsThePreviousIntensityOfRowsSpanningTwoMonths() {
+        serve("REGION_SPANNING", point("2025-08-31T12:00:00Z", 1000));
+
+        Map<Column, Object> enriched = enrich(curRow("2025-08-31T12:00:00Z", "2025-09-01T12:00:00Z"), "sa-east-1", 300.0);
+
+        assertEquals(300.0, (Double) enriched.get(CARBON_INTENSITY));
+    }
+
+    @Test
+    void logsInAgainWhenTheTokenHasExpired() {
+        AtomicInteger logins = new AtomicInteger();
+        server.setDispatcher(new Dispatcher() {
+            @Override
+            public MockResponse dispatch(RecordedRequest request) {
+                return switch (request.getRequestUrl().encodedPath()) {
+                    case "/login" -> json("{\"token\":\"token" + logins.incrementAndGet() + "\"}");
+                    case "/v3/region-from-loc" -> json("{\"region\":\"REGION_EXPIRED\"}");
+                    // the first token has expired by the time the figures are requested
+                    case "/v3/historical" -> "Bearer token2".equals(request.getHeader("Authorization"))
+                            ? json("{\"data\":[" + point("2025-07-01T10:00:00Z", 1000) + "],\"meta\":{}}")
+                            : new MockResponse().setResponseCode(401);
+                    default -> new MockResponse().setResponseCode(404);
+                };
+            }
+        });
+
+        Map<Column, Object> enriched = enrich(curRow("2025-07-01T10:00:00Z", "2025-07-01T11:00:00Z"), "ca-central-1", 300.0);
+
+        assertEquals(453.592, (Double) enriched.get(CARBON_INTENSITY), 1e-9);
+        assertEquals(2, logins.get());
+    }
+
+    @Test
+    void readsTheUsagePeriodFromTimestamps() {
+        serve("REGION_PARQUET", point("2025-05-20T10:00:00Z", 1000));
+        StructType schema = new StructType(new StructField[]{
+                StructField.apply(CURColumn.LINE_ITEM_USAGE_START_DATE.getLabel(), DataTypes.TimestampType, true, null),
+                StructField.apply(CURColumn.LINE_ITEM_USAGE_END_DATE.getLabel(), DataTypes.TimestampType, true, null)});
+        // reports in Parquet carry the dates as Spark timestamps
+        Row row = new GenericRowWithSchema(new Object[]{
+                Timestamp.from(Instant.parse("2025-05-20T10:00:00Z")),
+                Timestamp.from(Instant.parse("2025-05-20T11:00:00Z"))}, schema);
+
+        Map<Column, Object> enriched = enrich(row, "eu-central-1", 300.0);
 
         assertEquals(453.592, (Double) enriched.get(CARBON_INTENSITY), 1e-9);
     }

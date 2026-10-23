@@ -5,6 +5,7 @@ package com.digitalpebble.spruce;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.types.DataType;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
@@ -78,6 +79,37 @@ public abstract class RowColumn extends Column {
             }
         }
         return null;
+    }
+
+    /**
+     * Returns the instant held by this column in the given row, or null when the column is absent
+     * from the schema, holds null, or cannot be read as an instant. Reads Spark timestamps, Spark
+     * dates and ISO-8601 instants such as 2025-01-15T10:00:00Z. A date gives the start of its day
+     * in UTC.
+     */
+    public Instant getInstant(Row r) {
+        int index = resolveIndex(r, true);
+        if (index == -1) {
+            return null;
+        }
+        Object value = r.get(index);
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof java.sql.Timestamp timestamp) {
+            return timestamp.toInstant();
+        }
+        if (value instanceof java.sql.Date date) {
+            return date.toLocalDate().atStartOfDay(ZoneOffset.UTC).toInstant();
+        }
+        if (value instanceof LocalDate date) {
+            return date.atStartOfDay(ZoneOffset.UTC).toInstant();
+        }
+        try {
+            return Instant.parse(value.toString().trim());
+        } catch (DateTimeParseException ignored) {
+            return null;
+        }
     }
 
     /** Matches a four-digit year not embedded in a longer number, e.g. in 2025-01-01T00:00:00Z,
