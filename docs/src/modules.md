@@ -474,8 +474,9 @@ manufacturing emissions that the Ember figures of
 the electricity consumed in the grid region, imports included. WattTime publishes AOER in pounds
 of CO2 equivalent per MWh, which the module converts to grams per kWh.
 
-AOER requires a paid WattTime [data plan](https://watttime.org/docs-dev/data-plans/). A free
-account gives access to other data types, for the `CAISO_NORTH` region only. The module reads
+The module needs a WattTime account with access to AOER, see WattTime's
+[data plans](https://watttime.org/docs-dev/data-plans/). A newly registered account only has
+access to other data types, for the `CAISO_NORTH` region. The module reads
 the credentials of the account from the environment variables `WATTTIME_USERNAME` and
 `WATTTIME_PASSWORD`. The modules are initialised on the executors. On a cluster, set the
 variables there, for instance with `--conf spark.executorEnv.WATTTIME_USERNAME=...` and
@@ -486,7 +487,7 @@ The executors need access to `https://api.watttime.org`. Each partition logs in 
 calls the API, and again when its token expires. Each executor looks up the WattTime region of
 a cloud region once, from its coordinates in [`cloud_regions.json`](#cloud-region-metadata). It
 requests the figures of a WattTime region one calendar month (UTC) at a time, and only once for
-each month. The responses are kept in memory only.
+each month. The responses are kept in memory only. These requests make the job slower.
 
 The usage period is read from `ChargePeriodStart` and `ChargePeriodEnd` in FOCUS reports, from
 `line_item_usage_start_date` and `line_item_usage_end_date` in AWS CUR reports, and from `Date`
@@ -499,12 +500,14 @@ the usage happened.
 A line item keeps the carbon intensity set by the modules before this one when:
 
 - its cloud region has no coordinates in `cloud_regions.json`, or WattTime does not cover them;
+- the account has no access to the AOER figures of its WattTime region, which the module logs as
+  a warning;
 - WattTime has no figure for its usage period;
 - it has no usable date, or its usage ends before it starts;
 - its usage period spans two calendar months.
 
-The job stops on any other API error, such as wrong credentials or a region outside the data
-plan of the account. It also stops when the API cannot be reached.
+The job stops on any other API error, such as wrong credentials. It also stops when the API
+cannot be reached.
 
 To use the module, add it to a [custom configuration](howto/config_modules.md) in place of
 [AverageCarbonIntensity](#averagecarbonintensity) and

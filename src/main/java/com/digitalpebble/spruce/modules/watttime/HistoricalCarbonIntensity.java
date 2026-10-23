@@ -16,6 +16,8 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.apache.spark.sql.Row;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -48,6 +50,8 @@ public class HistoricalCarbonIntensity implements EnrichmentModule {
 
     // 1 lb = 453.592 g and 1 MWh = 1000 kWh
     private static final double LBS_PER_MWH_TO_G_PER_KWH = 0.453592;
+
+    private static final Logger log = LoggerFactory.getLogger(HistoricalCarbonIntensity.class);
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final OkHttpClient CLIENT = new OkHttpClient();
@@ -192,13 +196,13 @@ public class HistoricalCarbonIntensity implements EnrichmentModule {
         if (!location.hasNonNull("latitude") || !location.hasNonNull("longitude")) {
             return Optional.empty();
         }
-        HttpUrl request = HttpUrl.get(url + "/v3/region-from-loc").newBuilder()
+        HttpUrl endpoint = HttpUrl.get(url + "/v3/region-from-loc").newBuilder()
                 .addQueryParameter("latitude", location.path("latitude").asText())
                 .addQueryParameter("longitude", location.path("longitude").asText())
                 .addQueryParameter("signal_type", SIGNAL_TYPE)
                 .build();
         try {
-            return Optional.of(get(request).get("region").asText());
+            return Optional.of(get(endpoint).get("region").asText());
         } catch (WattTimeException e) {
             if (e.code == 404) {
                 return Optional.empty();
@@ -207,47 +211,66 @@ public class HistoricalCarbonIntensity implements EnrichmentModule {
         }
     }
 
-    /** Returns the intensities published for the given WattTime region over the given month. */
+    /**
+     * Returns the intensities published for the given WattTime region over the given month, none
+     * if the account has no access to them.
+     */
     private NavigableMap<Instant, Double> fetchIntensities(String wattTimeRegion, YearMonth month) {
-        HttpUrl request = HttpUrl.get(url + "/v3/historical").newBuilder()
+        HttpUrl endpoint = HttpUrl.get(url + "/v3/historical").newBuilder()
                 .addQueryParameter("region", wattTimeRegion)
                 .addQueryParameter("signal_type", SIGNAL_TYPE)
                 .addQueryParameter("start", startOf(month).toString())
                 .addQueryParameter("end", startOf(month.plusMonths(1)).toString())
                 .build();
         NavigableMap<Instant, Double> intensities = new TreeMap<>();
-        for (JsonNode point : get(request).get("data")) {
+        JsonNode body;
+        try {
+            body = get(endpoint);
+        } catch (WattTimeException e) {
+            if (e.code != 403) {
+                throw e;
+            }
+            log.warn("The WattTime account has no access to the figures of {} for {}", wattTimeRegion, month);
+            return intensities;
+        }
+        for (JsonNode point : body.get("data")) {
             intensities.put(OffsetDateTime.parse(point.get("point_time").asText()).toInstant(),
                     point.get("value").asDouble() * LBS_PER_MWH_TO_G_PER_KWH);
         }
         return intensities;
     }
 
-    private JsonNode get(HttpUrl request) {
+    private JsonNode get(HttpUrl endpoint) {
         if (token == null) {
             token = login();
         }
         try {
-            return call(authorized(request));
+            return call(authorized(endpoint));
         } catch (WattTimeException e) {
             // the login token has expired
             if (e.code != 401) {
                 throw e;
             }
             token = login();
-            return call(authorized(request));
+            return call(authorized(endpoint));
         }
     }
 
-    private Request authorized(HttpUrl request) {
-        return new Request.Builder().url(request).header("Authorization", "Bearer " + token).build();
+    private Request authorized(HttpUrl endpoint) {
+        return new Request.Builder().url(endpoint).header("Authorization", "Bearer " + token).build();
     }
 
     private String login() {
         Request request = new Request.Builder().url(url + "/login")
                 .header("Authorization", Credentials.basic(username, password))
                 .build();
-        return call(request).get("token").asText();
+        try {
+            return call(request).get("token").asText();
+        } catch (WattTimeException e) {
+            // a distinct exception, so that the callers do not take it for missing figures
+            throw new IllegalStateException("Could not log in to WattTime with the credentials in "
+                    + USERNAME_VARIABLE + " and " + PASSWORD_VARIABLE, e);
+        }
     }
 
     private static JsonNode call(Request request) {

@@ -72,7 +72,8 @@ class HistoricalCarbonIntensityTest {
 
     /**
      * Answers like WattTime would for a cloud region located in the given WattTime region, or
-     * outside the coverage of WattTime if the region is null.
+     * outside the coverage of WattTime if the region is null. Null historical data means that the
+     * account has no access to the figures of the WattTime region.
      */
     private void serve(String wattTimeRegion, String historicalData) {
         server.setDispatcher(new Dispatcher() {
@@ -84,9 +85,11 @@ class HistoricalCarbonIntensityTest {
                             ? json("{\"error\":\"No coverage available for these coordinates and signal_type\"}").setResponseCode(404)
                             : json("{\"region\":\"" + wattTimeRegion
                             + "\",\"region_full_name\":\"Test\",\"signal_type\":\"co2_aoer\"}");
-                    case "/v3/historical" -> "co2_aoer".equals(request.getRequestUrl().queryParameter("signal_type"))
-                            ? json("{\"data\":[" + historicalData + "],\"meta\":{}}")
-                            : new MockResponse().setResponseCode(400);
+                    case "/v3/historical" -> !"co2_aoer".equals(request.getRequestUrl().queryParameter("signal_type"))
+                            ? new MockResponse().setResponseCode(400)
+                            : historicalData == null
+                            ? json("{\"error\":\"INVALID_SCOPE\"}").setResponseCode(403)
+                            : json("{\"data\":[" + historicalData + "],\"meta\":{}}");
                     default -> new MockResponse().setResponseCode(404);
                 };
             }
@@ -158,6 +161,15 @@ class HistoricalCarbonIntensityTest {
     }
 
     @Test
+    void keepsThePreviousIntensityWhenTheAccountHasNoAccessToTheFigures() {
+        serve("REGION_NO_ACCESS", null);
+
+        Map<Column, Object> enriched = enrich(curRow("2025-03-10T10:00:00Z", "2025-03-10T11:00:00Z"), "ap-northeast-1", 300.0);
+
+        assertEquals(300.0, (Double) enriched.get(CARBON_INTENSITY));
+    }
+
+    @Test
     void keepsThePreviousIntensityOfRegionsWithoutCoordinates() {
         serve("REGION_UNKNOWN", point("2025-03-10T10:00:00Z", 1000));
 
@@ -187,6 +199,20 @@ class HistoricalCarbonIntensityTest {
         Map<Column, Object> enriched = enrich(row, "westeurope", 300.0);
 
         // the row covers the whole day in UTC: 2000 lbs/MWh on average
+        assertEquals(907.184, (Double) enriched.get(CARBON_INTENSITY), 1e-9);
+    }
+
+    @Test
+    void readsTheDayOfAzureCsvExports() {
+        module.init(Map.of(), Provider.AZURE);
+        serve("REGION_AZURE_CSV", hourlyPoints(LocalDate.of(2025, 6, 13)));
+        StructType schema = new StructType(new StructField[]{
+                StructField.apply(AzureColumn.DATE.getLabel(), DataTypes.StringType, true, null)});
+        // the CSV exports carry US-formatted dates that Spark leaves as strings
+        Row row = new GenericRowWithSchema(new Object[]{"06/13/2025"}, schema);
+
+        Map<Column, Object> enriched = enrich(row, "northeurope", 300.0);
+
         assertEquals(907.184, (Double) enriched.get(CARBON_INTENSITY), 1e-9);
     }
 
