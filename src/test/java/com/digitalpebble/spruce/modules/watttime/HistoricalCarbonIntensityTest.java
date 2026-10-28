@@ -7,6 +7,7 @@ import com.digitalpebble.spruce.CURColumn;
 import com.digitalpebble.spruce.Column;
 import com.digitalpebble.spruce.FOCUSColumn;
 import com.digitalpebble.spruce.Provider;
+import com.digitalpebble.spruce.ReportFormat;
 import okhttp3.mockwebserver.Dispatcher;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -35,8 +36,8 @@ import static com.digitalpebble.spruce.SpruceColumn.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * Runs the module against a mock of the WattTime API. Each test uses its own cloud region and
- * WattTime region so that it stays isolated from the cache shared across instances.
+ * Runs the module against a mock of the WattTime API. Each test fetching figures reads its own
+ * WattTime region and month, so that it stays isolated from the cache shared across instances.
  */
 class HistoricalCarbonIntensityTest {
 
@@ -49,20 +50,33 @@ class HistoricalCarbonIntensityTest {
             StructField.apply(FOCUSColumn.CHARGE_PERIOD_END.getLabel(), DataTypes.StringType, true, null)});
 
     private MockWebServer server;
-    private HistoricalCarbonIntensity module;
+    private AbstractHistoricalCarbonIntensity module;
 
     @BeforeEach
     void setUp() throws IOException {
         server = new MockWebServer();
         server.start(0);
-        module = new HistoricalCarbonIntensity() {
+        module = init(new com.digitalpebble.spruce.modules.watttime.aws.HistoricalCarbonIntensity() {
             @Override
             String getenv(String name) {
                 return "test";
             }
-        };
-        module.init(Map.of(), Provider.AWS);
+        }, Provider.AWS);
+    }
+
+    private AbstractHistoricalCarbonIntensity azureModule() {
+        return init(new com.digitalpebble.spruce.modules.watttime.azure.HistoricalCarbonIntensity() {
+            @Override
+            String getenv(String name) {
+                return "test";
+            }
+        }, Provider.AZURE);
+    }
+
+    private AbstractHistoricalCarbonIntensity init(AbstractHistoricalCarbonIntensity module, Provider provider) {
+        module.init(Map.of(), provider);
         module.url = "http://localhost:" + server.getPort();
+        return module;
     }
 
     @AfterEach
@@ -71,9 +85,8 @@ class HistoricalCarbonIntensityTest {
     }
 
     /**
-     * Answers like WattTime would for a cloud region located in the given WattTime region, or
-     * outside the coverage of WattTime if the region is null. Null historical data means that the
-     * account has no access to the figures of the WattTime region.
+     * Answers like WattTime would with the given historical data for the given WattTime region.
+     * Null historical data means that the account has no access to the figures of the region.
      */
     private void serve(String wattTimeRegion, String historicalData) {
         server.setDispatcher(new Dispatcher() {
@@ -81,11 +94,8 @@ class HistoricalCarbonIntensityTest {
             public MockResponse dispatch(RecordedRequest request) {
                 return switch (request.getRequestUrl().encodedPath()) {
                     case "/login" -> json("{\"token\":\"token\"}");
-                    case "/v3/region-from-loc" -> wattTimeRegion == null
-                            ? json("{\"error\":\"No coverage available for these coordinates and signal_type\"}").setResponseCode(404)
-                            : json("{\"region\":\"" + wattTimeRegion
-                            + "\",\"region_full_name\":\"Test\",\"signal_type\":\"co2_aoer\"}");
                     case "/v3/historical" -> !"co2_aoer".equals(request.getRequestUrl().queryParameter("signal_type"))
+                            || !wattTimeRegion.equals(request.getRequestUrl().queryParameter("region"))
                             ? new MockResponse().setResponseCode(400)
                             : historicalData == null
                             ? json("{\"error\":\"INVALID_SCOPE\"}").setResponseCode(403)
@@ -133,7 +143,7 @@ class HistoricalCarbonIntensityTest {
 
     @Test
     void setsTheIntensityOfTheHourInGramsPerKWh() {
-        serve("REGION_HOURLY", point("2025-01-15T10:00:00Z", 1000));
+        serve("CAISO", point("2025-01-15T10:00:00Z", 1000));
 
         Map<Column, Object> enriched = enrich(curRow("2025-01-15T10:00:00Z", "2025-01-15T11:00:00Z"), "us-west-1", 300.0);
 
@@ -143,7 +153,7 @@ class HistoricalCarbonIntensityTest {
 
     @Test
     void averagesThePointsOfTheUsagePeriod() {
-        serve("REGION_DAILY", hourlyPoints(LocalDate.of(2025, 2, 10)));
+        serve("PJM", hourlyPoints(LocalDate.of(2025, 2, 10)));
 
         Map<Column, Object> enriched = enrich(curRow("2025-02-10T00:00:00Z", "2025-02-11T00:00:00Z"), "us-east-1", 300.0);
 
@@ -153,34 +163,25 @@ class HistoricalCarbonIntensityTest {
 
     @Test
     void keepsThePreviousIntensityOutsideTheCoverageOfWattTime() {
-        serve(null, "");
-
-        Map<Column, Object> enriched = enrich(curRow("2025-03-10T10:00:00Z", "2025-03-10T11:00:00Z"), "eu-west-1", 300.0);
+        Map<Column, Object> enriched = enrich(curRow("2025-03-10T10:00:00Z", "2025-03-10T11:00:00Z"), "ap-northeast-1", 300.0);
 
         assertEquals(300.0, (Double) enriched.get(CARBON_INTENSITY));
+        assertEquals(0, server.getRequestCount());
     }
 
     @Test
     void keepsThePreviousIntensityWhenTheAccountHasNoAccessToTheFigures() {
-        serve("REGION_NO_ACCESS", null);
+        serve("FR", null);
 
-        Map<Column, Object> enriched = enrich(curRow("2025-03-10T10:00:00Z", "2025-03-10T11:00:00Z"), "ap-northeast-1", 300.0);
-
-        assertEquals(300.0, (Double) enriched.get(CARBON_INTENSITY));
-    }
-
-    @Test
-    void keepsThePreviousIntensityOfRegionsWithoutCoordinates() {
-        serve("REGION_UNKNOWN", point("2025-03-10T10:00:00Z", 1000));
-
-        Map<Column, Object> enriched = enrich(curRow("2025-03-10T10:00:00Z", "2025-03-10T11:00:00Z"), "global", 300.0);
+        Map<Column, Object> enriched = enrich(curRow("2025-03-10T10:00:00Z", "2025-03-10T11:00:00Z"), "eu-west-3", 300.0);
 
         assertEquals(300.0, (Double) enriched.get(CARBON_INTENSITY));
     }
 
     @Test
     void readsTheUsagePeriodOfFocusRows() {
-        serve("REGION_FOCUS", point("2025-04-10T10:00:00Z", 1000));
+        module.bindReportFormat(ReportFormat.FOCUS);
+        serve("NEM_NSW", point("2025-04-10T10:00:00Z", 1000));
         Row row = new GenericRowWithSchema(new Object[]{"2025-04-10T10:00:00Z", "2025-04-10T11:00:00Z"}, FOCUS_SCHEMA);
 
         Map<Column, Object> enriched = enrich(row, "ap-southeast-2", 300.0);
@@ -190,8 +191,8 @@ class HistoricalCarbonIntensityTest {
 
     @Test
     void averagesTheDayOfAzureRows() {
-        module.init(Map.of(), Provider.AZURE);
-        serve("REGION_AZURE", hourlyPoints(LocalDate.of(2025, 6, 12)));
+        module = azureModule();
+        serve("NL", hourlyPoints(LocalDate.of(2025, 6, 12)));
         StructType schema = new StructType(new StructField[]{
                 StructField.apply(AzureColumn.DATE.getLabel(), DataTypes.DateType, true, null)});
         Row row = new GenericRowWithSchema(new Object[]{Date.valueOf("2025-06-12")}, schema);
@@ -204,8 +205,8 @@ class HistoricalCarbonIntensityTest {
 
     @Test
     void readsTheDayOfAzureCsvExports() {
-        module.init(Map.of(), Provider.AZURE);
-        serve("REGION_AZURE_CSV", hourlyPoints(LocalDate.of(2025, 6, 13)));
+        module = azureModule();
+        serve("IE", hourlyPoints(LocalDate.of(2025, 6, 13)));
         StructType schema = new StructType(new StructField[]{
                 StructField.apply(AzureColumn.DATE.getLabel(), DataTypes.StringType, true, null)});
         // the CSV exports carry US-formatted dates that Spark leaves as strings
@@ -218,7 +219,7 @@ class HistoricalCarbonIntensityTest {
 
     @Test
     void keepsThePreviousIntensityWhenTheDatesCannotBeRead() {
-        serve("REGION_UNREAD", point("2025-01-15T10:00:00Z", 1000));
+        serve("BPA", point("2025-01-15T10:00:00Z", 1000));
 
         Map<Column, Object> enriched = enrich(curRow("01/15/2025 10:00", "01/15/2025 11:00"), "us-west-2", 300.0);
 
@@ -227,7 +228,7 @@ class HistoricalCarbonIntensityTest {
 
     @Test
     void keepsThePreviousIntensityWhenTheUsageEndsBeforeItStarts() {
-        serve("REGION_REVERSED", point("2025-03-10T10:00:00Z", 1000));
+        serve("UK", point("2025-03-10T10:00:00Z", 1000));
 
         Map<Column, Object> enriched = enrich(curRow("2025-03-10T11:00:00Z", "2025-03-10T10:00:00Z"), "eu-west-2", 300.0);
 
@@ -236,9 +237,9 @@ class HistoricalCarbonIntensityTest {
 
     @Test
     void keepsThePreviousIntensityOfRowsSpanningTwoMonths() {
-        serve("REGION_SPANNING", point("2025-08-31T12:00:00Z", 1000));
+        serve("SE", point("2025-08-31T12:00:00Z", 1000));
 
-        Map<Column, Object> enriched = enrich(curRow("2025-08-31T12:00:00Z", "2025-09-01T12:00:00Z"), "sa-east-1", 300.0);
+        Map<Column, Object> enriched = enrich(curRow("2025-08-31T12:00:00Z", "2025-09-01T12:00:00Z"), "eu-north-1", 300.0);
 
         assertEquals(300.0, (Double) enriched.get(CARBON_INTENSITY));
     }
@@ -251,7 +252,6 @@ class HistoricalCarbonIntensityTest {
             public MockResponse dispatch(RecordedRequest request) {
                 return switch (request.getRequestUrl().encodedPath()) {
                     case "/login" -> json("{\"token\":\"token" + logins.incrementAndGet() + "\"}");
-                    case "/v3/region-from-loc" -> json("{\"region\":\"REGION_EXPIRED\"}");
                     // the first token has expired by the time the figures are requested
                     case "/v3/historical" -> "Bearer token2".equals(request.getHeader("Authorization"))
                             ? json("{\"data\":[" + point("2025-07-01T10:00:00Z", 1000) + "],\"meta\":{}}")
@@ -269,7 +269,7 @@ class HistoricalCarbonIntensityTest {
 
     @Test
     void readsTheUsagePeriodFromTimestamps() {
-        serve("REGION_PARQUET", point("2025-05-20T10:00:00Z", 1000));
+        serve("DE", point("2025-05-20T10:00:00Z", 1000));
         StructType schema = new StructType(new StructField[]{
                 StructField.apply(CURColumn.LINE_ITEM_USAGE_START_DATE.getLabel(), DataTypes.TimestampType, true, null),
                 StructField.apply(CURColumn.LINE_ITEM_USAGE_END_DATE.getLabel(), DataTypes.TimestampType, true, null)});

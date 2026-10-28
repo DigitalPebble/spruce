@@ -474,32 +474,36 @@ manufacturing emissions that the Ember figures of
 the electricity consumed in the grid region, imports included. WattTime publishes AOER in pounds
 of CO2 equivalent per MWh, which the module converts to grams per kWh.
 
-The module needs a WattTime account with access to AOER, see WattTime's
-[data plans](https://watttime.org/docs-dev/data-plans/). A newly registered account only has
-access to other data types, for the `CAISO_NORTH` region. The module reads
-the credentials of the account from the environment variables `WATTTIME_USERNAME` and
-`WATTTIME_PASSWORD`. The modules are initialised on the executors. On a cluster, set the
-variables there, for instance with `--conf spark.executorEnv.WATTTIME_USERNAME=...` and
+The module needs a WattTime account with access to AOER (see WattTime's
+[data plans](https://watttime.org/docs-dev/data-plans/)). A newly registered account only has
+access to other data types, for the `CAISO_NORTH` region. The module reads the credentials of the
+account from the environment variables `WATTTIME_USERNAME` and `WATTTIME_PASSWORD`. SPRUCE
+initialises its modules on the executors. On a cluster, set the variables there, for instance
+with `--conf spark.executorEnv.WATTTIME_USERNAME=...` and
 `--conf spark.executorEnv.WATTTIME_PASSWORD=...`. In local mode, the environment of the shell
 that runs `spark-submit` is enough.
 
-The executors need access to `https://api.watttime.org`. Each partition logs in when it first
-calls the API, and again when its token expires. Each executor looks up the WattTime region of
-a cloud region once, from its coordinates in [`cloud_regions.json`](#cloud-region-metadata). It
-requests the figures of a WattTime region one calendar month (UTC) at a time, and only once for
-each month. The responses are kept in memory only. These requests make the job slower.
+The WattTime region of each cloud region comes from `watttime/regions.csv`, which
+`scripts/fetch_watttime_regions.sh` generates from the coordinates in
+[`cloud_regions.json`](#cloud-region-metadata).
 
-The usage period is read from `ChargePeriodStart` and `ChargePeriodEnd` in FOCUS reports, from
-`line_item_usage_start_date` and `line_item_usage_end_date` in AWS CUR reports, and from `Date`
-in Azure cost exports, where it covers the whole day in UTC. A line item gets the mean of the
-figures that WattTime publishes from its start, included, to its end, excluded, so a line item
-that starts or ends between two figures only gets the figures published within it. For a daily
-line item, every figure of the day counts the same, as the reports do not say when in the day
-the usage happened.
+The executors need access to `https://api.watttime.org`. Each partition logs in when it first
+calls the API, and again when its token expires. Each executor requests the figures of a
+WattTime region one calendar month (UTC) at a time, and only once for each month. The responses
+are kept in memory only. These requests make the job slower.
+
+The module reads the usage period from `ChargePeriodStart` and `ChargePeriodEnd` in FOCUS
+reports, from `line_item_usage_start_date` and `line_item_usage_end_date` in AWS CUR reports, and
+from `Date` in Azure cost details, where it covers the whole day in UTC. WattTime publishes a
+figure for each hour. A line item gets the mean of the figures that WattTime publishes from its
+start, included, to its end, excluded, so a line item that starts or ends between two figures
+only gets the figures published within it. For a daily line item, every figure of the day counts
+the same, as the reports do not say when in the day the usage happened.
 
 A line item keeps the carbon intensity set by the modules before this one when:
 
-- its cloud region has no coordinates in `cloud_regions.json`, or WattTime does not cover them;
+- its cloud region is not in `watttime/regions.csv`, as it has no coordinates in
+  `cloud_regions.json` or WattTime does not cover them;
 - the account has no access to the AOER figures of its WattTime region, which the module logs as
   a warning;
 - WattTime has no figure for its usage period;
@@ -509,7 +513,8 @@ A line item keeps the carbon intensity set by the modules before this one when:
 The job stops on any other API error, such as wrong credentials. It also stops when the API
 cannot be reached.
 
-To use the module, add it to a [custom configuration](howto/config_modules.md) in place of
+To use the module, add the class for your provider to a
+[custom configuration](howto/config_modules.md) in place of
 [AverageCarbonIntensity](#averagecarbonintensity) and
 [MonthlyCarbonIntensity](#monthlycarbonintensity). The line items listed above then get no
 carbon intensity, and so no operational emissions. To keep the Ember and NESO figures on these
@@ -518,13 +523,13 @@ and figures for direct emissions only.
 
 ```json
 {
-  "className": "com.digitalpebble.spruce.modules.watttime.HistoricalCarbonIntensity"
+  "className": "com.digitalpebble.spruce.modules.watttime.aws.HistoricalCarbonIntensity"
 }
 ```
 
 | | |
 |---|---|
-| **Class** | `com.digitalpebble.spruce.modules.watttime.HistoricalCarbonIntensity` |
+| **Classes** | `com.digitalpebble.spruce.modules.watttime.aws.HistoricalCarbonIntensity`<br>`com.digitalpebble.spruce.modules.watttime.azure.HistoricalCarbonIntensity` |
 | **Reads** | `region`, the usage period of the line item |
 | **Writes** | `carbon_intensity` |
 

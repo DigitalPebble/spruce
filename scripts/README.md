@@ -173,6 +173,22 @@ environment variable. Python standard library only.
 
 Usage: `./fetch_neso_carbon_intensity.py [cloud_regions.json] [output.csv]`
 
+## WattTime regions
+
+### `fetch_watttime_regions.sh`
+
+Maps each AWS and Azure region of `cloud_regions.json` to the WattTime region serving its
+coordinates, with WattTime's `/v3/region-from-loc` for the `co2_aoer` signal. Regions outside the
+coverage of WattTime are left out. The `watttime` modules read the result.
+
+Output: `src/main/resources/watttime/regions.csv`, columns `provider,region,watttime_region`,
+with two `#`-prefixed header lines.
+
+Needs the credentials of a WattTime account in `WATTTIME_USERNAME` and `WATTTIME_PASSWORD`. A
+newly registered account is enough.
+
+Usage: `./fetch_watttime_regions.sh [cloud_regions.json] [output.csv]`
+
 ## Cloud region water data
 
 Scripts that build per-cloud-region water datasets from WRI sources.
@@ -312,7 +328,7 @@ is what you want if this ever runs in CI.
 - AWS CLI with credentials, for `compare_gpu_accelerators_aws.py` only
 - Network access to `files.ember-energy.org`, `cloudinfrastructuremap.com`,
   `files.wri.org`, `nominatim.openstreetmap.org`, `api.postcodes.io`,
-  `api.carbonintensity.org.uk` and `data.elexon.co.uk`.
+  `api.carbonintensity.org.uk`, `data.elexon.co.uk` and `api.watttime.org`.
 
 ## Data sources and licensing
 
@@ -330,6 +346,7 @@ is what you want if this ever runs in CI.
   Creative Commons Attribution 4.0 International.
 - Aqueduct 4.0 water stress: [WRI](https://www.wri.org/data/aqueduct-global-maps-40-data),
   Creative Commons Attribution 4.0 International.
+- WattTime regions: [WattTime](https://watttime.org/) API, `/v3/region-from-loc`.
 - Reverse geocoding: OpenStreetMap Nominatim (please read and respect their
   [usage policy](https://operations.osmfoundation.org/policies/nominatim/)
   — the scripts send a descriptive `User-Agent` and sleep 1 s between
