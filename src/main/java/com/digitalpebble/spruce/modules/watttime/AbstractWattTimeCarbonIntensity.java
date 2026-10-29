@@ -44,7 +44,7 @@ import static com.digitalpebble.spruce.SpruceColumn.*;
  * <p>This class reads the usage period of FOCUS reports. Each subclass reads it from the native
  * report of its provider.
  */
-public abstract class AbstractHistoricalCarbonIntensity implements EnrichmentModule {
+public abstract class AbstractWattTimeCarbonIntensity implements EnrichmentModule {
 
     static final String USERNAME_VARIABLE = "WATTTIME_USERNAME";
     static final String PASSWORD_VARIABLE = "WATTTIME_PASSWORD";
@@ -56,7 +56,7 @@ public abstract class AbstractHistoricalCarbonIntensity implements EnrichmentMod
     // 1 lb = 453.592 g and 1 MWh = 1000 kWh
     private static final double LBS_PER_MWH_TO_G_PER_KWH = 0.453592;
 
-    private static final Logger log = LoggerFactory.getLogger(AbstractHistoricalCarbonIntensity.class);
+    private static final Logger log = LoggerFactory.getLogger(AbstractWattTimeCarbonIntensity.class);
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final OkHttpClient CLIENT = new OkHttpClient();

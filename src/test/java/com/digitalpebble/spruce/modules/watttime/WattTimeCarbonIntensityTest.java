@@ -39,7 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * Runs the module against a mock of the WattTime API. Each test fetching figures reads its own
  * WattTime region and month, so that it stays isolated from the cache shared across instances.
  */
-class HistoricalCarbonIntensityTest {
+class WattTimeCarbonIntensityTest {
 
     private static final StructType CUR_SCHEMA = new StructType(new StructField[]{
             StructField.apply(CURColumn.LINE_ITEM_USAGE_START_DATE.getLabel(), DataTypes.StringType, true, null),
@@ -50,13 +50,13 @@ class HistoricalCarbonIntensityTest {
             StructField.apply(FOCUSColumn.CHARGE_PERIOD_END.getLabel(), DataTypes.StringType, true, null)});
 
     private MockWebServer server;
-    private AbstractHistoricalCarbonIntensity module;
+    private AbstractWattTimeCarbonIntensity module;
 
     @BeforeEach
     void setUp() throws IOException {
         server = new MockWebServer();
         server.start(0);
-        module = init(new com.digitalpebble.spruce.modules.watttime.aws.HistoricalCarbonIntensity() {
+        module = init(new com.digitalpebble.spruce.modules.watttime.aws.WattTimeCarbonIntensity() {
             @Override
             String getenv(String name) {
                 return "test";
@@ -64,8 +64,8 @@ class HistoricalCarbonIntensityTest {
         }, Provider.AWS);
     }
 
-    private AbstractHistoricalCarbonIntensity azureModule() {
-        return init(new com.digitalpebble.spruce.modules.watttime.azure.HistoricalCarbonIntensity() {
+    private AbstractWattTimeCarbonIntensity azureModule() {
+        return init(new com.digitalpebble.spruce.modules.watttime.azure.WattTimeCarbonIntensity() {
             @Override
             String getenv(String name) {
                 return "test";
@@ -73,7 +73,7 @@ class HistoricalCarbonIntensityTest {
         }, Provider.AZURE);
     }
 
-    private AbstractHistoricalCarbonIntensity init(AbstractHistoricalCarbonIntensity module, Provider provider) {
+    private AbstractWattTimeCarbonIntensity init(AbstractWattTimeCarbonIntensity module, Provider provider) {
         module.init(Map.of(), provider);
         module.url = "http://localhost:" + server.getPort();
         return module;

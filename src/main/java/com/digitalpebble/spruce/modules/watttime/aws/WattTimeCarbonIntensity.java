@@ -2,14 +2,14 @@
 
 package com.digitalpebble.spruce.modules.watttime.aws;
 
-import com.digitalpebble.spruce.modules.watttime.AbstractHistoricalCarbonIntensity;
+import com.digitalpebble.spruce.modules.watttime.AbstractWattTimeCarbonIntensity;
 import org.apache.spark.sql.Row;
 
 import static com.digitalpebble.spruce.CURColumn.LINE_ITEM_USAGE_END_DATE;
 import static com.digitalpebble.spruce.CURColumn.LINE_ITEM_USAGE_START_DATE;
 
 /** Reads the usage period of the line items of CUR reports. */
-public class HistoricalCarbonIntensity extends AbstractHistoricalCarbonIntensity {
+public class WattTimeCarbonIntensity extends AbstractWattTimeCarbonIntensity {
 
     @Override
     protected UsagePeriod nativeUsagePeriod(Row row) {
