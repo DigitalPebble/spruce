@@ -20,6 +20,8 @@ import org.apache.spark.sql.types.StructType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.io.IOException;
 import java.sql.Date;
@@ -161,9 +163,19 @@ class WattTimeCarbonIntensityTest {
         assertEquals(907.184, (Double) enriched.get(CARBON_INTENSITY), 1e-9);
     }
 
-    @Test
-    void keepsThePreviousIntensityOutsideTheCoverageOfWattTime() {
-        Map<Column, Object> enriched = enrich(curRow("2025-03-10T10:00:00Z", "2025-03-10T11:00:00Z"), "ap-northeast-1", 300.0);
+    /** These rows keep their previous value, without a call to WattTime. */
+    @ParameterizedTest
+    @CsvSource({
+            // outside the coverage of WattTime
+            "ap-northeast-1, 2025-03-10T10:00:00Z, 2025-03-10T11:00:00Z",
+            // dates that cannot be read
+            "us-west-2, 01/15/2025 10:00, 01/15/2025 11:00",
+            // usage ending before it starts
+            "eu-west-2, 2025-03-10T11:00:00Z, 2025-03-10T10:00:00Z",
+            // usage spanning two months
+            "eu-north-1, 2025-08-31T12:00:00Z, 2025-09-01T12:00:00Z"})
+    void keepsThePreviousIntensity(String region, String usageStart, String usageEnd) {
+        Map<Column, Object> enriched = enrich(curRow(usageStart, usageEnd), region, 300.0);
 
         assertEquals(300.0, (Double) enriched.get(CARBON_INTENSITY));
         assertEquals(0, server.getRequestCount());
@@ -215,33 +227,6 @@ class WattTimeCarbonIntensityTest {
         Map<Column, Object> enriched = enrich(row, "northeurope", 300.0);
 
         assertEquals(907.184, (Double) enriched.get(CARBON_INTENSITY), 1e-9);
-    }
-
-    @Test
-    void keepsThePreviousIntensityWhenTheDatesCannotBeRead() {
-        serve("BPA", point("2025-01-15T10:00:00Z", 1000));
-
-        Map<Column, Object> enriched = enrich(curRow("01/15/2025 10:00", "01/15/2025 11:00"), "us-west-2", 300.0);
-
-        assertEquals(300.0, (Double) enriched.get(CARBON_INTENSITY));
-    }
-
-    @Test
-    void keepsThePreviousIntensityWhenTheUsageEndsBeforeItStarts() {
-        serve("UK", point("2025-03-10T10:00:00Z", 1000));
-
-        Map<Column, Object> enriched = enrich(curRow("2025-03-10T11:00:00Z", "2025-03-10T10:00:00Z"), "eu-west-2", 300.0);
-
-        assertEquals(300.0, (Double) enriched.get(CARBON_INTENSITY));
-    }
-
-    @Test
-    void keepsThePreviousIntensityOfRowsSpanningTwoMonths() {
-        serve("SE", point("2025-08-31T12:00:00Z", 1000));
-
-        Map<Column, Object> enriched = enrich(curRow("2025-08-31T12:00:00Z", "2025-09-01T12:00:00Z"), "eu-north-1", 300.0);
-
-        assertEquals(300.0, (Double) enriched.get(CARBON_INTENSITY));
     }
 
     @Test
