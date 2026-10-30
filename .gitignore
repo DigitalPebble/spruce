@@ -3,6 +3,7 @@
 .idea/
 *.iml
 *.iws
+.run/
 
 # Mac
 .DS_Store
@@ -28,7 +29,8 @@ htmlcov/
 
 # avoid accidental addition of dirs mentioned in README
 curs/
-output/
+output*/
+data/
 
 site/
 
