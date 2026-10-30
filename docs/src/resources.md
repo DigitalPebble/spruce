@@ -6,6 +6,9 @@ description: "Talks, datasets and standards behind open source cloud carbon acco
 # GreenOps and cloud sustainability resources
 
 ## Talks
+- **"SPRUCE - an open-source enrichment platform for GreenOps"** at [Community Over Code Glasgow 2026](https://communityovercode.apache.org/events/glasgow-2026/)
+    - [video](https://www.youtube.com/watch?v=g9I_B5eGP2c&list=PLLzyS3suVFJI)
+
 - **"You already have what you need. Open Source GreenOps in Practice"** at [GreenIOLondon 2026](https://greenio.tech/conference/22/london-2026-september) by Diana Todea & Julien Nioche.
     - [slides](https://adm.greenio.tech/UPLOADS/CONFERENCES/22/SESSIONS/ses-64.pdf)
 
