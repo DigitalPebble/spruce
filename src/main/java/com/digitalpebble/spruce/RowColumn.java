@@ -5,6 +5,7 @@ package com.digitalpebble.spruce;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.types.DataType;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
@@ -70,14 +71,58 @@ public abstract class RowColumn extends Column {
         if (value instanceof LocalDate date) {
             return date;
         }
-        String trimmed = value.toString().trim();
+        return parseDate(value.toString().trim());
+    }
+
+    /** Returns the date in one of the DATE_FORMATS, or null if the value is in none of them. */
+    private static LocalDate parseDate(String value) {
         for (DateTimeFormatter format : DATE_FORMATS) {
             try {
-                return LocalDate.parse(trimmed, format);
+                return LocalDate.parse(value, format);
             } catch (DateTimeParseException ignored) {
             }
         }
         return null;
+    }
+
+    /**
+     * Returns the instant held by this column in the given row, or null when the column is absent
+     * from the schema, holds null, or cannot be read as an instant. Reads the representations
+     * {@link #getYear(Row)} reads, ISO instants such as 2025-01-15T10:00:00Z and the date strings
+     * {@link #getDate(Row)} reads. A date gives the start of its day in UTC, and so do timestamps
+     * without a time zone.
+     */
+    public Instant getInstant(Row r) {
+        int index = resolveIndex(r, true);
+        if (index == -1) {
+            return null;
+        }
+        Object value = r.get(index);
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof java.sql.Timestamp timestamp) {
+            return timestamp.toInstant();
+        }
+        if (value instanceof Instant instant) {
+            return instant;
+        }
+        if (value instanceof LocalDateTime dateTime) {
+            return dateTime.toInstant(ZoneOffset.UTC);
+        }
+        if (value instanceof java.sql.Date date) {
+            return date.toLocalDate().atStartOfDay(ZoneOffset.UTC).toInstant();
+        }
+        if (value instanceof LocalDate date) {
+            return date.atStartOfDay(ZoneOffset.UTC).toInstant();
+        }
+        String trimmed = value.toString().trim();
+        try {
+            return Instant.parse(trimmed);
+        } catch (DateTimeParseException ignored) {
+        }
+        LocalDate date = parseDate(trimmed);
+        return date == null ? null : date.atStartOfDay(ZoneOffset.UTC).toInstant();
     }
 
     /** Matches a four-digit year not embedded in a longer number, e.g. in 2025-01-01T00:00:00Z,

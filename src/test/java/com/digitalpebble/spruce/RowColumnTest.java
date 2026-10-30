@@ -10,6 +10,7 @@ import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
 import java.time.YearMonth;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -99,5 +100,29 @@ class RowColumnTest {
         assertNull(COLUMN.getYearMonth(row("not a date")));
         assertNull(COLUMN.getYearMonth(row("2025-13-01")));
         assertNull(new CURColumn("absent", DataTypes.StringType).getYearMonth(row("2025-01-01")));
+    }
+
+    @Test
+    void readsTheInstantFromTheRepresentationsTheReportsUse() {
+        Instant noon = Instant.parse("2025-06-15T12:00:00Z");
+        Instant midnight = Instant.parse("2025-06-15T00:00:00Z");
+        assertEquals(noon, COLUMN.getInstant(row("2025-06-15T12:00:00Z")));
+        assertEquals(noon, COLUMN.getInstant(row("2025-06-15T12:00:00+00:00")));
+        assertEquals(midnight, COLUMN.getInstant(row("2025-06-15")));
+        assertEquals(midnight, COLUMN.getInstant(row("06/15/2025")));
+        assertEquals(midnight, COLUMN.getInstant(row("6/15/2025")));
+        assertEquals(noon, COLUMN.getInstant(row(java.sql.Timestamp.from(noon))));
+        assertEquals(noon, COLUMN.getInstant(row(noon)));
+        assertEquals(noon, COLUMN.getInstant(row(java.time.LocalDateTime.of(2025, 6, 15, 12, 0))));
+        assertEquals(midnight, COLUMN.getInstant(row(java.sql.Date.valueOf("2025-06-15"))));
+        assertEquals(midnight, COLUMN.getInstant(row(java.time.LocalDate.of(2025, 6, 15))));
+    }
+
+    @Test
+    void returnsNullWhenThereIsNoInstantToRead() {
+        assertNull(COLUMN.getInstant(row(null)));
+        assertNull(COLUMN.getInstant(row("not a date")));
+        assertNull(COLUMN.getInstant(row("06/15/2025 12:00")));
+        assertNull(new CURColumn("absent", DataTypes.StringType).getInstant(row("2025-01-01")));
     }
 }
