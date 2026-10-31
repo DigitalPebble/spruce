@@ -476,12 +476,26 @@ of CO2 equivalent per MWh, which the module converts to grams per kWh.
 
 The module needs a WattTime account with access to AOER (see WattTime's
 [data plans](https://watttime.org/docs-dev/data-plans/)). A newly registered account only has
-access to other data types, for the `CAISO_NORTH` region. The module reads the credentials of the
-account from the environment variables `WATTTIME_USERNAME` and `WATTTIME_PASSWORD`. SPRUCE
-initialises its modules on the executors. On a cluster, set the variables there, for instance
-with `--conf spark.executorEnv.WATTTIME_USERNAME=...` and
+access to other data types, for the `CAISO_NORTH` region.
+
+The module reads the credentials of the account from the environment variables
+`WATTTIME_USERNAME` and `WATTTIME_PASSWORD`, or from its configuration:
+
+```json
+{
+  "className": "com.digitalpebble.spruce.modules.watttime.aws.WattTimeCarbonIntensity",
+  "config": {
+    "username": "...",
+    "password": "..."
+  }
+}
+```
+
+When both are set, the environment variables take precedence. SPRUCE initialises its modules on
+the executors. On a cluster, set the variables there, for instance with
+`--conf spark.executorEnv.WATTTIME_USERNAME=...` and
 `--conf spark.executorEnv.WATTTIME_PASSWORD=...`. In local mode, the environment of the shell
-that runs `spark-submit` is enough.
+that runs `spark-submit` is enough. The configuration reaches the executors with the job.
 
 The WattTime region of each cloud region comes from `watttime/regions.csv`, which
 `scripts/fetch_watttime_regions.sh` generates from the coordinates in

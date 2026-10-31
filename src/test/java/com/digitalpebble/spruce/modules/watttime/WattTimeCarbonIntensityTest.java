@@ -8,6 +8,7 @@ import com.digitalpebble.spruce.Column;
 import com.digitalpebble.spruce.FOCUSColumn;
 import com.digitalpebble.spruce.Provider;
 import com.digitalpebble.spruce.ReportFormat;
+import okhttp3.Credentials;
 import okhttp3.mockwebserver.Dispatcher;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -227,6 +228,26 @@ class WattTimeCarbonIntensityTest {
         Map<Column, Object> enriched = enrich(row, "northeurope", 300.0);
 
         assertEquals(907.184, (Double) enriched.get(CARBON_INTENSITY), 1e-9);
+    }
+
+    @Test
+    void readsTheCredentialsFromTheEnvironmentThenFromTheConfiguration() throws InterruptedException {
+        module = new com.digitalpebble.spruce.modules.watttime.aws.WattTimeCarbonIntensity() {
+            @Override
+            String getenv(String name) {
+                // only the username is in the environment
+                return "WATTTIME_USERNAME".equals(name) ? "env-user" : null;
+            }
+        };
+        module.init(Map.of("username", "config-user", "password", "config-password"), Provider.AWS);
+        module.url = "http://localhost:" + server.getPort();
+        serve("BPA", point("2025-10-15T10:00:00Z", 1000));
+
+        enrich(curRow("2025-10-15T10:00:00Z", "2025-10-15T11:00:00Z"), "us-west-2", 300.0);
+
+        RecordedRequest login = server.takeRequest();
+        assertEquals("/login", login.getRequestUrl().encodedPath());
+        assertEquals(Credentials.basic("env-user", "config-password"), login.getHeader("Authorization"));
     }
 
     @Test
