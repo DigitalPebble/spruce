@@ -52,7 +52,7 @@ flowchart LR
 | [PWUE](#pwue) | AWS, Azure | `power_usage_effectiveness`, `water_usage_effectiveness` | Provider-published data |
 | [AverageCarbonIntensity](#averagecarbonintensity) | AWS, Azure | `carbon_intensity` | [Ember](https://ember-energy.org/) |
 | [MonthlyCarbonIntensity](#monthlycarbonintensity) | AWS, Azure (regions in Great Britain) | `carbon_intensity` | [Carbon Intensity API](https://carbonintensity.org.uk/) and [Ember](https://ember-energy.org/) |
-| [WattTimeCarbonIntensity](#watttimecarbonintensity) | AWS, Azure (not in the default configurations) | `carbon_intensity` | [WattTime](https://watttime.org/) |
+| [WattTimeCarbonIntensity](#watttimecarbonintensity) | AWS, Azure (not in the default configurations) | `carbon_intensity` | [WattTime](https://watttime.org/), operating emissions only, not lifecycle |
 | [OperationalEmissions](#operationalemissions) | AWS, Azure | `operational_emissions_co2eq_g` | — |
 | [Water](#water) | AWS, Azure | `water_cooling_l`, `water_electricity_production_l`, `water_consumption_stress_area_l` | [WRI](https://www.wri.org/) |
 | [FOCUSColumns](#focuscolumns) | AWS, Azure (native formats) | [FOCUS](https://focus.finops.org/) columns | — |
@@ -468,9 +468,11 @@ runs.
 
 The figures are WattTime's
 [average operating emissions rate](https://watttime.org/data-science/data-signals/average-co2/)
-(AOER). AOER counts direct emissions from combustion only. It excludes the upstream and
-manufacturing emissions that the Ember figures of
-[AverageCarbonIntensity](#averagecarbonintensity) include. WattTime allocates the emissions to
+(AOER). AOER is an operating figure, not a lifecycle one: it counts the direct emissions from
+combustion at the power plant only, and excludes the upstream, supply chain and manufacturing
+emissions that the lifecycle figures of [AverageCarbonIntensity](#averagecarbonintensity) and
+[MonthlyCarbonIntensity](#monthlycarbonintensity) include. It is therefore lower than those
+figures for the same grid, and the two are not comparable. WattTime allocates the emissions to
 the electricity consumed in the grid region, imports included. WattTime publishes AOER in pounds
 of CO2 equivalent per MWh, which the module converts to grams per kWh.
 

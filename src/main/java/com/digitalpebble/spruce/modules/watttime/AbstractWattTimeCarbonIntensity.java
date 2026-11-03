@@ -35,7 +35,9 @@ import static com.digitalpebble.spruce.SpruceColumn.*;
 /**
  * Populates the CARBON_INTENSITY field with the average operating emissions rate (AOER) that
  * the WattTime API publishes for the grid region of the cloud region, at the time the usage was
- * incurred. The data is fetched while the job runs, with the credentials of the user's WattTime
+ * incurred. AOER is an operating figure, not a lifecycle one: it counts the direct emissions from
+ * combustion only, so these values are lower than the lifecycle figures of the ember and neso
+ * modules and are not comparable with them. The data is fetched while the job runs, with the credentials of the user's WattTime
  * account. They are read from the environment variables WATTTIME_USERNAME and
  * WATTTIME_PASSWORD, or else from the username and password parameters of the module. The
  * WattTime region of each cloud region is looked up from the coordinates in cloud_regions.json
