@@ -43,9 +43,18 @@ public class EnrichmentPipeline implements MapPartitionsFunction<Row, Row> {
     @Override
     public Iterator<Row> call(Iterator<Row> input) {
 
+        // nanoseconds spent configuring each module, left null when the modules had already been
+        // configured by an earlier call on this instance, or when no metrics were asked for
+        long[] configuring = null;
         if (enrichmentModules == null) {
-            enrichmentModules = config.configureModules();
+            if (timings == null) {
+                enrichmentModules = config.configureModules();
+            } else {
+                configuring = new long[config.getModules().size()];
+                enrichmentModules = config.configureModules(configuring);
+            }
         }
+        final long[] initNanos = configuring;
 
         // rows enriched in this partition; an array so the completion listener can read it
         final long[] rowsEnriched = new long[1];
@@ -67,7 +76,7 @@ public class EnrichmentPipeline implements MapPartitionsFunction<Row, Row> {
             TaskContext context = TaskContext.get();
             if (context != null) {
                 context.addTaskCompletionListener(
-                        (TaskCompletionListener) ctx -> timings.add(nanos, rowsEnriched[0]));
+                        (TaskCompletionListener) ctx -> timings.add(nanos, initNanos, rowsEnriched[0]));
             }
         }
 

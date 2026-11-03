@@ -58,13 +58,34 @@ public class Config implements Serializable {
      * @throws IllegalStateException if the provider has not been set.
      */
     public List<com.digitalpebble.spruce.EnrichmentModule> configureModules() {
+        return configureModules(null);
+    }
+
+    /**
+     * As {@link #configureModules()}, recording how long each module took to configure. Several
+     * modules load a CSV or JSON resource here, and this runs once per Spark task rather than once
+     * per executor, so the cost is worth being able to see.
+     *
+     * @param initNanos filled with the nanoseconds spent configuring each module, indexed as the
+     *                  module list, or null to skip the measurement
+     * @throws IllegalStateException if the provider has not been set.
+     */
+    public List<com.digitalpebble.spruce.EnrichmentModule> configureModules(long[] initNanos) {
         if (provider == null) {
             throw new IllegalStateException("Provider must be set before configureModules()");
         }
+        if (initNanos != null && initNanos.length != enrichmentModules.size()) {
+            throw new IllegalArgumentException("Expected room for " + enrichmentModules.size()
+                    + " timings, got " + initNanos.length);
+        }
         for (int i = 0; i < enrichmentModules.size(); i++) {
+            long start = System.nanoTime();
             // rebind first so modules added after setReportFormat() are covered too
             enrichmentModules.get(i).bindReportFormat(reportFormat);
             enrichmentModules.get(i).init(configs.get(i), provider);
+            if (initNanos != null) {
+                initNanos[i] = System.nanoTime() - start;
+            }
         }
         return enrichmentModules;
     }
