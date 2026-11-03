@@ -7,6 +7,7 @@ import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructType;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.provider.CsvSource;
 
 import java.util.Collections;
@@ -173,5 +174,75 @@ public class EnrichmentPipelineTest {
         assertEquals(expectEnrichment, !processedRow.isNullAt(fieldIndex),
                 () -> "ChargeCategory " + chargeCategory + " should " + (expectEnrichment ? "" : "not ")
                         + "trigger enrichment");
+    }
+
+    /** Schema holding the usage filter's column, the enriched column and one value to carry over. */
+    private static StructType usageSchema() {
+        return new StructType()
+                .add(PRODUCT_REGION_CODE.getLabel(), PRODUCT_REGION_CODE.getType(), true)
+                .add(LINE_ITEM_TYPE.getLabel(), LINE_ITEM_TYPE.getType(), true)
+                .add(DUMMY_ENRICHED.getLabel(), DUMMY_ENRICHED.getType(), true);
+    }
+
+    @Test
+    public void leavesTheRowItWasGivenUntouched() {
+        // the pipeline writes into a copy of the values a row holds, so the enriched value must
+        // not reach the row Spark handed it
+        Config config = createMockConfig();
+        EnrichmentPipeline pipeline = new EnrichmentPipeline(config);
+        StructType schema = usageSchema();
+        Row row = new GenericRowWithSchema(new Object[]{"us-east-1", "Usage", null}, schema);
+
+        Row processedRow = pipeline.call(Collections.singletonList(row).iterator()).next();
+
+        assertEquals(42.0, processedRow.getDouble(schema.fieldIndex(DUMMY_ENRICHED.getLabel())));
+        assertTrue(row.isNullAt(schema.fieldIndex(DUMMY_ENRICHED.getLabel())),
+                "the row given to the pipeline should not have been written to");
+    }
+
+    @Test
+    public void enrichesRowsOfAnyImplementation() {
+        // the fast path reads the array a GenericRow holds; anything else is copied field by field
+        Config config = createMockConfig();
+        EnrichmentPipeline pipeline = new EnrichmentPipeline(config);
+        StructType schema = usageSchema();
+        Row row = new PlainRow(new Object[]{"us-east-1", "Usage", null}, schema);
+
+        Row processedRow = pipeline.call(Collections.singletonList(row).iterator()).next();
+
+        assertEquals("us-east-1", PRODUCT_REGION_CODE.getString(processedRow));
+        assertEquals(42.0, processedRow.getDouble(schema.fieldIndex(DUMMY_ENRICHED.getLabel())));
+    }
+
+    /** A Row that is not a GenericRow, so the pipeline cannot read its values as an array. */
+    private static class PlainRow implements Row {
+
+        private final Object[] values;
+        private final StructType schema;
+
+        PlainRow(Object[] values, StructType schema) {
+            this.values = values;
+            this.schema = schema;
+        }
+
+        @Override
+        public int length() {
+            return values.length;
+        }
+
+        @Override
+        public Object get(int i) {
+            return values[i];
+        }
+
+        @Override
+        public Row copy() {
+            return new PlainRow(values.clone(), schema);
+        }
+
+        @Override
+        public StructType schema() {
+            return schema;
+        }
     }
 }

@@ -5,6 +5,7 @@ package com.digitalpebble.spruce;
 import org.apache.spark.TaskContext;
 import org.apache.spark.api.java.function.MapPartitionsFunction;
 import org.apache.spark.sql.Row;
+import org.apache.spark.sql.catalyst.expressions.GenericRow;
 import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema;
 import org.apache.spark.util.TaskCompletionListener;
 
@@ -100,16 +101,33 @@ public class EnrichmentPipeline implements MapPartitionsFunction<Row, Row> {
                 rowsEnriched[0]++;
 
                 // Materialise the final row — single copy instead of one per module
-                Object[] values = new Object[row.size()];
-                for (int i = 0; i < row.size(); i++) {
-                    values[i] = row.get(i);
-                }
+                Object[] values = valuesOf(row);
                 for (Map.Entry<Column, Object> entry : enriched.entrySet()) {
                     values[entry.getKey().resolveIndex(row)] = entry.getValue();
                 }
                 return new GenericRowWithSchema(values, row.schema());
             }
         };
+    }
+
+    /**
+     * Returns the row's values in an array the caller owns and can overwrite.
+     *
+     * <p>Spark's deserialiser builds a {@link GenericRow} per row and never reuses it, so the
+     * array it already holds can simply be cloned. Reading the fields back out one at a time
+     * costs about a third more: a row carries every column of the report, of which the modules
+     * write around twenty. Rows of any other kind are copied field by field, so a change of
+     * representation in Spark costs performance rather than correctness.
+     **/
+    private static Object[] valuesOf(Row row) {
+        if (row instanceof GenericRow generic) {
+            return generic.values().clone();
+        }
+        Object[] values = new Object[row.size()];
+        for (int i = 0; i < values.length; i++) {
+            values[i] = row.get(i);
+        }
+        return values;
     }
 
     /**
