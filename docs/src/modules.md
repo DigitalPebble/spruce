@@ -497,14 +497,11 @@ the executors. On a cluster, set the variables there, for instance with
 `--conf spark.executorEnv.WATTTIME_PASSWORD=...`. In local mode, the environment of the shell
 that runs `spark-submit` is enough. The configuration reaches the executors with the job.
 
-The WattTime region of each cloud region comes from `watttime/regions.csv`, which
-`scripts/fetch_watttime_regions.sh` generates from the coordinates in
-[`cloud_regions.json`](#cloud-region-metadata).
-
 The executors need access to `https://api.watttime.org`. Each partition logs in when it first
-calls the API, and again when its token expires. Each executor requests the figures of a
-WattTime region one calendar month (UTC) at a time, and only once for each month. The responses
-are kept in memory only. These requests make the job slower.
+calls the API, and again when its token expires. Each executor looks up the WattTime region of a
+cloud region once, from its coordinates in [`cloud_regions.json`](#cloud-region-metadata). It
+requests the figures of a WattTime region one calendar month (UTC) at a time, and only once for
+each month. The responses are kept in memory only. These requests make the job slower.
 
 The module reads the usage period from `ChargePeriodStart` and `ChargePeriodEnd` in FOCUS
 reports, from `line_item_usage_start_date` and `line_item_usage_end_date` in AWS CUR reports, and
@@ -516,8 +513,7 @@ the same, as the reports do not say when in the day the usage happened.
 
 A line item keeps the carbon intensity set by the modules before this one when:
 
-- its cloud region is not in `watttime/regions.csv`, as it has no coordinates in
-  `cloud_regions.json` or WattTime does not cover them;
+- its cloud region has no coordinates in `cloud_regions.json`, or WattTime does not cover them;
 - the account has no access to the AOER figures of its WattTime region, which the module logs as
   a warning;
 - WattTime has no figure for its usage period;

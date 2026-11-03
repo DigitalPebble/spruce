@@ -39,8 +39,8 @@ import static com.digitalpebble.spruce.SpruceColumn.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * Runs the module against a mock of the WattTime API. Each test fetching figures reads its own
- * WattTime region and month, so that it stays isolated from the cache shared across instances.
+ * Runs the module against a mock of the WattTime API. Each test uses its own cloud region and
+ * WattTime region so that it stays isolated from the caches shared across instances.
  */
 class WattTimeCarbonIntensityTest {
 
@@ -88,8 +88,9 @@ class WattTimeCarbonIntensityTest {
     }
 
     /**
-     * Answers like WattTime would with the given historical data for the given WattTime region.
-     * Null historical data means that the account has no access to the figures of the region.
+     * Answers like WattTime would for a cloud region located in the given WattTime region, or
+     * outside the coverage of WattTime if the region is null. Null historical data means that the
+     * account has no access to the figures of the WattTime region.
      */
     private void serve(String wattTimeRegion, String historicalData) {
         server.setDispatcher(new Dispatcher() {
@@ -97,6 +98,10 @@ class WattTimeCarbonIntensityTest {
             public MockResponse dispatch(RecordedRequest request) {
                 return switch (request.getRequestUrl().encodedPath()) {
                     case "/login" -> json("{\"token\":\"token\"}");
+                    case "/v3/region-from-loc" -> wattTimeRegion == null
+                            ? json("{\"error\":\"No coverage available for these coordinates and signal_type\"}").setResponseCode(404)
+                            : json("{\"region\":\"" + wattTimeRegion
+                            + "\",\"region_full_name\":\"Test\",\"signal_type\":\"co2_aoer\"}");
                     case "/v3/historical" -> !"co2_aoer".equals(request.getRequestUrl().queryParameter("signal_type"))
                             || !wattTimeRegion.equals(request.getRequestUrl().queryParameter("region"))
                             ? new MockResponse().setResponseCode(400)
@@ -164,11 +169,28 @@ class WattTimeCarbonIntensityTest {
         assertEquals(907.184, (Double) enriched.get(CARBON_INTENSITY), 1e-9);
     }
 
+    @Test
+    void keepsThePreviousIntensityOutsideTheCoverageOfWattTime() {
+        serve(null, "");
+
+        Map<Column, Object> enriched = enrich(curRow("2025-03-10T10:00:00Z", "2025-03-10T11:00:00Z"), "ap-northeast-1", 300.0);
+
+        assertEquals(300.0, (Double) enriched.get(CARBON_INTENSITY));
+    }
+
+    @Test
+    void keepsThePreviousIntensityOfRegionsWithoutCoordinates() {
+        serve("REGION_UNKNOWN", point("2025-03-10T10:00:00Z", 1000));
+
+        Map<Column, Object> enriched = enrich(curRow("2025-03-10T10:00:00Z", "2025-03-10T11:00:00Z"), "global", 300.0);
+
+        assertEquals(300.0, (Double) enriched.get(CARBON_INTENSITY));
+        assertEquals(0, server.getRequestCount());
+    }
+
     /** These rows keep their previous value, without a call to WattTime. */
     @ParameterizedTest
     @CsvSource({
-            // outside the coverage of WattTime
-            "ap-northeast-1, 2025-03-10T10:00:00Z, 2025-03-10T11:00:00Z",
             // dates that cannot be read
             "us-west-2, 01/15/2025 10:00, 01/15/2025 11:00",
             // usage ending before it starts
@@ -258,6 +280,7 @@ class WattTimeCarbonIntensityTest {
             public MockResponse dispatch(RecordedRequest request) {
                 return switch (request.getRequestUrl().encodedPath()) {
                     case "/login" -> json("{\"token\":\"token" + logins.incrementAndGet() + "\"}");
+                    case "/v3/region-from-loc" -> json("{\"region\":\"REGION_EXPIRED\"}");
                     // the first token has expired by the time the figures are requested
                     case "/v3/historical" -> "Bearer token2".equals(request.getHeader("Authorization"))
                             ? json("{\"data\":[" + point("2025-07-01T10:00:00Z", 1000) + "],\"meta\":{}}")
