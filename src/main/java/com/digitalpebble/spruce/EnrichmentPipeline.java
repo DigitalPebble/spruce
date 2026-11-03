@@ -2,10 +2,13 @@
 
 package com.digitalpebble.spruce;
 
+import org.apache.spark.TaskContext;
 import org.apache.spark.api.java.function.MapPartitionsFunction;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema;
+import org.apache.spark.util.TaskCompletionListener;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -20,9 +23,21 @@ public class EnrichmentPipeline implements MapPartitionsFunction<Row, Row> {
 
     private final Config config;
 
+    /** Optional per-module timing, null unless the job was asked to report metrics. **/
+    private final ModuleTimings timings;
+
     /** Initialises the modules **/
     public EnrichmentPipeline(Config config) {
+        this(config, null);
+    }
+
+    /**
+     * Initialises the modules and, when {@code timings} is not null, wraps each of them so that
+     * the time they spend enriching rows is measured and reported.
+     **/
+    public EnrichmentPipeline(Config config, ModuleTimings timings) {
         this.config = config;
+        this.timings = timings;
     }
 
     @Override
@@ -30,6 +45,30 @@ public class EnrichmentPipeline implements MapPartitionsFunction<Row, Row> {
 
         if (enrichmentModules == null) {
             enrichmentModules = config.configureModules();
+        }
+
+        // rows enriched in this partition; an array so the completion listener can read it
+        final long[] rowsEnriched = new long[1];
+
+        final List<EnrichmentModule> modules;
+        if (timings == null) {
+            modules = enrichmentModules;
+        } else {
+            // accumulate into a plain array and flush it once, rather than touching the
+            // accumulators on every module of every row
+            final long[] nanos = new long[enrichmentModules.size()];
+            List<EnrichmentModule> timed = new ArrayList<>(enrichmentModules.size());
+            for (int i = 0; i < enrichmentModules.size(); i++) {
+                timed.add(new TimedModule(enrichmentModules.get(i), nanos, i));
+            }
+            modules = timed;
+            // the iterator is lazy and a task can be killed part way through a partition, so the
+            // end of the input is not a reliable place to flush; task completion is
+            TaskContext context = TaskContext.get();
+            if (context != null) {
+                context.addTaskCompletionListener(
+                        (TaskCompletionListener) ctx -> timings.add(nanos, rowsEnriched[0]));
+            }
         }
 
         return new Iterator<Row>() {
@@ -46,9 +85,10 @@ public class EnrichmentPipeline implements MapPartitionsFunction<Row, Row> {
                 if (!usage) return row;
 
                 Map<Column, Object> enriched = new HashMap<>();
-                for (EnrichmentModule module : enrichmentModules) {
+                for (EnrichmentModule module : modules) {
                     module.enrich(row, enriched);
                 }
+                rowsEnriched[0]++;
 
                 // Materialise the final row — single copy instead of one per module
                 Object[] values = new Object[row.size()];

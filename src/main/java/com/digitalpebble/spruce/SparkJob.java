@@ -68,12 +68,14 @@ public class SparkJob {
         options.addRequiredOption("o", "output", true, "output path");
         options.addOption("p", "provider", true, "cloud provider (AWS, GOOGLE, AZURE) — defaults to AWS");
         options.addOption("f", "format", true, "report format (NATIVE, FOCUS) — defaults to NATIVE");
+        options.addOption("m", "metrics", false, "log how long each module took at the end of the job");
 
         String configPath = null;
         String inputPath = null;
         String outputPath = null;
         Provider provider = Provider.AWS;
         ReportFormat reportFormat = ReportFormat.NATIVE;
+        boolean reportMetrics = false;
 
         try {
             CommandLineParser parser = new DefaultParser();
@@ -88,6 +90,7 @@ public class SparkJob {
                 LOG.error("Invalid provider: '{}'", providerStr);
                 System.exit(3);
             }
+            reportMetrics = cmd.hasOption("m");
             String formatStr = cmd.getOptionValue("f", "NATIVE");
             try {
                 reportFormat = ReportFormat.fromString(formatStr);
@@ -155,7 +158,13 @@ public class SparkJob {
             }
         }
 
-        EnrichmentPipeline pipeline = new EnrichmentPipeline(config);
+        // registered on the driver, before the job runs, so that the accumulators also show up
+        // in the Spark UI while it is running
+        final ModuleTimings timings = reportMetrics
+                ? ModuleTimings.register(spark.sparkContext(), config.getModules())
+                : null;
+
+        EnrichmentPipeline pipeline = new EnrichmentPipeline(config, timings);
         Encoder<Row> encoder = RowEncoder.encoderFor(dataframe.schema());
 
         Dataset<Row> enriched = dataframe.mapPartitions(pipeline, encoder);
@@ -173,6 +182,11 @@ public class SparkJob {
         }
 
         writer.parquet(outputPath);
+
+        // the write is the action, so the accumulators only hold their final values here
+        if (timings != null) {
+            LOG.info("{}{}", System.lineSeparator(), timings.report());
+        }
 
         spark.stop();
     }
