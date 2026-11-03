@@ -135,6 +135,26 @@ public class FOCUSColumnsTest {
     }
 
     @Test
+    void regionIdIsLowercasedIndependentlyOfTheDefaultLocale() {
+        // a Turkish locale maps I to a dotless i, which would not match the region any more
+        java.util.Locale previous = java.util.Locale.getDefault();
+        try {
+            java.util.Locale.setDefault(java.util.Locale.forLanguageTag("tr"));
+            StructType withFallback = schemaWithExtra("product_region_code", DataTypes.StringType);
+            Row row = new GenericRowWithSchema(values(1.0, "AmazonEC2", "AmazonEC2", "RunInstances",
+                    "EUW2-BoxUsage:t3.xlarge", "Usage", "sub-123", "2026-06-23T00:00:00Z",
+                    "2026-06-24T00:00:00Z", 1.0, "IL-CENTRAL-1"), withFallback);
+            Map<Column, Object> enriched = new HashMap<>();
+
+            module.enrich(row, enriched);
+
+            assertEquals("il-central-1", enriched.get(REGION_ID));
+        } finally {
+            java.util.Locale.setDefault(previous);
+        }
+    }
+
+    @Test
     void nullCostProducesNoBilledCost() {
         Row row = generateRow(null, "AmazonEC2", "AmazonEC2", "RunInstances", "EUW2-BoxUsage:t3.xlarge", "Usage",
                 "sub-123", "2026-06-23T00:00:00Z", "2026-06-24T00:00:00Z", 1.0);

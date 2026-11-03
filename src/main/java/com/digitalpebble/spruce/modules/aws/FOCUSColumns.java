@@ -9,6 +9,7 @@ import org.apache.spark.sql.Row;
 import org.apache.spark.sql.types.DataTypes;
 
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 import java.util.Map;
 
 import static com.digitalpebble.spruce.AWSFOCUSColumn.X_OPERATION;
@@ -103,7 +104,7 @@ public class FOCUSColumns implements EnrichmentModule {
             }
         }
         if (region != null) {
-            enrichedValues.put(REGION_ID, region.toLowerCase());
+            enrichedValues.put(REGION_ID, toLowerCase(region));
         }
 
         String service = emptyToNull(PRODUCT_SERVICE_CODE.getString(row));
@@ -161,6 +162,22 @@ public class FOCUSColumns implements EnrichmentModule {
 
     private static String emptyToNull(String value) {
         return value == null || value.isEmpty() ? null : value;
+    }
+
+    /**
+     * Lowercases a region code with {@link Locale#ROOT}, returning the argument itself when it
+     * holds no upper-case ASCII letter. Region codes are ASCII, so the default locale must not get
+     * a say in the mapping: under a Turkish locale {@code "IL-CENTRAL-1".toLowerCase()} renders
+     * the I as a dotless i, which no longer matches the region.
+     **/
+    private static String toLowerCase(String value) {
+        for (int i = 0; i < value.length(); i++) {
+            char c = value.charAt(i);
+            if (c >= 'A' && c <= 'Z') {
+                return value.toLowerCase(Locale.ROOT);
+            }
+        }
+        return value;
     }
 
     /**
