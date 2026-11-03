@@ -25,6 +25,13 @@ import java.util.concurrent.TimeUnit;
  * the job. Enrichment cost is per row and configuration cost is per task, so the two are reported
  * separately rather than added together.
  *
+ * <p>Alongside each total is the largest amount any single task spent in that module, because a
+ * sum on its own cannot tell a cost every task pays from a cost one task pays once for the whole
+ * executor. Several modules keep their data in static fields, {@code Water} and the WattTime
+ * modules among them, so for those the first task in a JVM pays and the rest ride free: a total
+ * close to the largest single task means the cost is already amortised, while a total of many
+ * similar tasks means every partition is paying it again.
+ *
  * <p>Accumulators updated from a transformation such as {@code mapPartitions} are not exactly
  * once: a speculative or retried task counts its time again, and so does re-reading a cached
  * Dataset. The row and task counts are reported alongside the timings so a run that has double
@@ -33,46 +40,64 @@ import java.util.concurrent.TimeUnit;
 public class ModuleTimings implements Serializable {
 
     static final String ENRICH_PREFIX = "spruce.module_enrich_ns.";
+    static final String ENRICH_MAX_PREFIX = "spruce.module_enrich_max_ns.";
     static final String INIT_PREFIX = "spruce.module_init_ns.";
+    static final String INIT_MAX_PREFIX = "spruce.module_init_max_ns.";
     static final String ROWS_NAME = "spruce.rows_enriched";
     static final String TASKS_NAME = "spruce.tasks";
     static final String INITS_NAME = "spruce.module_initialisations";
 
     private final List<String> moduleNames;
     private final List<LongAccumulator> enrichNanos;
+    private final List<LongMaxAccumulator> enrichMaxNanos;
     private final List<LongAccumulator> initNanos;
+    private final List<LongMaxAccumulator> initMaxNanos;
     private final LongAccumulator rowsEnriched;
     private final LongAccumulator tasks;
     private final LongAccumulator initialisations;
 
-    private ModuleTimings(List<String> moduleNames, List<LongAccumulator> enrichNanos,
-                          List<LongAccumulator> initNanos, LongAccumulator rowsEnriched,
-                          LongAccumulator tasks, LongAccumulator initialisations) {
+    private ModuleTimings(List<String> moduleNames,
+                          List<LongAccumulator> enrichNanos, List<LongMaxAccumulator> enrichMaxNanos,
+                          List<LongAccumulator> initNanos, List<LongMaxAccumulator> initMaxNanos,
+                          LongAccumulator rowsEnriched, LongAccumulator tasks,
+                          LongAccumulator initialisations) {
         this.moduleNames = moduleNames;
         this.enrichNanos = enrichNanos;
+        this.enrichMaxNanos = enrichMaxNanos;
         this.initNanos = initNanos;
+        this.initMaxNanos = initMaxNanos;
         this.rowsEnriched = rowsEnriched;
         this.tasks = tasks;
         this.initialisations = initialisations;
     }
 
     /**
-     * Registers the accumulators, one pair per module, in the order the modules appear in the
+     * Registers the accumulators, two pairs per module, in the order the modules appear in the
      * configuration. That is the order the pipeline runs them in and the order the per-partition
      * timing arrays are indexed by.
      */
     public static ModuleTimings register(SparkContext sparkContext, List<EnrichmentModule> modules) {
         List<String> names = labels(modules);
         List<LongAccumulator> enrich = new ArrayList<>(names.size());
+        List<LongMaxAccumulator> enrichMax = new ArrayList<>(names.size());
         List<LongAccumulator> init = new ArrayList<>(names.size());
+        List<LongMaxAccumulator> initMax = new ArrayList<>(names.size());
         for (String name : names) {
             enrich.add(sparkContext.longAccumulator(ENRICH_PREFIX + name));
             init.add(sparkContext.longAccumulator(INIT_PREFIX + name));
+            enrichMax.add(registerMax(sparkContext, ENRICH_MAX_PREFIX + name));
+            initMax.add(registerMax(sparkContext, INIT_MAX_PREFIX + name));
         }
-        return new ModuleTimings(names, enrich, init,
+        return new ModuleTimings(names, enrich, enrichMax, init, initMax,
                 sparkContext.longAccumulator(ROWS_NAME),
                 sparkContext.longAccumulator(TASKS_NAME),
                 sparkContext.longAccumulator(INITS_NAME));
+    }
+
+    private static LongMaxAccumulator registerMax(SparkContext sparkContext, String name) {
+        LongMaxAccumulator accumulator = new LongMaxAccumulator();
+        sparkContext.register(accumulator, name);
+        return accumulator;
     }
 
     /**
@@ -109,11 +134,13 @@ public class ModuleTimings implements Serializable {
         check(enriching);
         for (int i = 0; i < enriching.length; i++) {
             enrichNanos.get(i).add(enriching[i]);
+            enrichMaxNanos.get(i).add(enriching[i]);
         }
         if (init != null) {
             check(init);
             for (int i = 0; i < init.length; i++) {
                 initNanos.get(i).add(init[i]);
+                initMaxNanos.get(i).add(init[i]);
             }
             initialisations.add(1);
         }
@@ -133,11 +160,21 @@ public class ModuleTimings implements Serializable {
      * meaningful once the action that runs the pipeline has completed.
      */
     public String report() {
-        return format(moduleNames, values(enrichNanos), values(initNanos),
+        return format(moduleNames,
+                sums(enrichNanos), maxima(enrichMaxNanos),
+                sums(initNanos), maxima(initMaxNanos),
                 rowsEnriched.value(), tasks.value(), initialisations.value());
     }
 
-    private static long[] values(List<LongAccumulator> accumulators) {
+    private static long[] sums(List<LongAccumulator> accumulators) {
+        long[] nanos = new long[accumulators.size()];
+        for (int i = 0; i < nanos.length; i++) {
+            nanos[i] = accumulators.get(i).value();
+        }
+        return nanos;
+    }
+
+    private static long[] maxima(List<LongMaxAccumulator> accumulators) {
         long[] nanos = new long[accumulators.size()];
         for (int i = 0; i < nanos.length; i++) {
             nanos[i] = accumulators.get(i).value();
@@ -146,21 +183,25 @@ public class ModuleTimings implements Serializable {
     }
 
     /** Table rendering, kept separate from the accumulators so it can be tested on its own. */
-    static String format(List<String> moduleNames, long[] enriching, long[] init,
+    static String format(List<String> moduleNames,
+                         long[] enriching, long[] enrichingMax,
+                         long[] init, long[] initMax,
                          long rows, long tasks, long initialisations) {
         List<String> lines = new ArrayList<>(2 * moduleNames.size() + 3);
         lines.add(String.format(Locale.ROOT,
                 "Per-module timings: %,d rows enriched over %,d tasks, %,d module initialisations",
                 rows, tasks, initialisations));
 
+        long enrichTotal = sum(enriching);
         lines.add(String.format(Locale.ROOT,
                 "  enriching rows: %,d ms summed over all tasks",
-                TimeUnit.NANOSECONDS.toMillis(sum(enriching))));
-        long enrichTotal = sum(enriching);
+                TimeUnit.NANOSECONDS.toMillis(enrichTotal)));
         for (int i = 0; i < moduleNames.size(); i++) {
-            lines.add(String.format(Locale.ROOT, "    %-32s %,9d ms %10.2f us/row %6.1f %%",
+            lines.add(String.format(Locale.ROOT,
+                    "    %-32s %,9d ms total %,9d ms slowest task %10.2f us/row %6.1f %%",
                     moduleNames.get(i),
                     TimeUnit.NANOSECONDS.toMillis(enriching[i]),
+                    TimeUnit.NANOSECONDS.toMillis(enrichingMax[i]),
                     rows == 0 ? 0d : enriching[i] / 1000d / rows,
                     enrichTotal == 0 ? 0d : 100d * enriching[i] / enrichTotal));
         }
@@ -171,9 +212,11 @@ public class ModuleTimings implements Serializable {
                 TimeUnit.NANOSECONDS.toMillis(initTotal), initialisations,
                 initialisations == 0 ? 0d : initTotal / 1_000_000d / initialisations));
         for (int i = 0; i < moduleNames.size(); i++) {
-            lines.add(String.format(Locale.ROOT, "    %-32s %,9d ms %10.2f ms/init %6.1f %%",
+            lines.add(String.format(Locale.ROOT,
+                    "    %-32s %,9d ms total %,9d ms slowest init %10.2f ms/init %6.1f %%",
                     moduleNames.get(i),
                     TimeUnit.NANOSECONDS.toMillis(init[i]),
+                    TimeUnit.NANOSECONDS.toMillis(initMax[i]),
                     initialisations == 0 ? 0d : init[i] / 1_000_000d / initialisations,
                     initTotal == 0 ? 0d : 100d * init[i] / initTotal));
         }
