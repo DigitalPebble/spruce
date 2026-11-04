@@ -99,14 +99,27 @@ public abstract class Utils {
     }
 
     /**
+     * Returns the row's values in a fresh array which the caller owns and may overwrite, leaving
+     * the row itself untouched. Rows that already hold their values as an array are cloned, the
+     * rest are copied field by field.
+     **/
+    public static Object[] valuesOf(Row row) {
+        if (row instanceof GenericRowWithSchema generic) {
+            return generic.values().clone();
+        }
+        Object[] values = new Object[row.size()];
+        for (int i = 0; i < values.length; i++) {
+            values[i] = row.get(i);
+        }
+        return values;
+    }
+
+    /**
      * Clone a Row and give it new values
      **/
     public static Row withUpdatedValues(Row row, Map<String, Object> updates) {
 
-        Object[] values = new Object[row.size()];
-        for (int i = 0; i < row.size(); i++) {
-            values[i] = row.get(i);
-        }
+        Object[] values = valuesOf(row);
 
         for (Map.Entry<String, Object> entry : updates.entrySet()) {
             String field = entry.getKey();

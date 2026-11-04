@@ -100,10 +100,7 @@ public class EnrichmentPipeline implements MapPartitionsFunction<Row, Row> {
                 rowsEnriched[0]++;
 
                 // Materialise the final row — single copy instead of one per module
-                Object[] values = new Object[row.size()];
-                for (int i = 0; i < row.size(); i++) {
-                    values[i] = row.get(i);
-                }
+                Object[] values = Utils.valuesOf(row);
                 for (Map.Entry<Column, Object> entry : enriched.entrySet()) {
                     values[entry.getKey().resolveIndex(row)] = entry.getValue();
                 }

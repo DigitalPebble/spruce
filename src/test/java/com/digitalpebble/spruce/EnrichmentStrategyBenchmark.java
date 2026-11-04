@@ -17,12 +17,13 @@ import static com.digitalpebble.spruce.SpruceColumn.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * Benchmarks the current row-copy-per-module enrichment approach against a
+ * Benchmarks the original row-copy-per-module enrichment approach against a
  * map-based approach where modules accumulate updates in a {@code Map<Column, Object>}
- * and a single Row is materialised at the end of the pipeline.
+ * and a single Row is materialised at the end of the pipeline, and that in turn against
+ * materialising it by cloning the values array the row already holds.
  *
  * <h3>Current approach</h3>
- * Every call to {@link EnrichmentModule#withUpdatedValue} allocates a new
+ * Every call to the since removed {@code EnrichmentModule.withUpdatedValue} allocates a new
  * {@code Object[]}, copies <em>all</em> column values from the previous row,
  * sets the target value, and wraps it in a new {@link GenericRowWithSchema}.
  * With 6 modules and a 108-column schema this means 6 full array copies and
@@ -154,6 +155,38 @@ public class EnrichmentStrategyBenchmark {
      * A single Row is materialised at the very end.
      */
     static Row mapApproach(Row originalRow) {
+        Map<Column, Object> enriched = enrichIntoMap();
+
+        // --- Single row materialisation, reading every field back out ---
+        Object[] values = new Object[originalRow.size()];
+        for (int i = 0; i < originalRow.size(); i++) {
+            values[i] = originalRow.get(i);
+        }
+        return withEnriched(values, enriched, originalRow);
+    }
+
+    // ==================================================================
+    //  CLONE APPROACH - the map approach, materialising by cloning
+    // ==================================================================
+
+    /**
+     * The map approach, materialising the final row with {@link Utils#valuesOf} rather than
+     * reading every field back out one at a time. This is what the pipeline does.
+     */
+    static Row cloneApproach(Row originalRow) {
+        return withEnriched(Utils.valuesOf(originalRow), enrichIntoMap(), originalRow);
+    }
+
+    /** Writes the enriched values into the array and wraps it in a Row. */
+    private static Row withEnriched(Object[] values, Map<Column, Object> enriched, Row row) {
+        for (Map.Entry<Column, Object> e : enriched.entrySet()) {
+            values[e.getKey().resolveIndex(row)] = e.getValue();
+        }
+        return new GenericRowWithSchema(values, row.schema());
+    }
+
+    /** The 6-module chain, accumulating what it writes in a map. */
+    private static Map<Column, Object> enrichIntoMap() {
         Map<Column, Object> enriched = new HashMap<>();
 
         // 1. RegionExtraction
@@ -184,15 +217,7 @@ public class EnrichmentStrategyBenchmark {
         double ci = (Double) enriched.get(CARBON_INTENSITY);
         enriched.put(OPERATIONAL_EMISSIONS, energy * pue * ci);
 
-        // --- Single row materialisation ---
-        Object[] values = new Object[originalRow.size()];
-        for (int i = 0; i < originalRow.size(); i++) {
-            values[i] = originalRow.get(i);
-        }
-        for (Map.Entry<Column, Object> e : enriched.entrySet()) {
-            values[e.getKey().resolveIndex(originalRow)] = e.getValue();
-        }
-        return new GenericRowWithSchema(values, originalRow.schema());
+        return enriched;
     }
 
     // ==================================================================
@@ -208,6 +233,7 @@ public class EnrichmentStrategyBenchmark {
         for (int i = 0; i < warmup; i++) {
             currentApproach(templateRow);
             mapApproach(templateRow);
+            cloneApproach(templateRow);
         }
 
         // ---- Measure current approach ----
@@ -226,20 +252,24 @@ public class EnrichmentStrategyBenchmark {
         }
         long mapNs = System.nanoTime() - t0;
 
-        // ---- Verify both approaches produce identical results ----
+        // ---- Measure clone approach ----
+        t0 = System.nanoTime();
+        Row resultClone = null;
+        for (int i = 0; i < iterations; i++) {
+            resultClone = cloneApproach(templateRow);
+        }
+        long cloneNs = System.nanoTime() - t0;
+
+        // ---- Verify the three approaches produce identical results ----
         for (int i = 0; i < totalWidth; i++) {
-            Object a = resultCurrent.get(i);
-            Object b = resultMap.get(i);
-            if (a instanceof Double da && b instanceof Double db) {
-                assertEquals(da, db, 1e-12, "Mismatch at column " + i);
-            } else {
-                assertEquals(a, b, "Mismatch at column " + i);
-            }
+            assertSameValue(resultCurrent.get(i), resultMap.get(i), i);
+            assertSameValue(resultMap.get(i), resultClone.get(i), i);
         }
 
         // ---- Report ----
         long currentMs = currentNs / 1_000_000;
         long mapMs = mapNs / 1_000_000;
+        long cloneMs = cloneNs / 1_000_000;
         double speedup = (double) currentNs / mapNs;
 
         System.out.println();
@@ -249,7 +279,24 @@ public class EnrichmentStrategyBenchmark {
         System.out.printf("Pipeline:          6 modules (mirrors real chain)%n");
         System.out.printf("Rows processed:    %,d%n%n", iterations);
         System.out.printf("Current (row-copy per module): %,d ms%n", currentMs);
-        System.out.printf("Map (single row creation):     %,d ms%n", mapMs);
+        System.out.printf("Map (single row creation):     %,d ms (%.3f us/row)%n",
+                mapMs, microsPerRow(mapNs, iterations));
+        System.out.printf("Map (cloned values array):     %,d ms (%.3f us/row)%n",
+                cloneMs, microsPerRow(cloneNs, iterations));
         System.out.printf("Speedup:                       %.2fx%n", speedup);
+        System.out.printf("Clone vs field-by-field copy:  %.2fx%n", (double) mapNs / cloneNs);
+    }
+
+    private static double microsPerRow(long nanos, int rows) {
+        return (double) nanos / rows / 1_000;
+    }
+
+    /** Asserts two column values are equal, allowing for the imprecision of doubles. */
+    private static void assertSameValue(Object expected, Object actual, int column) {
+        if (expected instanceof Double de && actual instanceof Double da) {
+            assertEquals(de, da, 1e-12, "Mismatch at column " + column);
+        } else {
+            assertEquals(expected, actual, "Mismatch at column " + column);
+        }
     }
 }
