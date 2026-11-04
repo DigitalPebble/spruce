@@ -17,12 +17,12 @@ public class BoaviztAPIstatic extends AbstractBoaviztaAws {
 
     @Override
     public void init(Map<String, Object> params) {
-        populateCacheFromStaticFile(DEFAULT_RESOURCE_LOCATION);
+        loadImpactsFromStaticFile(DEFAULT_RESOURCE_LOCATION);
     }
 
     @Override
     protected Impacts lookupImpacts(String instanceType) {
-        // should have been found in cache already
+        // the whole table is loaded up front, so a miss here means an unknown type
         return null;
     }
 }
