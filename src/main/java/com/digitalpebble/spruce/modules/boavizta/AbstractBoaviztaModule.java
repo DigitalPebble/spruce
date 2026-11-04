@@ -14,6 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -39,9 +41,21 @@ public abstract class AbstractBoaviztaModule implements EnrichmentModule {
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractBoaviztaModule.class);
     /**
+     * Impacts parsed from the bundled CSVs, keyed by resource location. A bundled resource cannot
+     * change while the JVM runs, so each file is parsed once and the table shared by every module
+     * instance the Spark tasks of that executor create. Read-only once built.
+     */
+    private static final ConcurrentHashMap<String, Map<String, Impacts>> STATIC_IMPACTS =
+            new ConcurrentHashMap<>();
+    /**
      * Instance types we have already failed to resolve, to avoid repeated lookups.
      */
     protected final Set<String> unknownInstanceTypes = ConcurrentHashMap.newKeySet();
+    /**
+     * The table this module looks up, shared with every other instance loading the same file, and
+     * empty in the variants that query the API instead.
+     */
+    protected Map<String, Impacts> staticImpacts = Map.of();
     /**
      * Cached impacts map for efficiency
      */
@@ -69,39 +83,42 @@ public abstract class AbstractBoaviztaModule implements EnrichmentModule {
     }
 
     /**
-     * Loads impacts data from a resource file. This method is designed to be called by subclasses
-     * that need to load their specific CSV files. The values are then stored in the cache.
+     * Loads impacts data from a resource file, or reuses the table another module instance in this
+     * JVM has already parsed from it. Called by the subclasses backed by a bundled CSV.
      *
      * @param resourceLocation The location of the CSV resource file
      */
-    public void populateCacheFromStaticFile(String resourceLocation) {
-        synchronized (AbstractBoaviztaModule.class) {
-            if (cache == null) {
-                cache = Caffeine.newBuilder().build();
-            }
-            try {
-                // Load the resource file
-                java.util.List<String> estimates = Utils.loadLinesResources(resourceLocation);
-                // estimates consists of comma separated instance type, usage energy, embodied emissions, adp
-                estimates.forEach(line -> {
-                    if (line.startsWith("#") || line.trim().isEmpty()) {
-                        return;
-                    }
-                    String[] parts = line.split(",");
-                    if (parts.length == 4) {
-                        String instanceType = parts[0].trim();
-                        double energyUsed = Double.parseDouble(parts[1].trim());
-                        double embodied = Double.parseDouble(parts[2].trim());
-                        double adp = Double.parseDouble(parts[3].trim());
-                        cache.put(instanceType, new Impacts(energyUsed, embodied, adp));
-                    } else {
-                        throw new RuntimeException("Invalid estimates mapping line: " + line);
-                    }
-                });
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+    public void loadImpactsFromStaticFile(String resourceLocation) {
+        staticImpacts = STATIC_IMPACTS.computeIfAbsent(
+                resourceLocation, AbstractBoaviztaModule::parseStaticFile);
+    }
+
+    /**
+     * Parses one impacts CSV, each line holding a comma separated instance type, usage energy,
+     * embodied emissions and adp.
+     */
+    private static Map<String, Impacts> parseStaticFile(String resourceLocation) {
+        final List<String> estimates;
+        try {
+            estimates = Utils.loadLinesResources(resourceLocation);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
+        final Map<String, Impacts> impacts = new HashMap<>();
+        for (String line : estimates) {
+            if (line.startsWith("#") || line.trim().isEmpty()) {
+                continue;
+            }
+            String[] parts = line.split(",");
+            if (parts.length != 4) {
+                throw new RuntimeException("Invalid estimates mapping line: " + line);
+            }
+            impacts.put(parts[0].trim(), new Impacts(
+                    Double.parseDouble(parts[1].trim()),
+                    Double.parseDouble(parts[2].trim()),
+                    Double.parseDouble(parts[3].trim())));
+        }
+        return Map.copyOf(impacts);
     }
 
     /**
@@ -127,23 +144,26 @@ public abstract class AbstractBoaviztaModule implements EnrichmentModule {
         if (instanceType == null) {
             return;
         }
-        if (unknownInstanceTypes.contains(instanceType)) {
-            return;
-        }
+        // the static variants hold the whole table from the start, so this is their only lookup
+        Impacts impacts = staticImpacts.get(instanceType);
 
-        // check in cache (static variants will have put them there from the start)
-        Impacts impacts = cache.getIfPresent(instanceType);
-        // get from API
         if (impacts == null) {
-            impacts = lookupImpacts(instanceType);
-            if (impacts != null) {
-                cache.put(instanceType, impacts);
+            if (unknownInstanceTypes.contains(instanceType)) {
+                return;
             }
-        }
-        if (impacts == null) {
-            LOG.info("Unknown instance type {}", instanceType);
-            unknownInstanceTypes.add(instanceType);
-            return;
+            // get from API
+            impacts = cache.getIfPresent(instanceType);
+            if (impacts == null) {
+                impacts = lookupImpacts(instanceType);
+                if (impacts != null) {
+                    cache.put(instanceType, impacts);
+                }
+            }
+            if (impacts == null) {
+                LOG.info("Unknown instance type {}", instanceType);
+                unknownInstanceTypes.add(instanceType);
+                return;
+            }
         }
 
         double amount = getUsageAmount(row);
