@@ -48,25 +48,25 @@ class AverageCarbonIntensityTest {
 
     @Test
     void returnsTheFigureOfTheYear() {
-        // Virginia moved from 322.4 in 2024 to 327.17 in 2025
-        assertEquals(322.4, module.getIntensity(Provider.AWS, "us-east-1", 2024));
-        assertEquals(327.17, module.getIntensity(Provider.AWS, "us-east-1", 2025));
+        // Virginia moved from 350.842 in 2024 to 356.592 in 2025
+        assertEquals(350.842, module.getIntensity(Provider.AWS, "us-east-1", 2024));
+        assertEquals(356.592, module.getIntensity(Provider.AWS, "us-east-1", 2025));
     }
 
     @Test
     void usesTheLatestYearWhenTheYearIsNotPublishedYet() {
-        assertEquals(327.17, module.getIntensity(Provider.AWS, "us-east-1", 2030));
+        assertEquals(356.592, module.getIntensity(Provider.AWS, "us-east-1", 2030));
     }
 
     @Test
     void usesTheFirstYearBeforeTheFileStarts() {
         // the file starts in 2022
-        assertEquals(321.4, module.getIntensity(Provider.AWS, "us-east-1", 2019));
+        assertEquals(349.84, module.getIntensity(Provider.AWS, "us-east-1", 2019));
     }
 
     @Test
     void usesTheLatestYearWithoutAYear() {
-        assertEquals(327.17, module.getIntensity(Provider.AWS, "us-east-1", null));
+        assertEquals(356.592, module.getIntensity(Provider.AWS, "us-east-1", null));
     }
 
     @Test
@@ -77,12 +77,12 @@ class AverageCarbonIntensityTest {
 
     @Test
     void gcpKnownRegionReturnsIntensity() {
-        assertEquals(259.37, module.getIntensity(Provider.GOOGLE, "us-east1", 2025));
+        assertEquals(288.292, module.getIntensity(Provider.GOOGLE, "us-east1", 2025));
     }
 
     @Test
     void azureKnownRegionReturnsIntensity() {
-        assertEquals(327.17, module.getIntensity(Provider.AZURE, "eastus", 2025));
+        assertEquals(356.592, module.getIntensity(Provider.AZURE, "eastus", 2025));
     }
 
     @Test
@@ -98,13 +98,13 @@ class AverageCarbonIntensityTest {
 
     @Test
     void enrichSetsTheCarbonIntensityOfTheUsageYear() {
-        assertEquals(322.4, enrich(row("2024-06-15T00:00:00Z"), "us-east-1").get(CARBON_INTENSITY));
-        assertEquals(327.17, enrich(row("2025-06-15T00:00:00Z"), "us-east-1").get(CARBON_INTENSITY));
+        assertEquals(350.842, enrich(row("2024-06-15T00:00:00Z"), "us-east-1").get(CARBON_INTENSITY));
+        assertEquals(356.592, enrich(row("2025-06-15T00:00:00Z"), "us-east-1").get(CARBON_INTENSITY));
     }
 
     @Test
     void enrichUsesTheLatestYearWithoutADate() {
-        assertEquals(327.17, enrich(row(null), "us-east-1").get(CARBON_INTENSITY));
+        assertEquals(356.592, enrich(row(null), "us-east-1").get(CARBON_INTENSITY));
     }
 
     @Test
