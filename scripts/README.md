@@ -256,6 +256,27 @@ Usage: `./fetch_aqueduct_water_stress.py [cloud_regions.json] [output.csv]`
 Environment variables:
 - `GEOCACHE` — override the geocode cache path (default `scripts/.geocode_cache`).
 
+## EC2 instance types
+
+### `fetch_ec2_instance_types.sh`
+
+Writes every EC2 instance type, current and discontinued, one per line, in the
+format `com.digitalpebble.spruce.modules.boavizta.APITester` reads. It unions
+the price list catalogue (`aws pricing get-attribute-values`, which keeps
+retired families such as `cc2` or `g2`), the types each region offers today
+(`aws ec2 describe-instance-type-offerings`) and the public price lists of
+2015 to 2017, which hold the few types retired before that catalogue was
+assembled. Needs credentials allowing `pricing:GetAttributeValues`,
+`ec2:DescribeRegions` and `ec2:DescribeInstanceTypeOfferings`.
+
+Options: `-a`, `--all-regions` to query every region AWS advertises rather
+than those enabled on the account; `--current-only` for the types launchable
+today; `--no-history` to skip the historical price lists;
+`--history-years 2015,2016,2017` to change the years they are taken from.
+
+Usage: `./fetch_ec2_instance_types.sh [options] [output-file]` (default
+`instanceTypes` at the project root).
+
 ## GPU data
 
 ### `compare_gpu_accelerators_boavizta.py`
