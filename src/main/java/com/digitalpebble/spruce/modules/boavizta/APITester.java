@@ -4,6 +4,7 @@ package com.digitalpebble.spruce.modules.boavizta;
 
 import com.digitalpebble.spruce.Provider;
 
+import java.util.ArrayList;
 import java.util.List;
 
 // if 3 arguments are specified, use the first one as an input file containing
@@ -21,6 +22,7 @@ public class APITester {
             List<String> instanceTypes = java.nio.file.Files.readAllLines(java.nio.file.Paths.get(args[0]));
             Provider provider = Provider.fromString(args[1]);
             try (java.io.BufferedWriter writer = java.nio.file.Files.newBufferedWriter(java.nio.file.Paths.get(args[2]))) {
+                List<String> outputLines = new ArrayList<>();
                 writer.write("# instance_type, electricity_consumption_kwh, embodied_emissions_gco2eq, embodied_adp_gsbeq");
                 writer.newLine();
                 for (String line : instanceTypes) {
@@ -28,11 +30,15 @@ public class APITester {
                     if (instanceType.isEmpty() || instanceType.startsWith("#")) continue;
                     try {
                         Impacts usageAndEmbodiedEnergy = client.getImpacts(provider, instanceType);
-                        writer.write(instanceType + ", " + usageAndEmbodiedEnergy.getFinalEnergyKWh() + ", " + usageAndEmbodiedEnergy.getEmbeddedEmissionsGramsCO2eq() + ", " + usageAndEmbodiedEnergy.getAbioticDepletionPotentialGramsSbeq());
-                        writer.newLine();
+                        outputLines.add(instanceType + ", " + usageAndEmbodiedEnergy.getFinalEnergyKWh() + ", " + usageAndEmbodiedEnergy.getEmbeddedEmissionsGramsCO2eq() + ", " + usageAndEmbodiedEnergy.getAbioticDepletionPotentialGramsSbeq());
                     } catch (Exception e) {
                         System.err.println("Exception caught for instance type " + instanceType);
                     }
+                }
+                outputLines.sort(String::compareTo);
+                for (String outputLine : outputLines) {
+                    writer.write(outputLine);
+                    writer.newLine();
                 }
             }
         } else if (args.length == 2) {
