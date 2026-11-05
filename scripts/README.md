@@ -77,17 +77,39 @@ Run it on fresh `fetch_cloud_regions.sh` output: a second run on a fixed file br
 
 Downloads three Ember CSVs and emits one CSV row per keyed cloud region and year:
 
-- `yearly_full_release_long_format.csv` — per-country power-sector intensity.
-- `us_yearly_full_release_long_format.csv` — per-US-state intensity.
+- `generation/outputs/release_generation_yearly_global.csv` — per-country
+  power-sector intensity.
+- `generation/outputs/release_us_subnational_generation_yearly.csv` —
+  per-US-state intensity.
 - `india_yearly_full_release_long_format.csv` — per-Indian-state intensity.
+
+Ember publishes these in two layouts and is moving its releases from the
+second to the first; India is the last one still on the old layout. The
+`SUBNATIONAL` entries carry the layout of their source:
+
+- `wide` (global, US) — one row per area, year and electricity source. Keep
+  the rows whose `Electricity source` is `Total generation`, i.e. the
+  all-sources row, and read `Emissions intensity (gCO2e/kWh)`.
+- `long` (India) — one row per variable. Keep the rows whose `Unit` is
+  `gCO2/kWh` and read `Value`.
+
+Note the unit: the wide releases publish CO2e, where the long ones published
+CO2. The output column is still named `gCO2_per_kWh`.
+
+Columns are addressed by header name, not position, since the two layouts
+differ in column order and Ember has added columns between releases. A
+missing column stops the script rather than emptying the output. Fields
+holding a comma are quoted upstream (`Hydro, bioenergy and other
+renewables`, `Washington, D.C.`), so the CSVs are parsed with the quoting
+rather than split on every comma.
 
 Filtering and reduction (all datasets):
 
-- `Unit == "gCO2/kWh"`.
-- Keep every year from `FROM_YEAR` (2022) on, per ISO3 code / state code.
-- Country rows are further restricted to countries that appear in
-  `cloud_regions.json` (one alias: Ember's "United States of America" ↔
-  cloud_regions' "United States").
+- Keep every year from `FROM_YEAR` (2022) on, per ISO3 code / state code,
+  dropping empty values.
+- Country rows are restricted to countries that appear in
+  `cloud_regions.json`, and to rows with a non-empty `ISO 3 code`, which
+  drops Ember's aggregate regions (`ASEAN`, `Europe`, ...).
 
 Joining to cloud regions:
 
@@ -103,6 +125,9 @@ Joining to cloud regions:
   subdivision, the script stops without writing the csv and lists the
   regions with the reason: each of them would otherwise get the national
   figure.
+- If a region's country has no Ember figure at all, the csv is still
+  written, with a warning naming the country and its regions: those regions
+  get no carbon intensity rather than a wrong one.
 - Resolved subdivisions are cached in `scripts/.geocode_cache_iso` (`lat`,
   `lon`, ISO 3166-2 code); failed requests are not, so they are retried on
   the next run. Repeat runs are free; the 1 req/sec rate limit only matters
@@ -111,15 +136,23 @@ Joining to cloud regions:
   separate cache, since they store state names rather than ISO codes.
 - `_unresolved` entries are skipped (no region code to emit).
 
-Sub-national configuration lives in two arrays at the top of the script:
+Source and alias configuration lives in four arrays at the top of the script:
 
-- `SUBNATIONAL` — one entry per source, `country_name|url|prefix` (the
-  prefix is prepended to Ember's bare state codes so keys match what
-  Nominatim returns, e.g. Ember `VA` → `US-VA`). Add a new source by
-  adding another line.
+- `SUBNATIONAL` — one entry per source,
+  `country_name|url|prefix|layout` (the prefix is prepended to Ember's bare
+  state codes so keys match what Nominatim returns, e.g. Ember `VA` →
+  `US-VA`). Add a new source by adding another line.
+- `COUNTRY_ALIASES` — bridges countries Ember names differently from
+  `cloud_regions.json`. Currently populated for Taiwan (Ember
+  `Taiwan (China)`).
 - `SUBNATIONAL_ALIASES` — bridges cases where Nominatim and Ember use
   different ISO 3166-2 codes for the same region. Currently populated
   for Telangana (`IN-TS` ↔ `IN-TG`) and Odisha (`IN-OD` ↔ `IN-OR`).
+
+Ember retires a download by replacing it with a two-line CSV holding a
+notice and the URL of its replacement, served as `200`, which `curl --fail`
+does not catch. The script checks for that notice and reports it, so a
+retired URL is named rather than silently yielding no rows.
 
 Output is `src/main/resources/ember/ember_co2_intensity.csv` with three `#`-prefixed header lines
 (licence URL, licence name, column names).
@@ -149,9 +182,9 @@ For every keyed region of `cloud_regions.json` whose country is `United Kingdom`
   [carbonintensity-api](https://github.com/jnioche/carbonintensity-api) CLI (`--mix` option),
   which splits the period into the windows the API accepts; regions sharing an outward code
   are fetched once;
-- value each half-hour's mix with Ember's lifecycle factors: per fuel, Ember's UK power sector
-  emissions divided by generation for the year, taken from the same
-  `yearly_full_release_long_format.csv` as `fetch_ember_co2_intensity.sh`; for imports,
+- value each half-hour's mix with Ember's lifecycle factors: per fuel, the intensity Ember
+  publishes for that fuel in the UK for the year, read from the same
+  `release_generation_yearly_global.csv` as `fetch_ember_co2_intensity.sh`; for imports,
   Ember's intensity of the countries whose interconnectors land in the API region (table
   `INTERCONNECTORS` in the script, with `IMPORT_NEIGHBOURS` for regions without a landing point
   such as London), weighted by what each link imported in that half-hour according to the
@@ -160,6 +193,16 @@ For every keyed region of `cloud_regions.json` whose country is `United Kingdom`
   The script stops if a region has no link;
 - average the result per calendar month (UTC). A month with less than 90% of its half-hours
   is skipped with a warning.
+
+Ember's release holds one row per area, year and electricity source, with the intensity of
+that source in `Emissions intensity (gCO2e/kWh)`. A fuel's row gives its lifecycle factor,
+and the `Total generation` row of a country gives the intensity of its grid. The script stops
+if the download has been retired, if one of the columns it reads is missing, or if a fuel or
+an interconnector country has no figure. The names Ember uses for the fuels are the values of
+`FUELS` in the script.
+
+Note the unit: this release publishes CO2e, where Ember's retired long format published CO2.
+The output column is still named `gCO2_per_kWh`.
 
 Years Ember has not published yet get the latest year available.
 

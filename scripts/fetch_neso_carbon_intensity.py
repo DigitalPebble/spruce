@@ -10,8 +10,8 @@ of each region is therefore combined with Ember factors instead:
 
   intensity = sum over fuels of (share of the fuel x Ember lifecycle factor for the fuel)
 
-  - Domestic fuels get Ember's factor for the UK and the year, derived from Ember's yearly
-    data as power sector emissions / generation per fuel.
+  - Domestic fuels get Ember's factor for the UK and the year: the intensity Ember
+    publishes for that fuel, its power sector emissions over its generation.
   - Imports get the Ember intensity of the countries whose interconnectors land in the API
     region (see INTERCONNECTORS), weighted by what each link imported in that half-hour
     according to Elexon. When all the links of the region were exporting, the imports of the
@@ -61,7 +61,17 @@ FROM_MONTH = datetime.date(2022, 1, 1)
 COUNTRY = "United Kingdom"
 POSTCODES_URL = "https://api.postcodes.io/postcodes?lat={lat}&lon={lon}&limit=1&radius=2000"
 REGION_URL = "https://api.carbonintensity.org.uk/regional/postcode/{outcode}"
-EMBER_URL = "https://files.ember-energy.org/public-downloads/yearly_full_release_long_format.csv"
+EMBER_URL = ("https://files.ember-energy.org/public-downloads/generation/outputs/"
+             "release_generation_yearly_global.csv")
+# Ember's release holds one row per area, year and electricity source, with the intensity of
+# that source in its own column. A fuel's row gives its lifecycle factor, the all-sources row
+# of a country gives the intensity of its grid. The unit is CO2e, where Ember's retired long
+# format published CO2.
+EMBER_AREA = "Area"
+EMBER_YEAR = "Year"
+EMBER_SOURCE = "Electricity source"
+EMBER_INTENSITY = "Emissions intensity (gCO2e/kWh)"
+EMBER_TOTAL_SOURCE = "Total generation"
 # Half-hourly generation per fuel type, interconnector flows included (imports positive)
 ELEXON_URL = ("https://data.elexon.co.uk/bmrs/api/v1/datasets/FUELHH?settlementDateFrom={start}"
               "&settlementDateTo={end}{fuel_types}&format=json")
@@ -72,13 +82,13 @@ USER_AGENT = "spruce-neso-carbon-intensity-script/2.0"
 MIN_COVERAGE = 0.9
 
 # Fuels of the API mix -> Ember fuel whose UK lifecycle factor applies. "other" is 0 in the
-# regional mix in practice; Ember's "Other Fossil" is the closest category.
+# regional mix in practice; Ember's "Other fossil" is the closest category.
 FUELS = {
     "biomass": "Bioenergy",
     "coal": "Coal",
     "gas": "Gas",
     "nuclear": "Nuclear",
-    "other": "Other Fossil",
+    "other": "Other fossil",
     "hydro": "Hydro",
     "solar": "Solar",
     "wind": "Wind",
@@ -184,27 +194,31 @@ def load_ember(countries):
     """Returns (UK lifecycle factor per Ember fuel and year, intensity per country and year)."""
     print(f"Downloading {EMBER_URL}...", file=sys.stderr)
     req = urllib.request.Request(EMBER_URL, headers={"User-Agent": USER_AGENT})
-    generation = {}
-    emissions = {}
+    fuels = set(FUELS.values())
+    factors = collections.defaultdict(dict)
     intensities = collections.defaultdict(dict)
     with urllib.request.urlopen(req, timeout=300) as resp:
-        for row in csv.DictReader(io.TextIOWrapper(resp, encoding="utf-8")):
-            area, unit = row["Area"], row["Unit"]
-            if not row["Value"]:
+        reader = csv.DictReader(io.TextIOWrapper(resp, encoding="utf-8"))
+        header = reader.fieldnames or []
+        # Ember replaces a retired download with a two-line csv holding a notice and the url
+        # of its replacement, served as 200, so the request itself does not fail.
+        if header[:1] == ["notice"]:
+            notice = next(reader, {})
+            sys.exit(f"error: Ember has retired {EMBER_URL}\n  {notice.get('notice', '')}\n"
+                     f"  replacement: {notice.get('new_url', '')}")
+        missing = [c for c in (EMBER_AREA, EMBER_YEAR, EMBER_SOURCE, EMBER_INTENSITY)
+                   if c not in header]
+        if missing:
+            sys.exit(f"error: {EMBER_URL} has no column {', '.join(missing)}: {header}")
+        for row in reader:
+            if not row[EMBER_INTENSITY]:
                 continue
-            year, value = int(row["Year"]), float(row["Value"])
-            if area in countries and row["Variable"] == "CO2 intensity" and unit == "gCO2/kWh":
+            area, source = row[EMBER_AREA], row[EMBER_SOURCE]
+            year, value = int(row[EMBER_YEAR]), float(row[EMBER_INTENSITY])
+            if area == COUNTRY and source in fuels:
+                factors[source][year] = value
+            if area in countries and source == EMBER_TOTAL_SOURCE:
                 intensities[area][year] = value
-            elif area == COUNTRY and row["Subcategory"] == "Fuel":
-                if unit == "TWh":
-                    generation[(row["Variable"], year)] = value
-                elif unit == "mtCO2":
-                    emissions[(row["Variable"], year)] = value
-    factors = collections.defaultdict(dict)
-    for (fuel, year), twh in generation.items():
-        if twh > 0 and (fuel, year) in emissions:
-            # mtCO2 / TWh = kgCO2 / MWh = gCO2 / kWh
-            factors[fuel][year] = emissions[(fuel, year)] / twh * 1000
     for fuel in FUELS.values():
         if not factors.get(fuel):
             sys.exit(f"error: no Ember factor for {fuel} in {COUNTRY}")
