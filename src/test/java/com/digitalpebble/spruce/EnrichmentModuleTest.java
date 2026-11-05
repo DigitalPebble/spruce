@@ -45,7 +45,7 @@ class EnrichmentModuleTest {
 
     @Test
     void enrichAddsToExistingValue() {
-        // Simulates the Accelerators add-to-existing pattern
+        // Simulates a module adding to an existing value
         EnrichmentModule module = new EnrichmentModule() {
             @Override
             public Column[] columnsNeeded() { return new Column[0]; }

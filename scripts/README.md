@@ -320,52 +320,6 @@ today; `--no-history` to skip the historical price lists;
 Usage: `./fetch_ec2_instance_types.sh [options] [output-file]` (default
 `instanceTypes` at the project root).
 
-## GPU data
-
-### `compare_gpu_accelerators_boavizta.py`
-
-Compares the GPU data used by the `Accelerators` module
-(`src/main/resources/ccf/accelerators.json`, derived from Cloud Carbon
-Footprint) with the data from BoaviztAPI: instance type coverage, GPU
-count and model per instance type, use-phase electricity, and embodied gwp
-(live API vs the bundled `src/main/resources/boavizta/instanceTypes.csv`).
-
-By default it queries the public instance at <https://api.boavizta.org>. The
-script sends ~1200 requests, so for repeated runs (or to pin the version
-being compared) prefer a local instance:
-
-```sh
-docker run --rm -p 5000:5000 ghcr.io/boavizta/boaviztapi:2.3.0
-python3 scripts/compare_gpu_accelerators_boavizta.py --api http://localhost:5000
-```
-
-Run it from the project root when a new BoaviztAPI version comes out to check
-whether GPU use-phase power is implemented (as of 2.3.0 it is not — the
-Accelerators module remains the only source of GPU electricity) and whether
-the bundled `instanceTypes.csv` needs regenerating with
-`com.digitalpebble.spruce.modules.boavizta.APITester`.
-
-### `compare_gpu_accelerators_aws.py`
-
-Checks the same `accelerators.json` against the instance types EC2 actually
-offers, so that new GPU generations don't silently go without an
-`operational_energy_kwh` estimate. Reports instance types AWS offers that the
-file doesn't cover (and whether their GPU model already has wattage data in
-`GPU_INFO`), instance types the queried regions no longer offer, disagreements
-on the GPU count — fractional GPUs included, e.g. `g6f.large` gets 0.125 of an
-L4 — or on the GPU model, plus unused or undefined `GPU_INFO` entries.
-
-Instance types are region-specific, so pass every region you care about:
-
-```sh
-python3 scripts/compare_gpu_accelerators_aws.py --region us-east-1 --region eu-west-2
-```
-
-Needs the AWS CLI with credentials allowing `ec2:DescribeInstanceTypes`, a
-read-only call. `--strict` exits 1 when something is missing or disagrees
-(instance types simply not offered in the queried regions don't count), which
-is what you want if this ever runs in CI.
-
 ## Requirements
 
 - `bash` 4+
@@ -373,7 +327,6 @@ is what you want if this ever runs in CI.
 - `jq`
 - `awk` (BSD awk on macOS or GNU awk both work)
 - Python 3.8+, `openpyxl` (`pip install openpyxl`)
-- AWS CLI with credentials, for `compare_gpu_accelerators_aws.py` only
 - Network access to `files.ember-energy.org`, `cloudinfrastructuremap.com`,
   `files.wri.org`, `nominatim.openstreetmap.org`, `api.postcodes.io`,
   `api.carbonintensity.org.uk` and `data.elexon.co.uk`.
