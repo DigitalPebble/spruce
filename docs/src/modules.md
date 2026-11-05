@@ -33,7 +33,7 @@ written by earlier ones, which is why the order in the configuration file matter
 ```mermaid
 flowchart LR
     A[Billing row] --> B("<b>Metadata</b><br>RegionExtraction")
-    B --> C("<b>Energy &amp; embodied</b><br>Storage, Networking,<br>Serverless, Accelerators,<br>Boavizta, EcoLogits")
+    B --> C("<b>Energy &amp; embodied</b><br>Storage, Networking,<br>Serverless,<br>Boavizta, EcoLogits")
     C --> D("<b>Factors</b><br>PWUE,<br>CarbonIntensity")
     D --> E("<b>Impacts</b><br>OperationalEmissions,<br>Water")
     E --> F("<b>Normalisation</b><br>FOCUSColumns<br>(native formats only)")
@@ -46,7 +46,6 @@ flowchart LR
 | [Storage](#storage) | AWS, Azure | `operational_energy_kwh`, `embodied_emissions_co2eq_g` | [Cloud Carbon Footprint](https://www.cloudcarbonfootprint.org/) for energy, [Boavizta](https://doc.api.boavizta.org/) and vendor LCAs for embodied |
 | [Networking](#networking) | AWS, Azure | `operational_energy_kwh` | [Boavizta](https://boavizta.org/) coefficients |
 | [Serverless](#serverless) | AWS | `operational_energy_kwh` | [Tailpipe](https://tailpipe.ai/methodology/serverless-explained/) |
-| [Accelerators](#accelerators) | AWS | `operational_energy_kwh` | [Cloud Carbon Footprint](https://www.cloudcarbonfootprint.org/) |
 | [Compute — Boavizta](#compute-boavizta) | AWS, Azure | `operational_energy_kwh`, `embodied_emissions_co2eq_g`, `embodied_adp_sbeq_g` | [BoaviztAPI](https://doc.api.boavizta.org/) |
 | [LLM inference — EcoLogits](#llm-inference-ecologits) | AWS, Azure | `operational_energy_kwh`, `embodied_emissions_co2eq_g` | [EcoLogits](https://ecologits.ai/) |
 | [PWUE](#pwue) | AWS, Azure | `power_usage_effectiveness`, `water_usage_effectiveness` | Provider-published data |
@@ -186,28 +185,6 @@ the underlying hardware, so the x86 coefficient is applied.
 | `memory_coefficient_kwh`  | 0.0000598     | kWh per GB of memory |
 | `arm_cpu_coefficient_kwh` | 0.00191015625 | kWh per vCPU (ARM) |
 | `x86_cpu_coefficient_kwh` | 0.0088121875  | kWh per vCPU (x86) |
-
-### Accelerators
-
-Estimates the energy used by accelerators (GPUs), following the approach of the
-[Cloud Carbon Footprint](https://www.cloudcarbonfootprint.org/docs/methodology/#graphic-processing-units-gpus)
-project: the power draw is interpolated between the minimum and maximum wattage of the
-accelerator at an assumed utilisation rate.
-
-Instance types which expose only a fraction of a physical GPU (e.g. `g6f.large`, which gets an
-eighth of an NVIDIA L4) are supported: their share of the GPU is a decimal number and the power
-draw is scaled accordingly.
-
-| | |
-|---|---|
-| **Class** | `com.digitalpebble.spruce.modules.ccf.aws.Accelerators` |
-| **Writes** | `operational_energy_kwh` |
-
-**Configuration**:
-
-| Key | Default | Description |
-|---|---|---|
-| `gpu_utilisation_percent` | 50 | Assumed GPU utilisation rate; decimals are allowed (e.g. `12.5`) |
 
 ### Compute — Boavizta
 

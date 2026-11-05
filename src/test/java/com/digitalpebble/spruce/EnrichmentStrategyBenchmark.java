@@ -39,7 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * <ol>
  *   <li>RegionExtraction → writes REGION</li>
  *   <li>BoaviztAPIstatic → writes ENERGY_USED, EMBODIED_EMISSIONS, EMBODIED_ADP</li>
- *   <li>Accelerators    → adds to ENERGY_USED</li>
+ *   <li>Serverless      → adds to ENERGY_USED</li>
  *   <li>PUE             → reads ENERGY_USED, writes PUE</li>
  *   <li>CarbonIntensity → reads REGION, writes CARBON_INTENSITY</li>
  *   <li>OperationalEmissions → reads ENERGY_USED, PUE, CARBON_INTENSITY → writes OPERATIONAL_EMISSIONS</li>
@@ -121,7 +121,7 @@ public class EnrichmentStrategyBenchmark {
         boavizta.put(EMBODIED_ADP, 0.003);
         row = copyAndSetBulk(row, boavizta);
 
-        // 3. Accelerators → adds to ENERGY_USED (withUpdatedValue with add=true)
+        // 3. Serverless → adds to ENERGY_USED (withUpdatedValue with add=true)
         double existing = row.getDouble(ENERGY_USED.resolveIndex(row));
         row = copyAndSet(row, ENERGY_USED, existing + 0.008);
 
@@ -197,7 +197,7 @@ public class EnrichmentStrategyBenchmark {
         enriched.put(EMBODIED_EMISSIONS, 0.15);
         enriched.put(EMBODIED_ADP, 0.003);
 
-        // 3. Accelerators — adds to ENERGY_USED (reads previous value from map)
+        // 3. Serverless — adds to ENERGY_USED (reads previous value from map)
         Double existingEnergy = (Double) enriched.get(ENERGY_USED);
         enriched.put(ENERGY_USED, (existingEnergy != null ? existingEnergy : 0.0) + 0.008);
 
