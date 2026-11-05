@@ -91,8 +91,6 @@ Recommendations are generated automatically from the data:
 | Instance family | Top emitter is an x86 family with a Graviton equivalent | Names the Graviton replacement |
 | Emissions trend | ≥ 2 billing periods, last > first × 1.10 | Flags the percentage increase |
 
-The 300 gCO₂/kWh threshold is fixed, so refreshing the Ember data can change which regions are flagged. The refresh of November 2026 took five more regions above it: `azure centralus`, `azure usdodwest`, `azure usgovarizona`, `azure westus3` and `gcp us-west4`.
-
 ## Manual queries
 
 As an alternative to the script above, you can also write equivalent SQL queries using [DuckDB](https://duckdb.org/) locally

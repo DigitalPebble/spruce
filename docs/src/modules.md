@@ -388,13 +388,6 @@ latest year as well, and usage before 2022, the first year the file carries, get
 figure. Ember revises published figures and its most recent year can include estimates, so
 refreshing the file can move past years too.
 
-The refresh of November 2026 moved the US figures more than a revision normally does. Ember
-rebuilt its sub-national dataset and restated it from CO2 to CO2 equivalent, which raised the
-settled years by around 15% for some states, Wyoming 2022 going from 620 to 715 g/kWh. Country
-figures moved less over the same years, up to 5.6% for Thailand and Indonesia. Reports produced
-either side of that refresh therefore differ for US regions with nothing having changed in
-SPRUCE.
-
 The figures follow
 [Ember's methodology](https://files.ember-energy.org/public-downloads/ember_electricity_data_methodology.pdf):
 full lifecycle emissions, including upstream methane, supply chain and manufacturing, with all
