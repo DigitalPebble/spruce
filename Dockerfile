@@ -21,6 +21,15 @@ RUN python3 -m venv /opt/spruce/venv \
     && /opt/spruce/venv/bin/pip install --no-cache-dir \
        -r /opt/spruce/reporting/requirements-report.txt \
        -r /opt/spruce/reporting/requirements-dashboard.txt
+
+# The spark user's home is /nonexistent, where DuckDB cannot install the
+# extensions the reporting tools need to read from S3. Give it a writable
+# home and install them at build time so no download is needed at runtime.
+ENV HOME=/home/spark
+RUN mkdir -p "$HOME" \
+    && /opt/spruce/venv/bin/python -c "import duckdb; c = duckdb.connect(); c.execute('INSTALL httpfs'); c.execute('INSTALL aws')" \
+    && chown -R spark:spark "$HOME"
+
 COPY reporting /opt/spruce/reporting
 
 COPY --from=build /home/app/target/spruce-*.jar /usr/local/lib/spruce.jar
