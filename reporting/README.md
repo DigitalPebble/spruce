@@ -109,7 +109,11 @@ The dashboard supports reading directly from S3:
 streamlit run reporting/dashboard.py -- --input s3://bucket/path/to/enriched/
 ```
 
-Requires AWS credentials configured in your environment.
+Requires `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` in your
+environment. Use `s3://`, not the
+`s3a://` scheme used by Spark. See
+[Read and write SPRUCE data on Amazon S3](../docs/src/howto/s3.md) for how
+to export the credentials and pass them to the Docker image.
 
 ## Running with Docker
 
@@ -128,6 +132,17 @@ docker run --rm -v $(pwd):/workspace -w /workspace \
 docker run --rm -p 8501:8501 -v $(pwd):/workspace -w /workspace \
   ghcr.io/digitalpebble/spruce dashboard -i output
 ```
+
+To read from S3, pass the AWS variables to the container, e.g.
+
+```bash
+docker run --rm -p 8501:8501 \
+  -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY \
+  ghcr.io/digitalpebble/spruce dashboard -i s3://bucket/path/to/enriched/
+```
+
+With images for SPRUCE 1.5 and earlier, also pass `-e HOME=/tmp`, otherwise
+reading from S3 fails with `Can't find the home directory at '/nonexistent'`.
 
 When enriching and reporting at different times, pin the same image tag for
 both steps rather than relying on `latest`.
