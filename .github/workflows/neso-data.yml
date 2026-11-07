@@ -1,0 +1,59 @@
+# Recomputes the last complete months of the UK carbon intensity figures
+# (src/main/resources/neso/monthly_co2_intensity.csv) and opens a pull request when they changed.
+
+name: Update NESO carbon intensity
+
+on:
+  schedule:
+    # 3rd of the month, once the previous month is complete
+    - cron: '0 6 3 * *'
+  workflow_dispatch:
+    inputs:
+      months:
+        description: 'Number of last complete months to recompute'
+        default: '2'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+env:
+  CARBONINTENSITY_API_VERSION: 0.4.0
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Cache carbonintensity-api
+        id: cache-cli
+        uses: actions/cache@v6.1.0
+        with:
+          path: ~/.cargo/bin/carbonintensity-api
+          key: carbonintensity-api-${{ env.CARBONINTENSITY_API_VERSION }}-${{ runner.os }}-${{ runner.arch }}
+
+      - name: Install carbonintensity-api
+        if: steps.cache-cli.outputs.cache-hit != 'true'
+        run: cargo install --locked carbonintensity-api --version "$CARBONINTENSITY_API_VERSION"
+
+      - name: Recompute the last months
+        env:
+          MONTHS: ${{ inputs.months || '2' }}
+        run: python3 scripts/fetch_neso_carbon_intensity.py --months "$MONTHS"
+
+      - name: Open a pull request
+        uses: peter-evans/create-pull-request@v8.1.1
+        with:
+          # a pull request opened with the default GITHUB_TOKEN does not trigger the CI
+          # workflows, a token from the NESO_DATA_TOKEN secret does
+          token: ${{ secrets.NESO_DATA_TOKEN || github.token }}
+          branch: neso-data-update
+          delete-branch: true
+          add-paths: src/main/resources/neso/monthly_co2_intensity.csv
+          commit-message: Update NESO monthly carbon intensity
+          title: Update NESO monthly carbon intensity
+          body: |
+            Monthly figures recomputed by `scripts/fetch_neso_carbon_intensity.py` for the
+            last complete months, from the Carbon Intensity API, Elexon and Ember.

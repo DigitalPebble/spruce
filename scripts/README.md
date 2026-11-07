@@ -177,7 +177,7 @@ For every keyed region of `cloud_regions.json` whose country is `United Kingdom`
 - reverse-geocode the region's `latitude`/`longitude` to the nearest postcode with
   [postcodes.io](https://postcodes.io/) and keep its outward code (`SW1A` for London, `CF10`
   for Cardiff), resolved to an API region (London, South Wales);
-- retrieve the half-hourly fuel mix for that outward code from January 2022 to the end of the
+- retrieve the half-hourly fuel mix for that outward code up to the end of the
   last complete month with the
   [carbonintensity-api](https://github.com/jnioche/carbonintensity-api) CLI (`--mix` option),
   which splits the period into the windows the API accepts; regions sharing an outward code
@@ -193,6 +193,19 @@ For every keyed region of `cloud_regions.json` whose country is `United Kingdom`
   The script stops if a region has no link;
 - average the result per calendar month (UTC). A month with less than 90% of its half-hours
   is skipped with a warning.
+
+By default the script only computes the last 2 complete months (`--months N` to change it)
+and merges them into the existing output: they replace the figures already there for those
+months, and the older months are kept as they are. A region with no rows in the output starts
+from January 2022, and one whose last month is older than the window starts from the month
+after it, so a new region or a missed run leaves no gap. If a month in the window has too few
+half-hours, its existing figure is kept. Rows of regions no longer in `cloud_regions.json` are
+dropped. `--all` recomputes every month from January 2022 and rewrites the file.
+
+The monthly workflow (`.github/workflows/neso-data.yml`) only runs the default mode, so the
+months outside the window keep the Ember factors they were computed with. When Ember
+publishes a new year or revises its figures, run the script with `--all` by hand so that
+earlier months pick up the new factors. Once a year is enough.
 
 Ember's release holds one row per area, year and electricity source, with the intensity of
 that source in `Emissions intensity (gCO2e/kWh)`. A fuel's row gives its lifecycle factor,
@@ -214,7 +227,7 @@ Requires the CLI, version 0.4.0 or later (for `--mix`), installed with `cargo in
 carbonintensity-api`, on the `PATH`, or its location in the `CARBONINTENSITY_API`
 environment variable. Python standard library only.
 
-Usage: `./fetch_neso_carbon_intensity.py [cloud_regions.json] [output.csv]`
+Usage: `./fetch_neso_carbon_intensity.py [--months N | --all] [cloud_regions.json] [output.csv]`
 
 ## Cloud region water data
 

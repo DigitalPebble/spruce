@@ -24,7 +24,13 @@ For every keyed region of cloud_regions.json whose country is the United Kingdom
     (https://github.com/jnioche/carbonintensity-api), which splits the period into the
     windows the API accepts;
   - compute the lifecycle intensity of every half-hour and average it per calendar month
-    (UTC), for every complete month from FROM_MONTH on.
+    (UTC), for the last complete months (see --months).
+
+By default only the last --months complete months are computed and merged into the existing
+output: they replace the months already there, the older months are kept. A region with no
+rows in the output, or whose last month is older than that window, is computed from the month
+after its last one, or from FROM_MONTH. --all recomputes everything from FROM_MONTH and
+rewrites the file.
 
 The regional fuel mix comes from NESO's forecasts, the API publishes no actual values per
 region. The result is per kWh of electricity in the mix, before transmission and
@@ -33,13 +39,14 @@ distribution losses, like the Ember figures.
 Output columns: provider,region,month,gCO2_per_kWh (month as yyyy-MM)
 
 Usage:
-  ./fetch_neso_carbon_intensity.py [cloud_regions.json] [output.csv]
+  ./fetch_neso_carbon_intensity.py [--months N | --all] [cloud_regions.json] [output.csv]
 
 Requires the carbonintensity-api executable, version 0.4.0 or later for the --mix option, on
 the PATH (cargo install carbonintensity-api), or its location in the CARBONINTENSITY_API
 environment variable.
 """
 
+import argparse
 import bisect
 import collections
 import concurrent.futures
@@ -80,6 +87,8 @@ ELEXON_MAX_DAYS = 7
 USER_AGENT = "spruce-neso-carbon-intensity-script/2.0"
 # A month is skipped when fewer of its half-hours than this are returned
 MIN_COVERAGE = 0.9
+# Complete months recomputed by default
+DEFAULT_MONTHS = 2
 
 # Fuels of the API mix -> Ember fuel whose UK lifecycle factor applies. "other" is 0 in the
 # regional mix in practice; Ember's "Other fossil" is the closest category.
@@ -286,11 +295,51 @@ def monthly_averages(values):
     return averages
 
 
+def add_months(date, months):
+    """First day of the month months away from the month of date."""
+    index = date.year * 12 + date.month - 1 + months
+    return datetime.date(index // 12, index % 12 + 1, 1)
+
+
+def load_existing(path):
+    """Returns {(provider, region): {"yyyy-MM": value as written}} from a previous output."""
+    existing = collections.defaultdict(dict)
+    if not os.path.exists(path):
+        return existing
+    with open(path) as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            provider, region, month, value = line.split(",")
+            existing[(provider, region)][month] = value
+    return existing
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0],
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("cloud_regions", nargs="?", default=os.path.join(
+        PROJECT_ROOT, "src", "main", "resources", "cloud_regions.json"))
+    parser.add_argument("output", nargs="?", default=os.path.join(
+        PROJECT_ROOT, "src", "main", "resources", "neso", "monthly_co2_intensity.csv"))
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("-m", "--months", type=int, default=DEFAULT_MONTHS,
+                       help="number of last complete months to recompute and merge into the "
+                            f"existing output (default {DEFAULT_MONTHS})")
+    group.add_argument("--all", action="store_true",
+                       help="recompute every month from FROM_MONTH (" + FROM_MONTH.strftime("%Y-%m")
+                            + ") and rewrite the output")
+    args = parser.parse_args()
+    if args.months < 1:
+        parser.error("--months must be at least 1")
+    return args
+
+
 def main():
-    cloud_regions_path = sys.argv[1] if len(sys.argv) > 1 else os.path.join(
-        PROJECT_ROOT, "src", "main", "resources", "cloud_regions.json")
-    output_path = sys.argv[2] if len(sys.argv) > 2 else os.path.join(
-        PROJECT_ROOT, "src", "main", "resources", "neso", "monthly_co2_intensity.csv")
+    args = parse_args()
+    cloud_regions_path = args.cloud_regions
+    output_path = args.output
 
     cli = os.environ.get("CARBONINTENSITY_API") or shutil.which("carbonintensity-api")
     if not cli:
@@ -325,15 +374,47 @@ def main():
 
     # the last complete month ends where the current one starts
     end = datetime.date.today().replace(day=1)
-    print(f"Fetching interconnector flows from {FROM_MONTH} to {end}...", file=sys.stderr)
-    flows = fetch_flows(FROM_MONTH, end)
+    existing = {} if args.all else load_existing(output_path)
+    window = FROM_MONTH if args.all else max(add_months(end, -args.months), FROM_MONTH)
+    # first month to compute per outward code: the window, or earlier for a region with
+    # missing months, so that a new region or a gap gets filled
+    starts = {}
+    for provider, region, outcode in regions:
+        months = existing.get((provider, region))
+        if months:
+            year, month = map(int, max(months).split("-"))
+            start = min(window, add_months(datetime.date(year, month, 1), 1))
+        else:
+            start = FROM_MONTH
+        starts[outcode] = min(starts.get(outcode, start), start)
+
     averages = {}
+    if min(starts.values()) < end:
+        first = min(starts.values())
+        print(f"Fetching interconnector flows from {first} to {end}...", file=sys.stderr)
+        flows = fetch_flows(first, end)
     for outcode in sorted(links):
-        print(f"Fetching {outcode} from {FROM_MONTH} to {end}...", file=sys.stderr)
+        start = starts[outcode]
+        if start >= end:
+            averages[outcode] = {}
+            continue
+        print(f"Fetching {outcode} from {start} to {end}...", file=sys.stderr)
         weights = ImportWeights(links[outcode], flows)
         values = {when: lifecycle_intensity(mix, when.year, factors, intensities, weights.at(when))
-                  for when, mix in fetch_mix(cli, outcode, FROM_MONTH, end).items()}
+                  for when, mix in fetch_mix(cli, outcode, start, end).items()}
         averages[outcode] = monthly_averages(values)
+
+    # new figures replace the existing ones for the same month, a month without a new figure
+    # (too few half-hours) keeps the existing one
+    merged = {}
+    for provider, region, outcode in regions:
+        months = dict(existing.get((provider, region), {}))
+        for (year, month), value in averages[outcode].items():
+            months[f"{year}-{month:02d}"] = f"{value:.2f}"
+        merged[(provider, region)] = months
+    for key in existing.keys() - merged.keys():
+        print(f"warning: {key[0]} {key[1]} is no longer a UK region of {cloud_regions_path}, "
+              f"its rows are dropped", file=sys.stderr)
 
     rows = 0
     tmp_path = output_path + ".tmp"
@@ -347,9 +428,9 @@ def main():
                   f"database right {datetime.date.today().year}, https://www.elexon.co.uk/bsc/data/"
                   f"balancing-mechanism-reporting-agent/copyright-licence-bmrs-data/\n")
         out.write("#provider,region,month,gCO2_per_kWh\n")
-        for provider, region, outcode in regions:
-            for (year, month), value in averages[outcode].items():
-                out.write(f"{provider},{region},{year}-{month:02d},{value:.2f}\n")
+        for provider, region, _ in regions:
+            for month, value in sorted(merged[(provider, region)].items()):
+                out.write(f"{provider},{region},{month},{value}\n")
                 rows += 1
     os.replace(tmp_path, output_path)
     print(f"Wrote {output_path} ({rows} rows)", file=sys.stderr)
