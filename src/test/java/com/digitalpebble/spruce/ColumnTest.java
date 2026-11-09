@@ -7,6 +7,17 @@ import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema;
 import org.apache.spark.sql.types.*;
 import org.junit.jupiter.api.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class ColumnTest {
@@ -74,6 +85,56 @@ class ColumnTest {
         assertEquals(0, col.resolveIndex(present, true));
         assertEquals(0, col.resolveIndex(present));
         assertEquals("y", col.getString(present, true));
+    }
+
+    @Test
+    void testResolveIndexIsIndependentBetweenThreads() throws Exception {
+        CURColumn col = new CURColumn("target", DataTypes.StringType);
+        int threads = 8;
+        CyclicBarrier start = new CyclicBarrier(threads);
+        ExecutorService pool = Executors.newFixedThreadPool(threads);
+        try {
+            List<Future<Void>> results = new ArrayList<>();
+            for (int t = 0; t < threads; t++) {
+                final int expected = t;
+                results.add(pool.submit(() -> {
+                    // the column sits at a different position in the schema of each thread
+                    StructField[] fields = new StructField[expected + 1];
+                    for (int i = 0; i < expected; i++) {
+                        fields[i] = new StructField("other" + i, DataTypes.StringType, true, Metadata.empty());
+                    }
+                    fields[expected] = new StructField("target", DataTypes.StringType, true, Metadata.empty());
+                    Row row = new GenericRowWithSchema(new Object[expected + 1], new StructType(fields));
+                    start.await();
+                    for (int i = 0; i < 200_000; i++) {
+                        assertEquals(expected, col.resolveIndex(row));
+                    }
+                    return null;
+                }));
+            }
+            for (Future<Void> result : results) {
+                result.get();
+            }
+        } finally {
+            pool.shutdownNow();
+        }
+    }
+
+    @Test
+    void testResolveIndexAfterSerialization() throws Exception {
+        StructType schema = new StructType(new StructField[]{new StructField("afield", DataTypes.StringType, true, Metadata.empty())});
+        Row row = new GenericRowWithSchema(new Object[]{"x"}, schema);
+        CURColumn col = new CURColumn("afield", DataTypes.StringType);
+        assertEquals(0, col.resolveIndex(row));
+
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        try (ObjectOutputStream out = new ObjectOutputStream(bytes)) {
+            out.writeObject(col);
+        }
+        try (ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(bytes.toByteArray()))) {
+            CURColumn copy = (CURColumn) in.readObject();
+            assertEquals(0, copy.resolveIndex(row));
+        }
     }
 
     @Test

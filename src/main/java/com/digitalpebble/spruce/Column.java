@@ -16,12 +16,17 @@ public abstract class Column implements java.io.Serializable {
     private final String label;
     private final DataType type;
 
-    // Single-entry cache: avoids repeated HashMap lookups in StructType.fieldIndex().
-    // Safe without synchronization because all rows in a Spark partition (and typically
-    // an entire job) share the same StructType instance, and the worst-case race is a
-    // redundant fieldIndex() call.
-    private transient StructType cachedSchema;
-    private transient int cachedIndex;
+    // Single-entry cache per thread: avoids repeated HashMap lookups in StructType.fieldIndex().
+    // Columns are mostly shared static instances, while each concurrent Spark task sees its own
+    // StructType instance, so a cache shared between threads would be overwritten constantly.
+    // Created lazily as the field does not survive serialization; a race only means that a
+    // thread does a redundant lookup.
+    private transient ThreadLocal<CachedIndex> cache;
+
+    private static final class CachedIndex {
+        private StructType schema;
+        private int index;
+    }
 
     Column(String l, DataType t) {
         label = l;
@@ -62,16 +67,22 @@ public abstract class Column implements java.io.Serializable {
      * report does not carry (e.g. {@code resource_tags}) does not cost an exception per row.
      **/
     public int resolveIndex(Row r, boolean optional) {
-        StructType schema = r.schema();
-        if (schema != cachedSchema) {
-            scala.Option<Object> index = schema.getFieldIndex(this.label);
-            cachedIndex = index.isDefined() ? (Integer) index.get() : -1;
-            cachedSchema = schema;
+        ThreadLocal<CachedIndex> threadCache = cache;
+        if (threadCache == null) {
+            threadCache = ThreadLocal.withInitial(CachedIndex::new);
+            cache = threadCache;
         }
-        if (cachedIndex == -1 && !optional) {
+        CachedIndex cached = threadCache.get();
+        StructType schema = r.schema();
+        if (schema != cached.schema) {
+            scala.Option<Object> index = schema.getFieldIndex(this.label);
+            cached.index = index.isDefined() ? (Integer) index.get() : -1;
+            cached.schema = schema;
+        }
+        if (cached.index == -1 && !optional) {
             return r.fieldIndex(this.label);
         }
-        return cachedIndex;
+        return cached.index;
     }
 }
 
