@@ -111,6 +111,21 @@
                                     <mainClass>com.digitalpebble.spruce.SparkJob</mainClass>
                                 </transformer>
                             </transformers>
+                            <!-- Runtimes such as EMR put an older Kotlin on the classpath, which breaks OkHttp -->
+                            <relocations>
+                                <relocation>
+                                    <pattern>kotlin</pattern>
+                                    <shadedPattern>com.digitalpebble.spruce.shaded.kotlin</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>okhttp3</pattern>
+                                    <shadedPattern>com.digitalpebble.spruce.shaded.okhttp3</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>okio</pattern>
+                                    <shadedPattern>com.digitalpebble.spruce.shaded.okio</shadedPattern>
+                                </relocation>
+                            </relocations>
                             <filters>
                                 <filter>
                                     <artifact>*:*</artifact>
