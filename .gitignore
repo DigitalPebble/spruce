@@ -39,3 +39,6 @@ docs/site
 scripts/.aqueduct_cache/
 scripts/.geocode_cache
 scripts/.geocode_cache_iso
+
+# Saved answers from scripts/launchEMR.sh
+.launchEMR
