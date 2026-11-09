@@ -55,6 +55,8 @@ To explore enriched output, see
 [Explore the results](https://opensourcegreenops.cloud/tutorial/results/)
 and [Build a simple dashboard](https://opensourcegreenops.cloud/howto/dashboard/).
 
+To enrich reports on AWS EMR Serverless, [`scripts/launchEMR.sh`](scripts/launchEMR.sh) submits a job and follows it until it finishes. It prompts for the settings and remembers them for the next run. See [Run SPRUCE on AWS EMR Serverless](https://opensourcegreenops.cloud/howto/emr/).
+
 ## License
 Licensed under the Apache License, Version 2.0: http://www.apache.org/licenses/LICENSE-2.0
 

@@ -15,7 +15,7 @@ Since AWS CUR reports are stored on S3, it makes perfect sense to enrich them st
 
 EMR is also designed to scale, if your CUR reports are large, this is a good way of enriching them.
 
-[EMR-Spark-8](https://docs.aws.amazon.com/emr/latest/EMR-Serverless-UserGuide/release-version-emr-spark-8.0-preview.html) ships with a version of Apache Spark compatible with what SPRUCE uses.
+[emr-spark-8.1.0](https://docs.aws.amazon.com/emr/latest/EMR-Serverless-UserGuide/release-version-emr-spark-8.1.0.html) ships with a version of Apache Spark compatible with what SPRUCE uses.
 
 ## Setup
 
@@ -23,8 +23,29 @@ Follow these [instructions](https://docs.aws.amazon.com/emr/latest/EMR-Serverles
 You will also need to install the AWS CLI and have configured it.
 
 We will assume that you have CUR reports on S3. You will also need to make the SPRUCE jar available to EMR by placing it in a S3 bucket.
-You can either compile the JAR from the SPRUCE code or grab the one from [the release page](https://github.com/DigitalPebble/spruce/releases/download/0.7/spruce-0.7.jar).
-In the example below, we put it in `s3://spruce-jars/spruce-0.7.jar` but since that bucket name is now taken, you will have to choose a different one.
+EMR Serverless runs Java 17, whereas the jars on [the release page](https://github.com/DigitalPebble/spruce/releases) are compiled for Java 21 and fail on EMR with an `UnsupportedClassVersionError`.
+You will need to compile the jar yourself with JDK 21 or above, targeting Java 17:
+
+```shell
+git checkout 1.5
+mvn package -Dmaven.compiler.release=17
+```
+
+In the example below, we put it in `s3://spruce-jars/spruce-1.5.jar` but since that bucket name is now taken, you will have to choose a different one.
+
+## Launch with the script
+
+The repository contains [`scripts/launchEMR.sh`](https://github.com/DigitalPebble/spruce/blob/main/scripts/launchEMR.sh), which submits a job and follows its progress until it finishes. It requires the AWS CLI and `jq`.
+
+```shell
+./scripts/launchEMR.sh
+```
+
+The script lists your EMR Serverless applications, with the option of creating a new one, and the IAM roles that EMR Serverless can assume. It then prompts for the jar, the input and output locations, the provider and report format (`AWS` and `NATIVE` by default) and the Spark settings.
+
+After a successful run, your answers are saved to `.launchEMR` in the current directory and offered as defaults the next time. You can also set any of them with an environment variable, the list is at the top of the script.
+
+The next section shows how to do the same with the AWS CLI.
 
 ## Run on EMR
 
@@ -35,7 +56,7 @@ From the CLI
 ```shell
 aws emr-serverless create-application \
     --type spark \
-    --release-label emr-spark-8.0-preview \
+    --release-label emr-spark-8.1.0 \
     --name spark4-SPRUCE
 ```
 
@@ -57,7 +78,7 @@ aws emr-serverless start-job-run \
     --name job-run-name \
     --job-driver '{
         "sparkSubmit": {
-          "entryPoint": "s3://spruce-jars/spruce-0.7.jar",
+          "entryPoint": "s3://spruce-jars/spruce-1.5.jar",
           "entryPointArguments": [
              "-i", "s3://INPUT-curs/","-o","s3://spruce-output/"
           ],
