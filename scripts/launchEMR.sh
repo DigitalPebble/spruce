@@ -6,7 +6,8 @@
 #   PROVIDER (AWS, GOOGLE, AZURE), FORMAT (NATIVE, FOCUS),
 #   EXEC_CORES, EXEC_MEMORY, EXEC_INSTANCES, DRIVER_CORES, DRIVER_MEMORY,
 #   POLL_INTERVAL, FOLLOW (yes/no), EMR_JAVA_HOME,
-#   LOG_S3 (optional S3 prefix for driver/executor logs, in addition to managed storage)
+#   LOG_S3 (optional S3 prefix for driver/executor logs, in addition to managed storage),
+#   CONFIG_S3 (optional S3 path of a JSON file defining the modules, replaces the default config)
 #
 # Anything not set falls back to a default and is offered as an interactive prompt.
 # APPLICATION_ID and JOB_ROLE_ARN are discovered via the AWS CLI when not set.
@@ -32,7 +33,7 @@ DEFAULT_FOLLOW="yes"
 # --- saved answers from the last successful run -----------------------------
 STATE_FILE="${LAUNCH_EMR_STATE:-.launchEMR}"
 SAVED_KEYS=(APPLICATION_ID JOB_ROLE_ARN JAR_S3 INPUT_S3 OUTPUT_S3 PROVIDER FORMAT JOB_NAME
-            EXEC_CORES EXEC_MEMORY EXEC_INSTANCES DRIVER_CORES DRIVER_MEMORY LOG_S3)
+            EXEC_CORES EXEC_MEMORY EXEC_INSTANCES DRIVER_CORES DRIVER_MEMORY LOG_S3 CONFIG_S3)
 
 load_saved() {
     # Plain KEY=VALUE lines, read rather than sourced so the file can't run code.
@@ -219,6 +220,8 @@ pick_role
 ask_required JAR_S3    "JAR S3 path"
 ask_required INPUT_S3  "Input  (CUR Parquet)"
 ask_required OUTPUT_S3 "Output (enriched)"
+ask CONFIG_S3      "Modules config on S3 ('-' = default config)" "-"
+[[ "$CONFIG_S3" == "-" ]] && CONFIG_S3=""
 ask PROVIDER       "Provider (AWS, GOOGLE, AZURE)" "$DEFAULT_PROVIDER"
 ask FORMAT         "Report format (NATIVE, FOCUS)" "$DEFAULT_FORMAT"
 ask JOB_NAME       "Job name"                "$DEFAULT_JOB_NAME"
@@ -254,6 +257,11 @@ JAR_S3=$(s3_uri "$JAR_S3")
 INPUT_S3=$(s3_uri "$INPUT_S3")
 OUTPUT_S3=$(s3_uri "$OUTPUT_S3")
 [[ -n "$LOG_S3" ]] && LOG_S3=$(s3_uri "$LOG_S3")
+[[ -n "$CONFIG_S3" ]] && CONFIG_S3=$(s3_uri "$CONFIG_S3")
+if [[ "$CONFIG_S3" == */ ]]; then
+    echo "ERROR: the modules config must be a file, got '${CONFIG_S3}'" >&2
+    exit 1
+fi
 
 # --- verify inputs ----------------------------------------------------------
 verify_s3() {
@@ -268,6 +276,7 @@ verify_s3() {
 echo "Verifying inputs on S3..."
 verify_s3 "JAR"   "$JAR_S3"
 verify_s3 "Input" "$INPUT_S3"
+[[ -n "$CONFIG_S3" ]] && verify_s3 "Modules config" "$CONFIG_S3"
 
 # --- submit -----------------------------------------------------------------
 # EMR Serverless (emr-spark-8.x) runs Java 17, so the SPRUCE jar must target
@@ -283,11 +292,19 @@ spark_params+=" --conf spark.executor.instances=${EXEC_INSTANCES}"
 spark_params+=" --conf spark.driver.cores=${DRIVER_CORES}"
 spark_params+=" --conf spark.driver.memory=${DRIVER_MEMORY}"
 
+# SparkJob reads -c from the local filesystem, so ship the file with the job
+# and refer to it by its bare name.
+config_args=""
+if [[ -n "$CONFIG_S3" ]]; then
+    spark_params+=" --files ${CONFIG_S3}"
+    config_args=", \"-c\", \"${CONFIG_S3##*/}\""
+fi
+
 job_driver=$(cat <<EOF
 {
   "sparkSubmit": {
     "entryPoint": "${JAR_S3}",
-    "entryPointArguments": ["-i", "${INPUT_S3}", "-o", "${OUTPUT_S3}", "-p", "${PROVIDER}", "-f", "${FORMAT}"],
+    "entryPointArguments": ["-i", "${INPUT_S3}", "-o", "${OUTPUT_S3}", "-p", "${PROVIDER}", "-f", "${FORMAT}"${config_args}],
     "sparkSubmitParameters": "${spark_params}"
   }
 }
