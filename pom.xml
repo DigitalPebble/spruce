@@ -37,10 +37,10 @@
         <maven.compiler.release>21</maven.compiler.release>
         <maven-enforcer-plugin.version>3.6.3</maven-enforcer-plugin.version>
         <spark.version>4.2.0</spark.version>
-        <okhttp.version>5.5.0</okhttp.version>
-        <caffeine.version>3.2.4</caffeine.version>
+        <okhttp.version>5.5.1</okhttp.version>
+        <caffeine.version>3.3.1</caffeine.version>
         <junit.jupiter.version>6.1.3</junit.jupiter.version>
-        <mockito.version>5.23.0</mockito.version>
+        <mockito.version>5.24.0</mockito.version>
         <commons-cli.version>1.11.0</commons-cli.version>
         <jacoco.version>0.8.14</jacoco.version>
     </properties>
