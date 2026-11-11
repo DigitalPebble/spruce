@@ -115,6 +115,20 @@ environment. Use `s3://`, not the
 [Read and write SPRUCE data on Amazon S3](../docs/src/howto/s3.md) for how
 to export the credentials and pass them to the Docker image.
 
+## Querying with Athena
+
+To let a BI tool query the enriched output on S3 directly, rather than reading
+Parquet locally, register it as an Athena table:
+
+```bash
+python3 reporting/athena/generate_ddl.py -i output/ -l s3://my-bucket/enriched/
+```
+
+The column list is read from the output, since an AWS CUR carries around 150
+columns and the set differs per pipeline. See
+[athena/README.md](athena/README.md) for the workgroup setup, partition
+projection and what it costs to query.
+
 ## Running with Docker
 
 The `ghcr.io/digitalpebble/spruce` image ships these scripts and their
