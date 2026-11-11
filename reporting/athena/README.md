@@ -105,16 +105,20 @@ placeholder differ in case by design.
 Then check the mixed-case columns resolve:
 
 ```sql
-SELECT "BilledCost", "ServiceName", "SkuMeter", operational_emissions_co2eq_g
+SELECT billedcost, servicename, skumeter, operational_emissions_co2eq_g
 FROM spruce.enriched
 WHERE billing_period = '2026-09'
 LIMIT 5;
 ```
 
 Glue lower-cases column names in the catalog while Parquet keeps them as
-written. Athena's Parquet reader matches case-insensitively, so these resolve,
-but a column of NULLs where data is expected points here first, and the FOCUS
-bridge columns are the mixed-case ones.
+written, so the FOCUS bridge columns are `billedcost`, `servicename`,
+`chargecategory` and `skumeter` in SQL even though the files spell them
+`BilledCost` and so on. Athena's Parquet reader matches names
+case-insensitively, so they resolve, but write them lower case and unquoted:
+double quotes request an exact identifier that the catalog does not hold. A
+column of NULLs where data is expected points here first, and the mixed-case
+FOCUS columns are where it shows up.
 
 ## What it costs
 

@@ -1,0 +1,14 @@
+apiVersion: 1
+
+providers:
+  - name: spruce
+    type: file
+    folder: SPRUCE
+    # Edits made in the browser are kept rather than reverted on reload, so
+    # the dashboard can be changed live and then exported back over the JSON
+    # in dashboards/.
+    allowUiUpdates: true
+    disableDeletion: false
+    options:
+      path: /var/lib/grafana/dashboards
+      foldersFromFilesStructure: false

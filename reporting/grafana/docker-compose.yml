@@ -1,0 +1,39 @@
+# Grafana with the Amazon Athena data source, querying SPRUCE-enriched output
+# on S3 through the table created by reporting/athena/generate_ddl.py.
+#
+#   cd reporting/grafana
+#   export $(aws configure export-credentials --format env-no-export)
+#   docker compose up
+#
+# then http://localhost:3000 (admin / admin).
+#
+# Credentials are read from the environment by the AWS SDK's default chain, so
+# nothing is written into the compose file or the provisioning YAML. Temporary
+# credentials from SSO work the same way, and expire on their own.
+
+services:
+  grafana:
+    image: grafana/grafana:12.4.0
+    container_name: spruce-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_INSTALL_PLUGINS: grafana-athena-datasource
+      # The data is read-only and local to this machine, so the sign-in page
+      # is noise. Remove these two lines to get one back.
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_USERS_DEFAULT_THEME: light
+
+      # Passed through from your shell to the AWS SDK default chain.
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN:-}
+
+      # Substituted into provisioning/datasources/athena.yml.
+      AWS_REGION: ${AWS_REGION:-eu-west-2}
+      SPRUCE_ATHENA_DATABASE: ${SPRUCE_ATHENA_DATABASE:-spruce}
+      SPRUCE_ATHENA_WORKGROUP: ${SPRUCE_ATHENA_WORKGROUP:-spruce}
+    volumes:
+      - ./provisioning:/etc/grafana/provisioning:ro
+      - ./dashboards:/var/lib/grafana/dashboards:ro

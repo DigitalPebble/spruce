@@ -129,6 +129,14 @@ columns and the set differs per pipeline. See
 [athena/README.md](athena/README.md) for the workgroup setup, partition
 projection and what it costs to query.
 
+[grafana/](grafana/README.md) then puts a dashboard on top of that table, as a
+Docker Compose file with the data source and the dashboard provisioned from
+JSON:
+
+```bash
+cd reporting/grafana && docker compose up
+```
+
 ## Running with Docker
 
 The `ghcr.io/digitalpebble/spruce` image ships these scripts and their

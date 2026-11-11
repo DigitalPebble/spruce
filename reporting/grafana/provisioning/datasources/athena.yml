@@ -1,0 +1,20 @@
+apiVersion: 1
+
+datasources:
+  - name: Athena
+    # Fixed uid so dashboards/*.json can reference the data source without
+    # being edited per installation.
+    uid: spruce-athena
+    type: grafana-athena-datasource
+    isDefault: true
+    jsonData:
+      # The AWS SDK default chain, which picks up the credentials docker
+      # compose passes in from your shell. Use 'credentials' with a profile,
+      # or 'keys' with secureJsonData, if that suits you better.
+      authType: default
+      defaultRegion: ${AWS_REGION}
+      catalog: AwsDataCatalog
+      database: ${SPRUCE_ATHENA_DATABASE}
+      workgroup: ${SPRUCE_ATHENA_WORKGROUP}
+      # Output location is left unset so the workgroup's own result location
+      # is used, which is what reporting/athena/README.md sets up.
