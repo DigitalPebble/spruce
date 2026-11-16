@@ -79,7 +79,7 @@ public abstract class AbstractBoaviztaModule implements EnrichmentModule {
 
     @Override
     public final Column[] columnsAdded() {
-        return new Column[]{ENERGY_USED, EMBODIED_EMISSIONS, EMBODIED_ADP};
+        return new Column[]{ENERGY_USED, EMBODIED_EMISSIONS, EMBODIED_ADP, COVERAGE_GAP};
     }
 
     /**
@@ -149,6 +149,7 @@ public abstract class AbstractBoaviztaModule implements EnrichmentModule {
 
         if (impacts == null) {
             if (unknownInstanceTypes.contains(instanceType)) {
+                addCoverageGap(enrichedValues, "instance_type", instanceType);
                 return;
             }
             // get from API
@@ -162,6 +163,7 @@ public abstract class AbstractBoaviztaModule implements EnrichmentModule {
             if (impacts == null) {
                 LOG.info("Unknown instance type {}", instanceType);
                 unknownInstanceTypes.add(instanceType);
+                addCoverageGap(enrichedValues, "instance_type", instanceType);
                 return;
             }
         }

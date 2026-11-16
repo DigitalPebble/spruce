@@ -15,6 +15,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import static com.digitalpebble.spruce.SpruceColumn.COVERAGE_GAP;
+import static com.digitalpebble.spruce.SpruceColumn.addCoverageGap;
 import static com.digitalpebble.spruce.SpruceColumn.EMBODIED_EMISSIONS;
 import static com.digitalpebble.spruce.SpruceColumn.ENERGY_USED;
 
@@ -97,7 +99,7 @@ public class AzureFoundryTokenEcoLogits implements EnrichmentModule {
 
     @Override
     public Column[] columnsAdded() {
-        return new Column[]{ENERGY_USED, EMBODIED_EMISSIONS};
+        return new Column[]{ENERGY_USED, EMBODIED_EMISSIONS, COVERAGE_GAP};
     }
 
     @Override
@@ -114,6 +116,7 @@ public class AzureFoundryTokenEcoLogits implements EnrichmentModule {
 
         EcoLogits.ModelImpacts modelImpacts = impacts.getImpacts(parsed[0]);
         if (modelImpacts == null) {
+            addCoverageGap(enrichedValues, "model", parsed[0]);
             return;
         }
 

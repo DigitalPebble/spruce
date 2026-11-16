@@ -21,7 +21,9 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.digitalpebble.spruce.SpruceColumn.COVERAGE_GAP;
 import static com.digitalpebble.spruce.SpruceColumn.EMBODIED_EMISSIONS;
+import static com.digitalpebble.spruce.SpruceColumn.addCoverageGap;
 import static com.digitalpebble.spruce.SpruceColumn.ENERGY_USED;
 
 /**
@@ -143,7 +145,7 @@ public class Storage implements EnrichmentModule {
 
     @Override
     public Column[] columnsAdded() {
-        return new Column[]{ENERGY_USED, EMBODIED_EMISSIONS};
+        return new Column[]{ENERGY_USED, EMBODIED_EMISSIONS, COVERAGE_GAP};
     }
 
     @Override
@@ -175,6 +177,7 @@ public class Storage implements EnrichmentModule {
             double gbMonths = getGbMonths(quantity, unit);
             if (Double.isNaN(gbMonths)) {
                 LOG.debug("Storage unit not found for {} {}", meterName, unit);
+                addCoverageGap(enrichedValues, "storage_unit", unit);
                 return;
             }
             gbHours = Utils.Conversions.GBMonthsToGBHours(gbMonths);
@@ -191,6 +194,7 @@ public class Storage implements EnrichmentModule {
 
         if (Double.isNaN(gbHours)) {
             LOG.debug("Storage unit not found for {} {}", meterName, unit);
+            addCoverageGap(enrichedValues, "storage_unit", unit);
             return;
         }
 

@@ -34,6 +34,7 @@ public class AverageCarbonIntensity extends AbstractEmberCarbonIntensity {
 
         Double coeff = getIntensity(getProvider(), locationCode, UsageDate.year(row));
         if (coeff == null) {
+            addCoverageGap(enrichedValues, "ember_region", getProvider().csvKey + ":" + locationCode);
             return;
         }
         enrichedValues.put(CARBON_INTENSITY, coeff);

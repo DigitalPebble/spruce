@@ -15,7 +15,9 @@ import org.slf4j.LoggerFactory;
 import java.util.Map;
 
 import static com.digitalpebble.spruce.CURColumn.*;
+import static com.digitalpebble.spruce.SpruceColumn.COVERAGE_GAP;
 import static com.digitalpebble.spruce.SpruceColumn.ENERGY_USED;
+import static com.digitalpebble.spruce.SpruceColumn.addCoverageGap;
 
 /**
  * Provides an estimate of energy used for networking in and out of data centres.
@@ -86,7 +88,7 @@ public class Networking implements EnrichmentModule {
 
     @Override
     public Column[] columnsAdded() {
-        return new Column[]{ENERGY_USED};
+        return new Column[]{ENERGY_USED, COVERAGE_GAP};
     }
 
     @Override
@@ -117,6 +119,7 @@ public class Networking implements EnrichmentModule {
         }
         else {
             LOG.info("Transfer type not recognized: {}", transfer_type);
+            addCoverageGap(enrichedValues, "transfer_type", transfer_type);
             return;
         }
 

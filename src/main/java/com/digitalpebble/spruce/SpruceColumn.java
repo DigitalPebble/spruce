@@ -24,11 +24,23 @@ public class SpruceColumn extends Column {
     public static SpruceColumn WATER_ENERGY = new SpruceColumn("water_electricity_production_l", DoubleType);
     public static SpruceColumn WATER_STRESS = new SpruceColumn("water_consumption_stress_area_l", DoubleType);
     public static SpruceColumn REGION = new SpruceColumn("region", StringType);
+    /** Values (instance types, models, regions...) the modules could not process, separated by '; ' **/
+    public static SpruceColumn COVERAGE_GAP = new SpruceColumn("coverage_gap", StringType);
     /** Version of SPRUCE which generated the output, set by SparkJob rather than by a module **/
     public static SpruceColumn SPRUCE_VERSION = new SpruceColumn("spruce_version", StringType);
 
     private SpruceColumn(String l, DataType t) {
         super(l, t);
+    }
+
+    /**
+     * Records in COVERAGE_GAP a value that could not be processed, as {@code kind=value}.
+     * Appends to what other modules have already recorded for the row.
+     */
+    public static void addCoverageGap(Map<Column, Object> enrichedValues, String kind, String value) {
+        String gap = kind + "=" + value;
+        String existing = (String) enrichedValues.get(COVERAGE_GAP);
+        enrichedValues.put(COVERAGE_GAP, existing == null ? gap : existing + "; " + gap);
     }
 
     /** Returns the String value for this column from the enriched values map, or null if absent. */

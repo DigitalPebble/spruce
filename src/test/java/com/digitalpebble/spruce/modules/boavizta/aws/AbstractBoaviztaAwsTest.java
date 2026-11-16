@@ -67,7 +67,8 @@ class AbstractBoaviztaAwsTest {
         assertArrayEquals(new Column[]{
                 SpruceColumn.ENERGY_USED,
                 SpruceColumn.EMBODIED_EMISSIONS,
-                SpruceColumn.EMBODIED_ADP
+                SpruceColumn.EMBODIED_ADP,
+                SpruceColumn.COVERAGE_GAP
         }, module.columnsAdded());
     }
 
@@ -159,11 +160,11 @@ class AbstractBoaviztaAwsTest {
     @Test
     void unknownInstanceTypeIsCachedAndNotRetried() {
         Map<Column, Object> first = enrich("t3.unknown", "AmazonEC2", "RunInstances", "AmazonEC2", 1.0);
-        assertTrue(first.isEmpty());
+        assertEquals("instance_type=t3.unknown", first.get(SpruceColumn.COVERAGE_GAP));
         assertEquals(1, module.lookupCalls.get());
 
         Map<Column, Object> second = enrich("t3.unknown", "AmazonEC2", "RunInstances", "AmazonEC2", 1.0);
-        assertTrue(second.isEmpty());
+        assertEquals("instance_type=t3.unknown", second.get(SpruceColumn.COVERAGE_GAP));
         assertEquals(1, module.lookupCalls.get(), "Unknown instance types should not be looked up twice");
     }
 

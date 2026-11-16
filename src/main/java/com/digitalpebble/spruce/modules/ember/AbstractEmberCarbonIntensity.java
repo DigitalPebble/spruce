@@ -17,6 +17,7 @@ import java.util.NavigableMap;
 import java.util.TreeMap;
 
 import static com.digitalpebble.spruce.SpruceColumn.CARBON_INTENSITY;
+import static com.digitalpebble.spruce.SpruceColumn.COVERAGE_GAP;
 
 public abstract class AbstractEmberCarbonIntensity implements EnrichmentModule {
 
@@ -67,7 +68,7 @@ public abstract class AbstractEmberCarbonIntensity implements EnrichmentModule {
 
     @Override
     public Column[] columnsAdded() {
-        return new Column[]{CARBON_INTENSITY};
+        return new Column[]{CARBON_INTENSITY, COVERAGE_GAP};
     }
 
     /**
