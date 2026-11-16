@@ -73,9 +73,10 @@ public class BedrockEcoLogitsTest {
     @Test
     void testColumnsAdded() {
         Column[] added = module.columnsAdded();
-        assertEquals(2, added.length);
+        assertEquals(3, added.length);
         assertEquals(ENERGY_USED, added[0]);
         assertEquals(EMBODIED_EMISSIONS, added[1]);
+        assertEquals(com.digitalpebble.spruce.SpruceColumn.COVERAGE_GAP, added[2]);
     }
 
     @ParameterizedTest

@@ -14,7 +14,9 @@ import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -50,7 +52,8 @@ public class BoaviztAPIstaticTest {
     void unknownInstanceTypeProducesNoEnrichment() {
         Map<Column, Object> enriched = enrich("definitely-not-a-real-type",
                 "AmazonEC2", "RunInstances", "AmazonEC2", 1.0);
-        assertTrue(enriched.isEmpty());
+        assertEquals("instance_type=definitely-not-a-real-type", enriched.get(SpruceColumn.COVERAGE_GAP));
+        assertFalse(enriched.containsKey(SpruceColumn.ENERGY_USED));
     }
 
     private Map<Column, Object> enrich(String instanceType, String serviceCode,

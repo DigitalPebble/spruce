@@ -21,6 +21,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -88,8 +89,8 @@ public class BoaviztAPITest {
         Map<Column, Object> first = enrich("type-notfound", "AmazonEC2", "RunInstances", "AmazonEC2", 1.0);
         Map<Column, Object> second = enrich("type-notfound", "AmazonEC2", "RunInstances", "AmazonEC2", 1.0);
 
-        assertTrue(first.isEmpty());
-        assertTrue(second.isEmpty());
+        assertEquals("instance_type=type-notfound", first.get(SpruceColumn.COVERAGE_GAP));
+        assertEquals("instance_type=type-notfound", second.get(SpruceColumn.COVERAGE_GAP));
         assertEquals(1, server.getRequestCount());
     }
 
@@ -99,8 +100,9 @@ public class BoaviztAPITest {
 
         Map<Column, Object> enriched = enrich("type-error", "AmazonEC2", "RunInstances", "AmazonEC2", 1.0);
 
-        assertTrue(enriched.isEmpty(),
-                "5xx errors should not propagate out of enrich() and should not write columns");
+        assertFalse(enriched.containsKey(SpruceColumn.ENERGY_USED),
+                "5xx errors should not propagate out of enrich() and should not write impact columns");
+        assertEquals("instance_type=type-error", enriched.get(SpruceColumn.COVERAGE_GAP));
     }
 
     private Map<Column, Object> enrich(String instanceType, String serviceCode, String operation,

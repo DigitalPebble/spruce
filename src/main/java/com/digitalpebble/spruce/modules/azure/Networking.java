@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Map;
 
 import static com.digitalpebble.spruce.SpruceColumn.ENERGY_USED;
+import static com.digitalpebble.spruce.SpruceColumn.addCoverageGap;
 
 /**
  * Provides an estimate of energy used for networking in and out of data centres.
@@ -87,6 +88,7 @@ public class Networking extends com.digitalpebble.spruce.modules.aws.Networking{
         // TODO detect other types
         else {
             LOG.info("Transfer type not recognized: {}", transfer_type);
+            addCoverageGap(enrichedValues, "transfer_type", transfer_type);
             return;
         }
 

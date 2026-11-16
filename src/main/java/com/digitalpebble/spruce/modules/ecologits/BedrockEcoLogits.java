@@ -73,7 +73,7 @@ public class BedrockEcoLogits implements EnrichmentModule {
 
     @Override
     public Column[] columnsAdded() {
-        return new Column[]{ENERGY_USED, EMBODIED_EMISSIONS};
+        return new Column[]{ENERGY_USED, EMBODIED_EMISSIONS, COVERAGE_GAP};
     }
 
     @Override
@@ -93,6 +93,7 @@ public class BedrockEcoLogits implements EnrichmentModule {
 
         EcoLogits.ModelImpacts modelImpacts = impacts.getImpacts(modelKey);
         if (modelImpacts == null) {
+            addCoverageGap(enrichedValues, "model", modelKey);
             return;
         }
 

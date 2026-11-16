@@ -18,7 +18,9 @@ import java.util.List;
 import java.util.Map;
 
 import static com.digitalpebble.spruce.CURColumn.*;
+import static com.digitalpebble.spruce.SpruceColumn.COVERAGE_GAP;
 import static com.digitalpebble.spruce.SpruceColumn.EMBODIED_EMISSIONS;
+import static com.digitalpebble.spruce.SpruceColumn.addCoverageGap;
 import static com.digitalpebble.spruce.SpruceColumn.ENERGY_USED;
 import static com.digitalpebble.spruce.Utils.loadJSONResources;
 
@@ -167,7 +169,7 @@ public class Storage implements EnrichmentModule {
 
     @Override
     public Column[] columnsAdded() {
-        return new Column[]{ENERGY_USED, EMBODIED_EMISSIONS};
+        return new Column[]{ENERGY_USED, EMBODIED_EMISSIONS, COVERAGE_GAP};
     }
 
     @Override
@@ -222,6 +224,7 @@ public class Storage implements EnrichmentModule {
         String product_product_family = productFamily != null ? productFamily.getString(row) : null;
         if ("Storage".equals(product_product_family)) {
             log.debug("Storage type not found for {} {}", operation, usage_type);
+            addCoverageGap(enrichedValues, "storage_usage_type", usage_type);
         }
     }
 

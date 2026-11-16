@@ -71,9 +71,10 @@ public class AzureFoundryTokenEcoLogitsTest {
     @Test
     void testColumnsAdded() {
         Column[] added = module.columnsAdded();
-        assertEquals(2, added.length);
+        assertEquals(3, added.length);
         assertEquals(ENERGY_USED, added[0]);
         assertEquals(EMBODIED_EMISSIONS, added[1]);
+        assertEquals(com.digitalpebble.spruce.SpruceColumn.COVERAGE_GAP, added[2]);
     }
 
     @ParameterizedTest
@@ -83,7 +84,7 @@ public class AzureFoundryTokenEcoLogitsTest {
         Map<Column, Object> enriched = new HashMap<>();
         module.enrich(row, enriched);
 
-        assertTrue(enriched.isEmpty(), "Should skip rows with invalid null values");
+        assertFalse(enriched.containsKey(ENERGY_USED) || enriched.containsKey(EMBODIED_EMISSIONS), "Should skip rows with invalid null values");
     }
 
     static Stream<Arguments> nullValueTestCases() {
@@ -101,7 +102,7 @@ public class AzureFoundryTokenEcoLogitsTest {
         Map<Column, Object> enriched = new HashMap<>();
         module.enrich(row, enriched);
 
-        assertTrue(enriched.isEmpty(), "Should skip unsupported categories or unknown models");
+        assertFalse(enriched.containsKey(ENERGY_USED) || enriched.containsKey(EMBODIED_EMISSIONS), "Should skip unsupported categories or unknown models");
     }
 
     static Stream<Arguments> unsupportedValueTestCases() {
