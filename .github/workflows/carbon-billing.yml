@@ -1,0 +1,50 @@
+name: Carbon estimate (billing)
+
+# Same as carbon.yml, but from the organisation billing API: data as billed,
+# gold badge. The token can read billing data for the whole organisation, so
+# this workflow is restricted (see the README, "Security considerations"):
+#   - it only runs on a schedule or by hand, never on pull requests
+#   - the secret lives in the `carbon-billing` environment, limited to `main`
+#     with required reviewers if you want an approval before each run
+#   - Aspen drops the rows of every other repository before writing anything
+on:
+  schedule:
+    - cron: '0 7 * * 1' # an hour after carbon.yml, both push to the `badges` branch
+  workflow_dispatch:
+
+permissions:
+  contents: write # to publish the badge on the `badges` branch
+
+jobs:
+  estimate:
+    runs-on: ubuntu-latest
+    environment: carbon-billing
+    steps:
+      - uses: actions/checkout@v4
+      - name: Aspen - GitHub Actions Carbon Estimator
+        id: aspen
+        uses: DigitalPebble/aspen@v1.0.0
+        with:
+          source: billing
+          github_token: ${{ secrets.ORG_BILLING_TOKEN }}
+          output_path: carbon-estimate-billing.json
+          badge_path: badge-billing.json
+      - name: Publish badge
+        env:
+          BADGE_PATH: ${{ steps.aspen.outputs.badge-path }}
+        run: |
+          set -euo pipefail
+          cp "$BADGE_PATH" "$RUNNER_TEMP/badge-billing.json"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git ls-remote --exit-code --heads origin badges >/dev/null; then
+            git fetch --depth=1 origin badges
+            git checkout -f -B badges FETCH_HEAD
+          else
+            git checkout --orphan badges
+            git rm -rf --quiet .
+          fi
+          cp "$RUNNER_TEMP/badge-billing.json" badge-billing.json
+          git add badge-billing.json
+          git diff --cached --quiet || git commit -m "Update carbon badge (billing)"
+          git push origin badges
