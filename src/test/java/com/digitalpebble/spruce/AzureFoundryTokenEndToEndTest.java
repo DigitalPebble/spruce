@@ -109,7 +109,23 @@ public class AzureFoundryTokenEndToEndTest {
         List<Row> focusRows = enrich("/azure/focus-openai.csv", ReportFormat.FOCUS);
         assertEquals(2, focusRows.size());
 
-        assertNotNull(energy(focusRows.get(0)));
+        // ConsumedQuantity 1,000,000 is read as a token count
+        com.digitalpebble.spruce.modules.ecologits.EcoLogits impacts = new com.digitalpebble.spruce.modules.ecologits.EcoLogits();
+        impacts.load();
+        double expected = 1_000.0 * impacts.getImpacts("gpt 5").getEnergyKwhPer1kOutputTokens();
+        assertEquals(expected, energy(focusRows.get(0)), 1e-12);
         assertNull(energy(focusRows.get(1)), "input tokens must not be estimated");
+    }
+
+    @Test
+    void readsNumericUnitOfMeasureAsString() throws Exception {
+        // with UnitOfMeasure "1" on every row, inferSchema reads the column as integers
+        List<Row> rows = enrich("/azure/native-numeric-unit.csv", ReportFormat.NATIVE);
+        assertEquals(1, rows.size());
+
+        assertNull(energy(rows.get(0)));
+        Row row = rows.get(0);
+        String gap = row.getString(row.fieldIndex(SpruceColumn.COVERAGE_GAP.getLabel()));
+        assertTrue(gap.contains("token_unit=1"), gap);
     }
 }
