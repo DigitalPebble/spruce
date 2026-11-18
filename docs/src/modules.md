@@ -271,11 +271,10 @@ input-token rows are skipped.
 
 **AzureFoundryTokenEcoLogits** does the same for token meters billed under the `Azure OpenAI` (or
 newer `Foundry Models`) category: the model label and token direction are extracted from
-`MeterName` (e.g. `GPT 5 outpt Glbl 1M Tokens`) and the token count is read from `Quantity`
-(`ConsumedQuantity` in FOCUS reports). Both hold the number of tokens consumed: the `1K`/`1M`
-unit in `UnitOfMeasure` only describes the pricing block and does not scale the quantity —
-Microsoft's FOCUS conversion defines `ConsumedQuantity = Quantity` and
-`ContractedCost = UnitPrice × Quantity / x_PricingBlockSize`. Provisioned throughput (PTU),
+`MeterName` (e.g. `GPT 5 outpt Glbl 1M Tokens`). In native cost details, `Quantity` is counted
+in the unit given by `UnitOfMeasure` (`1M` or `1K` tokens), so a `Quantity` of `0.0047` on a
+`1M` meter is 4,700 tokens; rows with another unit are skipped. In FOCUS reports,
+`ConsumedQuantity` is read as the number of tokens. Provisioned throughput (PTU),
 hourly hosting and fine-tuning meters are not token-based and are not covered. The other
 Foundry model families (Mistral, Cohere, Llama, ...) bill through the same kind of token
 meters and only need `mapping.csv` entries verified against real exports — the module
