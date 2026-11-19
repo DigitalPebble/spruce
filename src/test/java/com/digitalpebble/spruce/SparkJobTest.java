@@ -72,6 +72,19 @@ public class SparkJobTest {
     }
 
     @Test
+    void castsNumericUnitOfMeasureToStringInNativeReports() {
+        Dataset<Row> dataframe = readCsv("/azure/native-numeric-unit.csv");
+        // with UnitOfMeasure "1" on every row, inferSchema reads the column as integers
+        assertEquals(DataTypes.IntegerType, dataframe.schema().apply("UnitOfMeasure").dataType());
+
+        Dataset<Row> nativeReport = SparkJob.normalizeAzureColumns(dataframe, ReportFormat.NATIVE);
+        assertEquals(DataTypes.StringType, nativeReport.schema().apply("UnitOfMeasure").dataType());
+
+        Dataset<Row> focusReport = SparkJob.normalizeAzureColumns(dataframe, ReportFormat.FOCUS);
+        assertEquals(DataTypes.IntegerType, focusReport.schema().apply("UnitOfMeasure").dataType());
+    }
+
+    @Test
     void normalizesUsFormattedDateColumn() {
         Dataset<Row> dataframe = readCsv("/azure/native-us-dates.csv");
         // US-formatted dates are not recognised by schema inference and stay strings

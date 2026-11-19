@@ -274,7 +274,8 @@ newer `Foundry Models`) category: the model label and token direction are extrac
 `MeterName` (e.g. `GPT 5 outpt Glbl 1M Tokens`). In native cost details, `Quantity` is counted
 in the unit given by `UnitOfMeasure` (`1M` or `1K` tokens), so a `Quantity` of `0.0047` on a
 `1M` meter is 4,700 tokens; rows with another unit are skipped. In FOCUS reports,
-`ConsumedQuantity` is read as the number of tokens. Provisioned throughput (PTU),
+`ConsumedQuantity` is read as the number of tokens, which has not been checked against a real
+FOCUS export yet ([#333](https://github.com/DigitalPebble/spruce/issues/333)). Provisioned throughput (PTU),
 hourly hosting and fine-tuning meters are not token-based and are not covered. The other
 Foundry model families (Mistral, Cohere, Llama, ...) bill through the same kind of token
 meters and only need `mapping.csv` entries verified against real exports — the module

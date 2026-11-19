@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.HashMap;
@@ -118,35 +119,31 @@ public class AzureFoundryTokenEcoLogitsTest {
         );
     }
 
-    @Test
-    void testNativeQuantityIsInUnitOfMeasureBlocks() {
-        // Quantity 0.0047 with UnitOfMeasure "1M" is 4,700 output tokens
-        Row row = createRow(schema, "Foundry Models", "5.4 mini Opt Gl 1M Tokens", "1M", 0.0047);
+    // Quantity 0.0047 with UnitOfMeasure "1M" is 4,700 output tokens; 2 with "1K" is 2,000
+    @ParameterizedTest
+    @CsvSource({
+            "5.4 mini Opt Gl 1M Tokens, 1M, 0.0047, 4.7",
+            "GPT 5 Outp regnl Tokens,   1K, 2.0,    2.0"
+    })
+    void testNativeQuantityIsInUnitOfMeasureBlocks(String meterName, String unit, double quantity,
+                                                   double thousandsOfTokens) {
+        Row row = createRow(schema, "Foundry Models", meterName, unit, quantity);
         Map<Column, Object> enriched = new HashMap<>();
         module.enrich(row, enriched);
 
-        assertEquals(4.7 * OUTPUT_ENERGY_PER_1K, ENERGY_USED.getDouble(enriched), 1e-12);
-        assertEquals(4.7 * OUTPUT_EMBODIED_G_PER_1K, EMBODIED_EMISSIONS.getDouble(enriched), 1e-9);
+        assertEquals(thousandsOfTokens * OUTPUT_ENERGY_PER_1K, ENERGY_USED.getDouble(enriched), 1e-12);
+        assertEquals(thousandsOfTokens * OUTPUT_EMBODIED_G_PER_1K, EMBODIED_EMISSIONS.getDouble(enriched), 1e-9);
     }
 
-    @Test
-    void testSkipsUnknownUnitOfMeasure() {
-        Row row = createRow(schema, "Azure OpenAI", "GPT 5 outpt Glbl 1M Tokens", "1 Hour", 1.0);
+    @ParameterizedTest
+    @CsvSource(value = {"1 Hour, token_unit=1 Hour", "NULL, token_unit=null"}, nullValues = "NULL")
+    void testSkipsUnknownOrMissingUnitOfMeasure(String unit, String expectedGap) {
+        Row row = createRow(schema, "Azure OpenAI", "GPT 5 outpt Glbl 1M Tokens", unit, 1.0);
         Map<Column, Object> enriched = new HashMap<>();
         module.enrich(row, enriched);
 
         assertNull(enriched.get(ENERGY_USED));
-        assertEquals("token_unit=1 Hour", COVERAGE_GAP.getString(enriched));
-    }
-
-    @Test
-    void testSkipsMissingUnitOfMeasure() {
-        Row row = createRow(schema, "Azure OpenAI", "GPT 5 outpt Glbl 1M Tokens", null, 1.0);
-        Map<Column, Object> enriched = new HashMap<>();
-        module.enrich(row, enriched);
-
-        assertNull(enriched.get(ENERGY_USED));
-        assertEquals("token_unit=null", COVERAGE_GAP.getString(enriched));
+        assertEquals(expectedGap, COVERAGE_GAP.getString(enriched));
     }
 
     @Test
@@ -166,16 +163,6 @@ public class AzureFoundryTokenEcoLogitsTest {
         module.enrich(row, enriched);
 
         assertTrue(enriched.isEmpty());
-    }
-
-    @Test
-    void testNativeQuantityIn1KBlocks() {
-        // Quantity 2 with UnitOfMeasure "1K" is 2,000 tokens
-        Row row = createRow(schema, "Azure OpenAI", "GPT 5 Outp regnl Tokens", "1K", 2.0);
-        Map<Column, Object> enriched = new HashMap<>();
-        module.enrich(row, enriched);
-
-        assertEquals(2.0 * OUTPUT_ENERGY_PER_1K, ENERGY_USED.getDouble(enriched), 1e-12);
     }
 
     private AzureFoundryTokenEcoLogits focusModule() {

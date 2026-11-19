@@ -2,6 +2,7 @@
 
 package com.digitalpebble.spruce;
 
+import com.digitalpebble.spruce.modules.ecologits.EcoLogits;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Encoder;
 import org.apache.spark.sql.Row;
@@ -25,6 +26,14 @@ public class AzureFoundryTokenEndToEndTest {
     private static SparkSession spark;
 
     private static final String ENERGY = SpruceColumn.ENERGY_USED.getLabel();
+
+    private static EcoLogits impacts;
+
+    @BeforeAll
+    static void loadEcoLogits() {
+        impacts = new EcoLogits();
+        impacts.load();
+    }
 
     @BeforeAll
     static void startSpark() {
@@ -90,8 +99,6 @@ public class AzureFoundryTokenEndToEndTest {
 
         // 1,000,000 output tokens of gpt-5 (Quantity 1 with UnitOfMeasure "1M"): energy
         // matches the bundled coefficients
-        com.digitalpebble.spruce.modules.ecologits.EcoLogits impacts = new com.digitalpebble.spruce.modules.ecologits.EcoLogits();
-        impacts.load();
         double expected = 1_000.0 * impacts.getImpacts("gpt 5").getEnergyKwhPer1kOutputTokens();
         assertEquals(expected, energy(rows.get(0)), 1e-12);
 
@@ -110,8 +117,6 @@ public class AzureFoundryTokenEndToEndTest {
         assertEquals(2, focusRows.size());
 
         // ConsumedQuantity 1,000,000 is read as a token count
-        com.digitalpebble.spruce.modules.ecologits.EcoLogits impacts = new com.digitalpebble.spruce.modules.ecologits.EcoLogits();
-        impacts.load();
         double expected = 1_000.0 * impacts.getImpacts("gpt 5").getEnergyKwhPer1kOutputTokens();
         assertEquals(expected, energy(focusRows.get(0)), 1e-12);
         assertNull(energy(focusRows.get(1)), "input tokens must not be estimated");

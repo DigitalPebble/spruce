@@ -32,7 +32,9 @@ import static com.digitalpebble.spruce.SpruceColumn.ENERGY_USED;
  * them to the number of output tokens. In native cost details exports,
  * {@code Quantity} is counted in the unit given by {@code UnitOfMeasure}
  * ({@code 1M} or {@code 1K} tokens); rows with another unit are skipped. In FOCUS
- * exports, {@code ConsumedQuantity} is read as the number of tokens.
+ * exports, {@code ConsumedQuantity} is read as the number of tokens, which has not
+ * been checked against a real FOCUS export
+ * (<a href="https://github.com/DigitalPebble/spruce/issues/333">#333</a>).
  * <p>
  * Coefficients only describe output tokens; input-token rows are ignored
  * (the EcoLogits methodology attributes ~all generation cost to output tokens).
@@ -67,8 +69,8 @@ public class AzureFoundryTokenEcoLogits implements EnrichmentModule {
     protected RowColumn meterCategory = AzureColumn.METER_CATEGORY;
     protected RowColumn meterName = AzureColumn.METER_NAME;
     protected RowColumn quantity = AzureColumn.QUANTITY;
-    // null for FOCUS, where ConsumedQuantity is read as a token count
-    protected RowColumn unitOfMeasure = AzureColumn.UNIT_OF_MEASURE;
+    /** {@code UnitOfMeasure} in native exports; null in FOCUS exports, where {@code ConsumedQuantity} is read as tokens. */
+    private RowColumn unitOfMeasure = AzureColumn.UNIT_OF_MEASURE;
 
     @Override
     public void bindReportFormat(ReportFormat reportFormat) {
@@ -132,8 +134,8 @@ public class AzureFoundryTokenEcoLogits implements EnrichmentModule {
         if (this.quantity.isNullAt(row)) {
             return;
         }
-        double quantity = this.quantity.getDouble(row);
-        if (quantity <= 0) {
+        double quantityInUnits = this.quantity.getDouble(row);
+        if (quantityInUnits <= 0) {
             return;
         }
         double tokensPerUnit = 1.0;
@@ -146,7 +148,7 @@ public class AzureFoundryTokenEcoLogits implements EnrichmentModule {
             }
             tokensPerUnit = perUnit;
         }
-        double totalTokens = quantity * tokensPerUnit;
+        double totalTokens = quantityInUnits * tokensPerUnit;
 
         double per1k = totalTokens / 1_000.0;
         double energyKwh = per1k * modelImpacts.getEnergyKwhPer1kOutputTokens();
