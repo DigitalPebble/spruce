@@ -37,6 +37,11 @@ public class SparkJob {
                         dataframe.col(column.getLabel()).cast("double"));
             }
         }
+        // inferSchema can read a native UnitOfMeasure such as "1" as a number.
+        String unitColumn = AzureColumn.UNIT_OF_MEASURE.getLabel();
+        if (reportFormat == ReportFormat.NATIVE && columns.contains(unitColumn)) {
+            dataframe = dataframe.withColumn(unitColumn, dataframe.col(unitColumn).cast("string"));
+        }
         // inferSchema reads Date as a date when values are ISO but as a string when they
         // are US-formatted; normalise to a date either way. try_to_date rather than a cast
         // as ANSI mode makes a failed cast throw instead of yielding null.

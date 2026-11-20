@@ -5,3 +5,4 @@ Claude,test-provider,test-claude
 # Azure meter labels (AzureFoundryTokenEcoLogitsTest) - lowercased words extracted from MeterName
 gpt 5,test-provider,test-claude
 5 mini,test-provider,test-claude
+5.4 mini,test-provider,test-claude

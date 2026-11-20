@@ -29,11 +29,12 @@ import static com.digitalpebble.spruce.SpruceColumn.ENERGY_USED;
  * label and the token direction from {@code MeterName} (e.g.
  * {@code "GPT 5 outpt Glbl 1M Tokens"}), maps the label to the matching
  * {@link EcoLogits} coefficients via {@code ecologits/mapping.csv}, and applies
- * them to the consumed token count: {@code Quantity} in native cost details
- * exports, {@code ConsumedQuantity} in FOCUS exports. Both hold the number of
- * tokens consumed — the 1K/1M unit in {@code UnitOfMeasure} only describes the
- * pricing block ({@code ContractedCost = UnitPrice × Quantity / x_PricingBlockSize}
- * in Microsoft's FOCUS conversion rules) and must not scale the quantity.
+ * them to the number of output tokens. In native cost details exports,
+ * {@code Quantity} is counted in the unit given by {@code UnitOfMeasure}
+ * ({@code 1M} or {@code 1K} tokens); rows with another unit are skipped. In FOCUS
+ * exports, {@code ConsumedQuantity} is read as the number of tokens, which has not
+ * been checked against a real FOCUS export
+ * (<a href="https://github.com/DigitalPebble/spruce/issues/333">#333</a>).
  * <p>
  * Coefficients only describe output tokens; input-token rows are ignored
  * (the EcoLogits methodology attributes ~all generation cost to output tokens).
@@ -60,11 +61,16 @@ public class AzureFoundryTokenEcoLogits implements EnrichmentModule {
     // part of the model label (batch pricing, cached tokens, short/long context, ...).
     private static final Set<String> QUALIFIERS = Set.of("batch", "cchd", "cd", "wr", "pp", "shortco", "longco");
 
+    // Tokens per unit of Quantity in native cost details, keyed by UnitOfMeasure.
+    private static final Map<String, Double> TOKENS_PER_UNIT = Map.of("1M", 1_000_000.0, "1K", 1_000.0);
+
     private EcoLogits impacts;
 
     protected RowColumn meterCategory = AzureColumn.METER_CATEGORY;
     protected RowColumn meterName = AzureColumn.METER_NAME;
     protected RowColumn quantity = AzureColumn.QUANTITY;
+    /** {@code UnitOfMeasure} in native exports; null in FOCUS exports, where {@code ConsumedQuantity} is read as tokens. */
+    private RowColumn unitOfMeasure = AzureColumn.UNIT_OF_MEASURE;
 
     @Override
     public void bindReportFormat(ReportFormat reportFormat) {
@@ -72,10 +78,12 @@ public class AzureFoundryTokenEcoLogits implements EnrichmentModule {
             meterCategory = AzureFOCUSColumn.X_SKU_METER_CATEGORY;
             meterName = AzureFOCUSColumn.X_SKU_METER_NAME;
             quantity = FOCUSColumn.CONSUMED_QUANTITY;
+            unitOfMeasure = null;
         } else {
             meterCategory = AzureColumn.METER_CATEGORY;
             meterName = AzureColumn.METER_NAME;
             quantity = AzureColumn.QUANTITY;
+            unitOfMeasure = AzureColumn.UNIT_OF_MEASURE;
         }
     }
 
@@ -94,7 +102,10 @@ public class AzureFoundryTokenEcoLogits implements EnrichmentModule {
 
     @Override
     public Column[] columnsNeeded() {
-        return new Column[]{meterCategory, meterName, quantity};
+        if (unitOfMeasure == null) {
+            return new Column[]{meterCategory, meterName, quantity};
+        }
+        return new Column[]{meterCategory, meterName, quantity, unitOfMeasure};
     }
 
     @Override
@@ -123,10 +134,21 @@ public class AzureFoundryTokenEcoLogits implements EnrichmentModule {
         if (this.quantity.isNullAt(row)) {
             return;
         }
-        double totalTokens = this.quantity.getDouble(row);
-        if (totalTokens <= 0) {
+        double quantityInUnits = this.quantity.getDouble(row);
+        if (quantityInUnits <= 0) {
             return;
         }
+        double tokensPerUnit = 1.0;
+        if (this.unitOfMeasure != null) {
+            String unit = this.unitOfMeasure.getString(row);
+            Double perUnit = unit == null ? null : TOKENS_PER_UNIT.get(unit);
+            if (perUnit == null) {
+                addCoverageGap(enrichedValues, "token_unit", unit);
+                return;
+            }
+            tokensPerUnit = perUnit;
+        }
+        double totalTokens = quantityInUnits * tokensPerUnit;
 
         double per1k = totalTokens / 1_000.0;
         double energyKwh = per1k * modelImpacts.getEnergyKwhPer1kOutputTokens();

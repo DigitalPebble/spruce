@@ -10,12 +10,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static com.digitalpebble.spruce.SpruceColumn.COVERAGE_GAP;
 import static com.digitalpebble.spruce.SpruceColumn.EMBODIED_EMISSIONS;
 import static com.digitalpebble.spruce.SpruceColumn.ENERGY_USED;
 import static org.junit.jupiter.api.Assertions.*;
@@ -44,28 +46,29 @@ public class AzureFoundryTokenEcoLogitsTest {
 
     /**
      * Creates a {@link Row} matching the schema produced by {@link Utils#getSchema(EnrichmentModule)}
-     * for either binding.
-     *
-     * <p>Schema order: meter category, meter name, quantity, {@code ENERGY_USED},
-     * {@code EMBODIED_EMISSIONS}
+     * for either binding: meter category, meter name and quantity first, then
+     * {@code UnitOfMeasure} when the binding reads it, then the added columns.
      */
-    static Row createRow(StructType schema, String meterCategory, String meterName, Double quantity) {
-        Object[] values = new Object[5];
+    static Row createRow(StructType schema, String meterCategory, String meterName, String unitOfMeasure, Double quantity) {
+        Object[] values = new Object[schema.size()];
         values[0] = meterCategory;
         values[1] = meterName;
         values[2] = quantity;
-        values[3] = null;
-        values[4] = null;
+        scala.Option<Object> unitIndex = schema.getFieldIndex(AzureColumn.UNIT_OF_MEASURE.getLabel());
+        if (unitIndex.isDefined()) {
+            values[(Integer) unitIndex.get()] = unitOfMeasure;
+        }
         return new GenericRowWithSchema(values, schema);
     }
 
     @Test
     void testColumnsNeeded() {
         Column[] needed = module.columnsNeeded();
-        assertEquals(3, needed.length);
+        assertEquals(4, needed.length);
         assertEquals(AzureColumn.METER_CATEGORY, needed[0]);
         assertEquals(AzureColumn.METER_NAME, needed[1]);
         assertEquals(AzureColumn.QUANTITY, needed[2]);
+        assertEquals(AzureColumn.UNIT_OF_MEASURE, needed[3]);
     }
 
     @Test
@@ -80,7 +83,7 @@ public class AzureFoundryTokenEcoLogitsTest {
     @ParameterizedTest
     @MethodSource("nullValueTestCases")
     void testProcessWithNullValues(String meterCategory, String meterName, Double quantity) {
-        Row row = createRow(schema, meterCategory, meterName, quantity);
+        Row row = createRow(schema, meterCategory, meterName, "1M", quantity);
         Map<Column, Object> enriched = new HashMap<>();
         module.enrich(row, enriched);
 
@@ -98,7 +101,7 @@ public class AzureFoundryTokenEcoLogitsTest {
     @ParameterizedTest
     @MethodSource("unsupportedValueTestCases")
     void testProcessWithUnsupportedValues(String meterCategory, String meterName, Double quantity) {
-        Row row = createRow(schema, meterCategory, meterName, quantity);
+        Row row = createRow(schema, meterCategory, meterName, "1M", quantity);
         Map<Column, Object> enriched = new HashMap<>();
         module.enrich(row, enriched);
 
@@ -116,22 +119,36 @@ public class AzureFoundryTokenEcoLogitsTest {
         );
     }
 
-    @Test
-    void testEnrichesOutputTokens() {
-        // Quantity is the consumed token count: 1,000,000 tokens = 1000 × 1k tokens.
-        // UnitOfMeasure ("1M") only describes the pricing block and must not scale it.
-        Row row = createRow(schema, "Azure OpenAI", "GPT 5 outpt Glbl 1M Tokens", 1_000_000.0);
+    // Quantity 0.0047 with UnitOfMeasure "1M" is 4,700 output tokens; 2 with "1K" is 2,000
+    @ParameterizedTest
+    @CsvSource({
+            "5.4 mini Opt Gl 1M Tokens, 1M, 0.0047, 4.7",
+            "GPT 5 Outp regnl Tokens,   1K, 2.0,    2.0"
+    })
+    void testNativeQuantityIsInUnitOfMeasureBlocks(String meterName, String unit, double quantity,
+                                                   double thousandsOfTokens) {
+        Row row = createRow(schema, "Foundry Models", meterName, unit, quantity);
         Map<Column, Object> enriched = new HashMap<>();
         module.enrich(row, enriched);
 
-        assertNotNull(enriched.get(ENERGY_USED));
-        assertEquals(1000.0 * OUTPUT_ENERGY_PER_1K, ENERGY_USED.getDouble(enriched), 1e-12);
-        assertEquals(1000.0 * OUTPUT_EMBODIED_G_PER_1K, EMBODIED_EMISSIONS.getDouble(enriched), 1e-9);
+        assertEquals(thousandsOfTokens * OUTPUT_ENERGY_PER_1K, ENERGY_USED.getDouble(enriched), 1e-12);
+        assertEquals(thousandsOfTokens * OUTPUT_EMBODIED_G_PER_1K, EMBODIED_EMISSIONS.getDouble(enriched), 1e-9);
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {"1 Hour, token_unit=1 Hour", "NULL, token_unit=null"}, nullValues = "NULL")
+    void testSkipsUnknownOrMissingUnitOfMeasure(String unit, String expectedGap) {
+        Row row = createRow(schema, "Azure OpenAI", "GPT 5 outpt Glbl 1M Tokens", unit, 1.0);
+        Map<Column, Object> enriched = new HashMap<>();
+        module.enrich(row, enriched);
+
+        assertNull(enriched.get(ENERGY_USED));
+        assertEquals(expectedGap, COVERAGE_GAP.getString(enriched));
     }
 
     @Test
     void testAcceptsFoundryModelsCategory() {
-        Row row = createRow(schema, "Foundry Models", "GPT 5 outpt Glbl 1M Tokens", 1.0);
+        Row row = createRow(schema, "Foundry Models", "GPT 5 outpt Glbl 1M Tokens", "1M", 1.0);
         Map<Column, Object> enriched = new HashMap<>();
         module.enrich(row, enriched);
 
@@ -141,21 +158,11 @@ public class AzureFoundryTokenEcoLogitsTest {
     @Test
     void testSkipsInputTokens() {
         // EcoLogits attributes ~all generation cost to output tokens; input rows are ignored.
-        Row row = createRow(schema, "Azure OpenAI", "5 mini pp Inp Gl 1M Tokens", 1.0);
+        Row row = createRow(schema, "Azure OpenAI", "5 mini pp Inp Gl 1M Tokens", "1M", 1.0);
         Map<Column, Object> enriched = new HashMap<>();
         module.enrich(row, enriched);
 
         assertTrue(enriched.isEmpty());
-    }
-
-    @Test
-    void testQuantityIsTokenCountRegardlessOfPricingBlock() {
-        // A meter priced per 1K tokens still reports the consumed token count in Quantity
-        Row row = createRow(schema, "Azure OpenAI", "GPT 5 Outp regnl Tokens", 2_000.0);
-        Map<Column, Object> enriched = new HashMap<>();
-        module.enrich(row, enriched);
-
-        assertEquals(2.0 * OUTPUT_ENERGY_PER_1K, ENERGY_USED.getDouble(enriched), 1e-12);
     }
 
     private AzureFoundryTokenEcoLogits focusModule() {
@@ -175,29 +182,6 @@ public class AzureFoundryTokenEcoLogitsTest {
         assertEquals(AzureFOCUSColumn.X_SKU_METER_CATEGORY, focusModule.columnsNeeded()[0]);
         assertEquals(AzureFOCUSColumn.X_SKU_METER_NAME, focusModule.columnsNeeded()[1]);
         assertEquals(FOCUSColumn.CONSUMED_QUANTITY, focusModule.columnsNeeded()[2]);
-    }
-
-    @Test
-    void testNativeAndFOCUSAgreeOnSameInference() {
-        // The same inference expressed in both report formats must yield the same impacts.
-        // Microsoft's FOCUS conversion defines ConsumedQuantity = Quantity for usage rows, so
-        // both columns hold the consumed token count (1,000,000 tokens here).
-        Row nativeRow = createRow(schema, "Azure OpenAI", "GPT 5 outpt Glbl 1M Tokens", 1_000_000.0);
-        Map<Column, Object> nativeEnriched = new HashMap<>();
-        module.enrich(nativeRow, nativeEnriched);
-
-        AzureFoundryTokenEcoLogits focusModule = focusModule();
-        Row focusRow = createRow(Utils.getSchema(focusModule),
-                "Azure OpenAI", "GPT 5 outpt Glbl 1M Tokens", 1_000_000.0);
-        Map<Column, Object> focusEnriched = new HashMap<>();
-        focusModule.enrich(focusRow, focusEnriched);
-
-        assertNotNull(nativeEnriched.get(ENERGY_USED));
-        assertNotNull(focusEnriched.get(ENERGY_USED));
-        assertEquals(ENERGY_USED.getDouble(nativeEnriched),
-                ENERGY_USED.getDouble(focusEnriched), 1e-12);
-        assertEquals(EMBODIED_EMISSIONS.getDouble(nativeEnriched),
-                EMBODIED_EMISSIONS.getDouble(focusEnriched), 1e-9);
     }
 
     @ParameterizedTest
