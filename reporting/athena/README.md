@@ -60,6 +60,11 @@ go that way regardless, crawl once for the column types and then
 
 ## 2. Create the database and workgroup
 
+The bucket, the Glue database and the workgroup all have to be in the same
+region, since Athena reads the Parquet in place. Pass `--region` on both
+commands below, and the same region to the BI tool, whenever your CLI default
+is somewhere else.
+
 ```bash
 aws glue create-database --database-input Name=spruce
 ```

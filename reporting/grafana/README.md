@@ -75,15 +75,29 @@ export AWS_REGION=eu-west-2 SPRUCE_ATHENA_DATABASE=spruce SPRUCE_ATHENA_WORKGROU
 docker compose up
 ```
 
+`AWS_REGION` has to be the region the data sits in, not wherever you usually
+work: Athena queries the Parquet in place and the Glue catalogue is per region,
+so pointing Grafana at another one reports the database as missing.
+
+Set `GRAFANA_PORT` if something already holds 3000, which another Grafana on
+the same machine will.
+
 Then open <http://localhost:3000>. Anonymous access is on with the admin role,
 since the data is read-only and on your own machine; drop the two
 `GF_AUTH_ANONYMOUS_*` lines from `docker-compose.yml` to get a sign-in page.
 
 `aws configure export-credentials` turns whatever your CLI is configured with,
-including an SSO session, into the environment variables the AWS SDK's default
-chain reads. Nothing is written into the compose file or the provisioning YAML,
-and temporary credentials expire on their own. To use a named profile instead,
-set `authType: credentials` and `profile:` in
+including an SSO session, into the three environment variables the compose file
+passes in. Grafana substitutes them into the data source as it provisions it, so
+no credential is written into the compose file or the provisioning YAML, and
+temporary ones still expire on their own.
+
+They have to be passed explicitly, as `authType: keys`, rather than left to the
+AWS SDK's default chain. Grafana hands its backend plugins a curated
+environment: `AWS_ACCESS_KEY_ID` and friends exist in the Grafana container but
+never reach the Athena plugin process, so `authType: default` finds nothing and
+falls through the chain to the EC2 metadata service. To use a named profile
+instead, set `authType: credentials` with `profile:` in
 `provisioning/datasources/athena.yml` and mount `~/.aws` into the container.
 
 ## What you get
@@ -165,3 +179,9 @@ match a name. Check it against `DESCRIBE spruce.enriched` in the Athena console.
 If the data source fails to save with a credentials error, the exported
 environment variables have probably expired. Re-run the
 `aws configure export-credentials` line and restart the container.
+
+`no EC2 IMDS role found` from a health check means the plugin got no
+credentials at all and walked to the end of the SDK chain. Either the variables
+were not exported before `docker compose up`, or the data source has been
+switched to `authType: default`, which cannot work here for the reason given
+under [Run it](#run-it).

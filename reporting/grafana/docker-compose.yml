@@ -5,18 +5,21 @@
 #   export $(aws configure export-credentials --format env-no-export)
 #   docker compose up
 #
-# then http://localhost:3000 (admin / admin).
+# then http://localhost:3000, or GRAFANA_PORT=3001 docker compose up if
+# something already holds 3000.
 #
-# Credentials are read from the environment by the AWS SDK's default chain, so
-# nothing is written into the compose file or the provisioning YAML. Temporary
-# credentials from SSO work the same way, and expire on their own.
+# Credentials come from your shell. Grafana substitutes them into the data
+# source at provisioning time, so nothing is written into this file or into
+# provisioning/datasources/athena.yml. Temporary credentials from SSO work the
+# same way, and expire on their own.
 
 services:
   grafana:
     image: grafana/grafana:12.4.0
     container_name: spruce-grafana
     ports:
-      - "3000:3000"
+      # Override with GRAFANA_PORT when 3000 is taken by another Grafana.
+      - "${GRAFANA_PORT:-3000}:3000"
     environment:
       GF_INSTALL_PLUGINS: grafana-athena-datasource
       # The data is read-only and local to this machine, so the sign-in page
