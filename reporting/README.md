@@ -48,6 +48,7 @@ python3 reporting/report.py --input path/to/enriched/ --output report.md
 - `-i / --input`: Path to enriched Parquet file, directory, glob pattern, or S3 URI (required)
 - `-o / --output`: Output file; format inferred from the suffix (`.md`, `.html`, `.pdf`); defaults to Markdown on stdout
 - `-t / --top-tags`: Maximum number of resource tags offered for interactive breakdown (default 10; 0 disables)
+- `--heatmap [TIMEZONE]`: Adds a day of week by hour of day heatmap of operational energy, in the given IANA timezone (e.g. `Europe/Paris`; `UTC` when no timezone is given). Off by default
 
 ### Output
 
@@ -58,6 +59,7 @@ The generated report includes:
 - Top instance types (derived from `SkuMeter`, where populated)
 - Coverage (% of billed costs with emissions data, top uncovered services)
 - Regional analysis
+- Usage by day and hour (with `--heatmap`)
 - Interactive tag breakdowns
 - Recommendations generated from the data
 
@@ -69,6 +71,16 @@ through AWS but run on the seller's own infrastructure, so nothing in the
 billing data describes their energy use; counting them only depresses the
 coverage percentage. Inputs without the column are unaffected, so marketplace
 rows in a FOCUS export are still included.
+
+With `--heatmap`, the report averages the operational energy of each
+weekday and hour slot over the period, in the timezone of the people using
+the resources, and compares office hours (Monday to Friday, 08:00 to 18:00)
+with weekday nights and weekends. Test environments switched off outside
+office hours show up as pale nights and weekends. Only line items spanning
+exactly one hour (`ChargePeriodStart` to `ChargePeriodEnd`) can be placed on
+the grid, so the section needs a report exported with hourly granularity.
+Longer line items, such as monthly charges, are left out and the report gives
+their share of the energy (see `heatmap.py`).
 
 Both tools state the version of SPRUCE which enriched the data, read from the
 `spruce_version` column, e.g. "Enriched with SPRUCE v1.4" (see
@@ -162,6 +174,8 @@ ChargeCategory
 BilledCost
 ListCost
 SkuMeter
+ChargePeriodStart
+ChargePeriodEnd
 operational_energy_kwh
 operational_emissions_co2eq_g
 embodied_emissions_co2eq_g

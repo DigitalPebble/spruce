@@ -41,6 +41,7 @@ python reporting/report.py -i s3://my-bucket/spruced/ -o report.html
 | `-i / --input` | required | Local directory, glob, or S3 URI |
 | `-o / --output` | stdout | Output file; format inferred from suffix (`.md`, `.html`, `.pdf`) |
 | `-t / --top-tags` | 10 | Maximum number of resource tags offered for interactive breakdown |
+| `--heatmap [TIMEZONE]` | off | Adds a day of week by hour of day heatmap of energy use in the given IANA timezone (`UTC` if none given); needs an hourly export |
 
 
 ### Docker
@@ -65,6 +66,7 @@ The report covers the following sections, drawn from the queries documented belo
 | Top Instance Types | Top 20 instance families by operational + embodied CO₂ (derived from `SkuMeter`, where populated)            |
 | Coverage | % of billed costs that have emissions data; top 20 uncovered services by cost                                |
 | Regional Analysis | CO₂, energy, carbon intensity, water, PUE, and gCO₂/$ per region                                             |
+| Usage by Day and Hour | With `--heatmap`: average energy per hour for each weekday and hour, and office hours compared with weekday nights and weekends |
 | Tag Breakdown | Interactive: emissions split by any resource tag present in the data                                         |
 | Recommendations | Automatically generated from coverage gaps, regional carbon intensity, instance families, and billing trends |
 
