@@ -50,6 +50,9 @@ REPORT_COLUMN_DEFAULTS = {
     "water_consumption_stress_area_l": "DOUBLE",
     "carbon_intensity": "DOUBLE",
     "power_usage_effectiveness": "DOUBLE",
+    "coverage_gap": "VARCHAR",
+    "ConsumedQuantity": "DOUBLE",
+    "PricingUnit": "VARCHAR",
     # AWS-native, used only by the marketplace filter.
     filter.BILLING_ENTITY_COLUMN: "VARCHAR",
 }
@@ -70,6 +73,8 @@ BILLING_PERIOD_FROM_CHARGE_PERIOD = r"""
 
 
 def create_cur_table(con, parquet_glob):
+    """Create the ``cur`` views over the input and return the lower-case
+    names of the columns the input carries, before any NULL defaults."""
     source = f"read_parquet('{parquet_glob}', hive_partitioning=true)"
     schema_rows = con.execute(f"DESCRIBE SELECT * FROM {source}").fetchall()
     existing = [str(row[0]) for row in schema_rows]
@@ -94,7 +99,7 @@ def create_cur_table(con, parquet_glob):
         else:
             exprs.append(f'CAST(NULL AS {sql_type}) AS "{name}"')
     filter.create_cur_views(con, f"SELECT {', '.join(exprs)} FROM {source}")
-    return filter.BILLING_ENTITY_COLUMN in existing_lower
+    return existing_lower
 
 
 # ---------------------------------------------------------------------------
@@ -222,6 +227,98 @@ def q_uncovered_services(con):
         LIMIT 20
     """
     return con.execute(sql).fetchall()
+
+
+# Maximum number of values listed in the Coverage Gaps section.
+COVERAGE_GAP_LIMIT = 30
+
+
+def q_coverage_gap_summary(con):
+    """Returns (line_items, cost) of the usage line items with at least one
+    value recorded in coverage_gap, and the BilledCost of all usage."""
+    return con.execute("""
+        SELECT
+            count(*) FILTER (WHERE coalesce(coverage_gap, '') <> ''),
+            coalesce(sum(BilledCost) FILTER (WHERE coalesce(coverage_gap, '') <> ''), 0),
+            coalesce(sum(BilledCost), 0)
+        FROM cur
+        WHERE ChargeCategory LIKE '%Usage'
+    """).fetchone()
+
+
+def q_coverage_gaps(con):
+    """Values the SPRUCE modules could not process, read from coverage_gap.
+
+    The column holds one or more `kind=value` entries separated by '; ', e.g.
+    `instance_type=x9z.large; ember_region=aws:xx-west-1`. A line item with
+    two entries counts towards both. The usage quantity is only summed when
+    every line item for the value shares the same pricing unit."""
+    sql = f"""
+        WITH gaps AS (
+            SELECT
+                trim(unnest(string_split(coverage_gap, ';'))) AS gap,
+                BilledCost,
+                ConsumedQuantity,
+                PricingUnit
+            FROM cur
+            WHERE coalesce(coverage_gap, '') <> ''
+        ),
+        parsed AS (
+            SELECT
+                CASE WHEN strpos(gap, '=') > 0 THEN split_part(gap, '=', 1) END AS kind,
+                CASE WHEN strpos(gap, '=') > 0 THEN substr(gap, strpos(gap, '=') + 1)
+                     ELSE gap END                                            AS value,
+                BilledCost, ConsumedQuantity, PricingUnit
+            FROM gaps
+            WHERE gap <> ''
+        )
+        SELECT
+            kind,
+            value,
+            count(*)                        AS line_items,
+            round(sum(BilledCost), 2)       AS cost,
+            CASE WHEN count(DISTINCT PricingUnit) = 1
+                 THEN round(sum(ConsumedQuantity), 2) END AS quantity,
+            CASE WHEN count(DISTINCT PricingUnit) = 1
+                 THEN any_value(PricingUnit) END          AS unit,
+            count(*) OVER ()                AS distinct_values
+        FROM parsed
+        GROUP BY kind, value
+        ORDER BY cost DESC NULLS LAST, line_items DESC, kind, value
+        LIMIT {COVERAGE_GAP_LIMIT}
+    """
+    return con.execute(sql).fetchall()
+
+
+def coverage_gap_section(con, has_column):
+    """Markdown body of the Coverage Gaps section."""
+    if not has_column:
+        return ("_The input has no `coverage_gap` column. It is written by "
+                "SPRUCE 1.6 and later; re-run the enrichment to list the "
+                "values SPRUCE could not process._\n")
+    rows = q_coverage_gaps(con)
+    if not rows:
+        return "_SPRUCE processed every value it found in the services it models._\n"
+    line_items, gap_cost, usage_cost = q_coverage_gap_summary(con)
+    share = f", {gap_cost * 100 / usage_cost:.1f} % of usage costs" if usage_cost else ""
+    body = (
+        "Values found in services SPRUCE models (instance types, AI models, "
+        "regions, storage and transfer types) but could not process, so the "
+        "line items carrying them have incomplete or no estimates. "
+        f"**{line_items:,}** usage line items (${gap_cost:,.2f}{share}) "
+        "carry at least one such value. A line item with several values "
+        "counts towards each of them.\n\n"
+    )
+    table = []
+    for kind, value, items, cost, quantity, unit, _ in rows:
+        usage = "" if quantity is None else f"{quantity:,.2f} {unit or ''}".strip()
+        table.append((kind or "", f"`{value}`", f"{items:,}",
+                      "" if cost is None else f"{cost:,.2f}", usage))
+    body += md_table(table, ["kind", "value", "line_items", "cost_usd", "usage"])
+    distinct = rows[0][6]
+    if distinct > len(rows):
+        body += f"\n_Showing the {len(rows)} values with the highest cost out of {distinct:,}._\n"
+    return body
 
 
 def q_regional(con):
@@ -498,9 +595,11 @@ def main():
         con.execute("LOAD httpfs")
         con.execute("CREATE SECRET (TYPE s3, PROVIDER credential_chain)")
     try:
-        is_aws_cur = create_cur_table(con, parquet_glob)
+        input_columns = create_cur_table(con, parquet_glob)
     except Exception as exc:
         sys.exit(f"Failed to load Parquet data from '{parquet_glob}': {exc}")
+
+    is_aws_cur = filter.BILLING_ENTITY_COLUMN in input_columns
 
     # -----------------------------------------------------------------------
     # Run queries
@@ -666,6 +765,8 @@ def main():
         coverage_body = "- _Coverage data unavailable_\n\n"
     coverage_body += md_table(uncovered_rows, ["service", "cost_usd"])
     parts.append(section("Coverage", coverage_body))
+    parts.append(section("Coverage Gaps",
+                         coverage_gap_section(con, "coverage_gap" in input_columns)))
 
     # Regional
     parts.append(section(
