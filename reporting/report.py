@@ -51,8 +51,6 @@ REPORT_COLUMN_DEFAULTS = {
     "carbon_intensity": "DOUBLE",
     "power_usage_effectiveness": "DOUBLE",
     "coverage_gap": "VARCHAR",
-    "ConsumedQuantity": "DOUBLE",
-    "PricingUnit": "VARCHAR",
     # AWS-native, used only by the marketplace filter.
     filter.BILLING_ENTITY_COLUMN: "VARCHAR",
 }
@@ -251,15 +249,12 @@ def q_coverage_gaps(con):
 
     The column holds one or more `kind=value` entries separated by '; ', e.g.
     `instance_type=x9z.large; ember_region=aws:xx-west-1`. A line item with
-    two entries counts towards both. The usage quantity is only summed when
-    every line item for the value shares the same pricing unit."""
+    two entries counts towards both."""
     sql = f"""
         WITH gaps AS (
             SELECT
                 trim(unnest(string_split(coverage_gap, ';'))) AS gap,
-                BilledCost,
-                ConsumedQuantity,
-                PricingUnit
+                BilledCost
             FROM cur
             WHERE coalesce(coverage_gap, '') <> ''
         ),
@@ -268,7 +263,7 @@ def q_coverage_gaps(con):
                 CASE WHEN strpos(gap, '=') > 0 THEN split_part(gap, '=', 1) END AS kind,
                 CASE WHEN strpos(gap, '=') > 0 THEN substr(gap, strpos(gap, '=') + 1)
                      ELSE gap END                                            AS value,
-                BilledCost, ConsumedQuantity, PricingUnit
+                BilledCost
             FROM gaps
             WHERE gap <> ''
         )
@@ -277,10 +272,6 @@ def q_coverage_gaps(con):
             value,
             count(*)                        AS line_items,
             round(sum(BilledCost), 2)       AS cost,
-            CASE WHEN count(DISTINCT PricingUnit) = 1
-                 THEN round(sum(ConsumedQuantity), 2) END AS quantity,
-            CASE WHEN count(DISTINCT PricingUnit) = 1
-                 THEN any_value(PricingUnit) END          AS unit,
             count(*) OVER ()                AS distinct_values
         FROM parsed
         GROUP BY kind, value
@@ -311,12 +302,11 @@ def coverage_gap_section(con, has_column):
         "(https://github.com/DigitalPebble/spruce/issues) listing the values.\n\n"
     )
     table = []
-    for kind, value, items, cost, quantity, unit, _ in rows:
-        usage = "" if quantity is None else f"{quantity:,.2f} {unit or ''}".strip()
+    for kind, value, items, cost, _ in rows:
         table.append((kind or "", f"`{value}`", f"{items:,}",
-                      "" if cost is None else f"{cost:,.2f}", usage))
-    body += md_table(table, ["kind", "value", "line_items", "cost_usd", "usage"])
-    distinct = rows[0][6]
+                      "" if cost is None else f"{cost:,.2f}"))
+    body += md_table(table, ["kind", "value", "line_items", "cost_usd"])
+    distinct = rows[0][4]
     if distinct > len(rows):
         body += f"\n_Showing the {len(rows)} values with the highest cost out of {distinct:,}._\n"
     return body

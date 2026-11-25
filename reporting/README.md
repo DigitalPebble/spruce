@@ -58,7 +58,7 @@ The generated report includes:
 - Top emitters by service
 - Top instance types (derived from `SkuMeter`, where populated)
 - Coverage (% of billed costs with emissions data, top uncovered services)
-- Coverage gaps (values such as instance types or AI models that SPRUCE could not process, read from `coverage_gap`, with their line items, cost and usage)
+- Coverage gaps (values such as instance types or AI models that SPRUCE could not process, read from `coverage_gap`, with their line items and cost)
 - Regional analysis
 - Usage by day and hour (with `--heatmap`)
 - Interactive tag breakdowns
@@ -186,8 +186,6 @@ water_consumption_stress_area_l
 carbon_intensity
 power_usage_effectiveness
 coverage_gap
-ConsumedQuantity
-PricingUnit
 ```
 
 Any of these columns missing from the input is added as a typed NULL, so the
