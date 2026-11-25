@@ -1,0 +1,34 @@
+# The Amazon Athena data source, pointed at the table created by
+# reporting/athena/generate_ddl.py.
+#
+# The ${...} values are substituted by Grafana at provisioning time from the
+# environment docker-compose.yml passes in, so no credential and no bucket name
+# is written into this file.
+#
+# authType is "keys" rather than "default" because Grafana hands its backend
+# plugins a curated environment: AWS_ACCESS_KEY_ID and friends exist in the
+# Grafana container but never reach the Athena plugin process, so the SDK
+# default chain falls through to the EC2 metadata service and fails. Passing
+# them explicitly here is what makes the shell's credentials usable.
+apiVersion: 1
+datasources:
+  - name: Athena
+    # Fixed uid so dashboards/*.json can reference the data source without
+    # being edited per installation.
+    uid: spruce-athena
+    type: grafana-athena-datasource
+    isDefault: true
+    jsonData:
+      authType: keys
+      defaultRegion: ${AWS_REGION}
+      catalog: AwsDataCatalog
+      database: ${SPRUCE_ATHENA_DATABASE}
+      workgroup: ${SPRUCE_ATHENA_WORKGROUP}
+      # Output location is left unset so the workgroup's own result location
+      # is used, which is what reporting/athena/README.md sets up.
+    secureJsonData:
+      accessKey: ${AWS_ACCESS_KEY_ID}
+      secretKey: ${AWS_SECRET_ACCESS_KEY}
+      # Empty for a static key pair, populated for SSO or any other
+      # temporary credentials. docker-compose.yml always defines it.
+      sessionToken: ${AWS_SESSION_TOKEN}

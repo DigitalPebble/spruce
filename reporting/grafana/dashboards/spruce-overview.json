@@ -1,0 +1,224 @@
+{
+  "uid": "spruce-overview",
+  "title": "SPRUCE Overview",
+  "description": "Carbon, energy and water from AWS billing data enriched by SPRUCE, queried from S3 through Athena.",
+  "tags": ["spruce", "greenops"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "refresh": "",
+  "time": { "from": "now-1y", "to": "now" },
+  "timepicker": { "hidden": true },
+  "templating": {
+    "list": [
+      {
+        "name": "billing_period",
+        "label": "Billing period",
+        "type": "query",
+        "datasource": { "type": "grafana-athena-datasource", "uid": "spruce-athena" },
+        "query": {
+          "format": 1,
+          "rawSQL": "SELECT DISTINCT billing_period FROM enriched ORDER BY 1 DESC"
+        },
+        "refresh": 1,
+        "multi": true,
+        "includeAll": true,
+        "current": { "selected": true, "text": ["All"], "value": ["$__all"] },
+        "sort": 2
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Scope 2, operational (kg CO2e)",
+      "description": "Emissions from the electricity consumed. SPRUCE applies PUE, power supply efficiency and transmission losses when computing this, so dividing it by energy gives more than the grid intensity.",
+      "datasource": { "type": "grafana-athena-datasource", "uid": "spruce-athena" },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "fieldConfig": {
+        "defaults": { "unit": "none", "decimals": 0, "color": { "mode": "fixed", "fixedColor": "dark-orange" } },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "value",
+        "graphMode": "none",
+        "colorMode": "value"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": 1,
+          "connectionArgs": { "catalog": "__default", "database": "__default", "region": "__default", "resultReuseEnabled": true, "resultReuseMaxAgeInMinutes": 60 },
+          "rawSQL": "SELECT round(sum(operational_emissions_co2eq_g) / 1000.0, 1) AS kg\nFROM enriched\nWHERE billing_period IN (${billing_period:singlequote})\n  AND (bill_billing_entity IS NULL OR bill_billing_entity = 'AWS')"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Scope 3, embodied (kg CO2e)",
+      "description": "Emissions embodied in the hardware, amortised over the billed usage. Scope 1 is not estimated: nothing in billing data describes on-site fuel combustion.",
+      "datasource": { "type": "grafana-athena-datasource", "uid": "spruce-athena" },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "fieldConfig": {
+        "defaults": { "unit": "none", "decimals": 0, "color": { "mode": "fixed", "fixedColor": "orange" } },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "value",
+        "graphMode": "none",
+        "colorMode": "value"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": 1,
+          "connectionArgs": { "catalog": "__default", "database": "__default", "region": "__default", "resultReuseEnabled": true, "resultReuseMaxAgeInMinutes": 60 },
+          "rawSQL": "SELECT round(sum(embodied_emissions_co2eq_g) / 1000.0, 1) AS kg\nFROM enriched\nWHERE billing_period IN (${billing_period:singlequote})\n  AND (bill_billing_entity IS NULL OR bill_billing_entity = 'AWS')"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Energy (kWh)",
+      "description": "IT energy only. The datacentre and grid overheads are applied to the emissions figures rather than to this one.",
+      "datasource": { "type": "grafana-athena-datasource", "uid": "spruce-athena" },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "fieldConfig": {
+        "defaults": { "unit": "none", "decimals": 0, "color": { "mode": "fixed", "fixedColor": "blue" } },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "value",
+        "graphMode": "none",
+        "colorMode": "value"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": 1,
+          "connectionArgs": { "catalog": "__default", "database": "__default", "region": "__default", "resultReuseEnabled": true, "resultReuseMaxAgeInMinutes": 60 },
+          "rawSQL": "SELECT round(sum(operational_energy_kwh), 1) AS kwh\nFROM enriched\nWHERE billing_period IN (${billing_period:singlequote})\n  AND (bill_billing_entity IS NULL OR bill_billing_entity = 'AWS')"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Coverage of billed usage",
+      "description": "Share of usage charges SPRUCE could model. Published without this figure beside them, the totals above imply a completeness they do not have.",
+      "datasource": { "type": "grafana-athena-datasource", "uid": "spruce-athena" },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1,
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "orange", "value": 60 },
+              { "color": "green", "value": 80 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "value",
+        "graphMode": "none",
+        "colorMode": "value"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": 1,
+          "connectionArgs": { "catalog": "__default", "database": "__default", "region": "__default", "resultReuseEnabled": true, "resultReuseMaxAgeInMinutes": 60 },
+          "rawSQL": "SELECT round(100.0 * sum(CASE WHEN operational_emissions_co2eq_g IS NOT NULL THEN billedcost ELSE 0 END)\n             / nullif(sum(billedcost), 0), 2) AS pct\nFROM enriched\nWHERE billing_period IN (${billing_period:singlequote})\n  AND (bill_billing_entity IS NULL OR bill_billing_entity = 'AWS')\n  AND chargecategory LIKE '%Usage'"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "barchart",
+      "title": "Emissions by billing period",
+      "datasource": { "type": "grafana-athena-datasource", "uid": "spruce-athena" },
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 4 },
+      "fieldConfig": {
+        "defaults": { "unit": "none", "decimals": 0, "custom": { "lineWidth": 1, "fillOpacity": 80 } },
+        "overrides": []
+      },
+      "options": {
+        "xField": "billing_period",
+        "stacking": "normal",
+        "orientation": "auto",
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "none" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "format": 1,
+          "connectionArgs": { "catalog": "__default", "database": "__default", "region": "__default", "resultReuseEnabled": true, "resultReuseMaxAgeInMinutes": 60 },
+          "rawSQL": "SELECT billing_period,\n       round(sum(operational_emissions_co2eq_g) / 1000.0, 1) AS scope_2_kg,\n       round(sum(embodied_emissions_co2eq_g) / 1000.0, 1) AS scope_3_kg\nFROM enriched\nWHERE billing_period IN (${billing_period:singlequote})\n  AND (bill_billing_entity IS NULL OR bill_billing_entity = 'AWS')\nGROUP BY billing_period\nORDER BY billing_period"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "table",
+      "title": "Top emitting services",
+      "datasource": { "type": "grafana-athena-datasource", "uid": "spruce-athena" },
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 4 },
+      "fieldConfig": {
+        "defaults": { "custom": { "align": "auto", "cellOptions": { "type": "auto" } } },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "kg_co2e" },
+            "properties": [{ "id": "custom.cellOptions", "value": { "type": "gauge", "mode": "gradient" } }]
+          }
+        ]
+      },
+      "options": { "showHeader": true, "sortBy": [{ "displayName": "kg_co2e", "desc": true }] },
+      "targets": [
+        {
+          "refId": "A",
+          "format": 1,
+          "connectionArgs": { "catalog": "__default", "database": "__default", "region": "__default", "resultReuseEnabled": true, "resultReuseMaxAgeInMinutes": 60 },
+          "rawSQL": "SELECT servicename,\n       round(sum(operational_emissions_co2eq_g) / 1000.0, 1) AS kg_co2e,\n       round(sum(operational_energy_kwh), 1) AS kwh,\n       round(sum(billedcost), 2) AS cost\nFROM enriched\nWHERE billing_period IN (${billing_period:singlequote})\n  AND (bill_billing_entity IS NULL OR bill_billing_entity = 'AWS')\n  AND operational_emissions_co2eq_g IS NOT NULL\nGROUP BY servicename\nORDER BY kg_co2e DESC\nLIMIT 20"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "table",
+      "title": "Regions",
+      "description": "Carbon intensity and PUE are energy-weighted, not averaged. A plain average over rows weights an hour of a small instance the same as a month of a large one, which is an 8% error on a typical CUR.",
+      "datasource": { "type": "grafana-athena-datasource", "uid": "spruce-athena" },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 13 },
+      "fieldConfig": {
+        "defaults": { "custom": { "align": "auto", "cellOptions": { "type": "auto" } } },
+        "overrides": []
+      },
+      "options": { "showHeader": true, "sortBy": [{ "displayName": "kwh", "desc": true }] },
+      "targets": [
+        {
+          "refId": "A",
+          "format": 1,
+          "connectionArgs": { "catalog": "__default", "database": "__default", "region": "__default", "resultReuseEnabled": true, "resultReuseMaxAgeInMinutes": 60 },
+          "rawSQL": "SELECT region,\n       round(sum(operational_energy_kwh), 1) AS kwh,\n       round(sum(carbon_intensity * operational_energy_kwh)\n             / nullif(sum(operational_energy_kwh), 0), 1) AS grid_g_per_kwh,\n       round(sum(power_usage_effectiveness * operational_energy_kwh)\n             / nullif(sum(operational_energy_kwh), 0), 3) AS pue,\n       round(sum(operational_emissions_co2eq_g) / 1000.0, 1) AS kg_co2e,\n       round(sum(coalesce(water_cooling_l, 0) + coalesce(water_electricity_production_l, 0)), 0) AS water_l\nFROM enriched\nWHERE billing_period IN (${billing_period:singlequote})\n  AND (bill_billing_entity IS NULL OR bill_billing_entity = 'AWS')\n  AND operational_emissions_co2eq_g IS NOT NULL\nGROUP BY region\nORDER BY kwh DESC"
+        }
+      ]
+    }
+  ]
+}
