@@ -65,6 +65,7 @@ The report covers the following sections, drawn from the queries documented belo
 | Top Emitters by Service | Top 20 services by operational CO₂                                                                           |
 | Top Instance Types | Top 20 instance families by operational + embodied CO₂ (derived from `SkuMeter`, where populated)            |
 | Coverage | % of billed costs that have emissions data; top 20 uncovered services by cost                                |
+| Coverage Gaps | Values SPRUCE could not process in the services it models (instance types, AI models, regions, storage and transfer types), from the `coverage_gap` column, with line items and cost; top 30 by cost |
 | Regional Analysis | CO₂, energy, carbon intensity, water, PUE, and gCO₂/$ per region                                             |
 | Usage by Day and Hour | With `--heatmap`: average energy per hour for each weekday and hour, and office hours compared with weekday nights and weekends |
 | Tag Breakdown | Interactive: emissions split by any resource tag present in the data                                         |
