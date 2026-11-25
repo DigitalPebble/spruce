@@ -306,8 +306,9 @@ def coverage_gap_section(con, has_column):
         "regions, storage and transfer types) but could not process, so the "
         "line items carrying them have incomplete or no estimates. "
         f"**{line_items:,}** usage line items (${gap_cost:,.2f}{share}) "
-        "carry at least one such value. A line item with several values "
-        "counts towards each of them.\n\n"
+        "carry at least one such value. If you would like SPRUCE to cover "
+        "any of them, please [open an issue on GitHub]"
+        "(https://github.com/DigitalPebble/spruce/issues) listing the values.\n\n"
     )
     table = []
     for kind, value, items, cost, quantity, unit, _ in rows:
