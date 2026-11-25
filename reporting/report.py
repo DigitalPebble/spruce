@@ -23,6 +23,7 @@ except ImportError:
 
 import equivalences
 import filter
+import heatmap
 import provenance
 
 
@@ -39,6 +40,8 @@ REPORT_COLUMN_DEFAULTS = {
     "BilledCost": "DOUBLE",
     "ListCost": "DOUBLE",
     "SkuMeter": "VARCHAR",
+    "ChargePeriodStart": "VARCHAR",
+    "ChargePeriodEnd": "VARCHAR",
     "operational_energy_kwh": "DOUBLE",
     "operational_emissions_co2eq_g": "DOUBLE",
     "embodied_emissions_co2eq_g": "DOUBLE",
@@ -423,7 +426,13 @@ def _inject_logo(html):
     )
 
 
-_LANDSCAPE_SECTIONS = {"Top Emitters by Service", "Regional Analysis"}
+HEATMAP_TITLE = "Usage by Day and Hour"
+
+# Paragraph standing in for the heatmap table when the report is converted to
+# HTML, replaced afterwards by the coloured version of the grid.
+HEATMAP_PLACEHOLDER = "SPRUCE_HEATMAP_GRID"
+
+_LANDSCAPE_SECTIONS = {"Top Emitters by Service", "Regional Analysis", HEATMAP_TITLE}
 
 
 def _wrap_landscape_sections(html):
@@ -461,7 +470,17 @@ def main():
                         help="Output file. Format is inferred from suffix: .md (Markdown), .html (HTML), .pdf (PDF via weasyprint). Defaults to Markdown on stdout.")
     parser.add_argument("-t", "--top-tags", type=int, default=10, metavar="N",
                         help="Maximum number of resource tags to offer for breakdown (default: 10). Use 0 or negative to skip tag selection entirely.")
+    parser.add_argument("--heatmap", nargs="?", const="UTC", default=None, metavar="TIMEZONE",
+                        help="Add a day of week x hour of day heatmap of energy use, in the given IANA timezone "
+                             "(e.g. Europe/Paris, default UTC). Needs a cost report exported with hourly granularity.")
     args = parser.parse_args()
+
+    if args.heatmap:
+        try:
+            from zoneinfo import ZoneInfo
+            ZoneInfo(args.heatmap)
+        except Exception:
+            sys.exit(f"Unknown timezone '{args.heatmap}'; use an IANA name such as Europe/Paris.")
 
     # Normalise input path to a glob DuckDB can use
     inp = args.input.rstrip("/")
@@ -494,6 +513,7 @@ def main():
     coverage_pct, covered_cost, total_cost = q_coverage(con)
     uncovered_rows = q_uncovered_services(con)
     regional_rows = q_regional(con)
+    hourly_profile = heatmap.query(con, args.heatmap) if args.heatmap else None
 
     # -----------------------------------------------------------------------
     # Interactive tag breakdown
@@ -656,6 +676,16 @@ def main():
         ])
     ))
 
+    # Day of week x hour of day heatmap (opt-in)
+    heatmap_md = None
+    if hourly_profile is not None:
+        if hourly_profile.first_hour is None:
+            heatmap_body = heatmap.no_data_note(hourly_profile)
+        else:
+            heatmap_md = heatmap.markdown_grid(hourly_profile)
+            heatmap_body = heatmap.summary(hourly_profile, args.heatmap) + "\n" + heatmap_md
+        parts.append(section(HEATMAP_TITLE, heatmap_body))
+
     # Tag breakdowns
     if not available_tags:
         parts.append(section("Tag Breakdown", "_No consistent resource tags found in the data._\n"))
@@ -687,7 +717,13 @@ def main():
             import markdown as md_lib
         except ImportError:
             sys.exit("HTML/PDF output requires: pip install markdown weasyprint")
-        html_body = md_lib.markdown(report, extensions=["tables", "nl2br"])
+        md_source = report
+        if heatmap_md:
+            md_source = md_source.replace(heatmap_md, f"{HEATMAP_PLACEHOLDER}\n", 1)
+        html_body = md_lib.markdown(md_source, extensions=["tables", "nl2br"])
+        if heatmap_md:
+            html_body = html_body.replace(
+                f"<p>{HEATMAP_PLACEHOLDER}</p>", heatmap.html_grid(hourly_profile), 1)
         html_body = _inject_logo(html_body)
         html_body = _wrap_landscape_sections(html_body)
         styled = f"""<!DOCTYPE html><html><head><meta charset="utf-8">
@@ -701,6 +737,7 @@ def main():
   th {{ background: #f0f0f0; }}
   em {{ color: #555; }}
   .landscape-section {{ page: landscape-page; }}
+  {heatmap.html_style() if heatmap_md else ""}
 </style></head><body>{html_body}</body></html>"""
         if suffix == "pdf":
             try:
